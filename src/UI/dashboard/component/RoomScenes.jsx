@@ -1,78 +1,26 @@
-import { useState } from 'react';
-
-/* ─── Child Component: Individual Scene Toggle ─── */
-function SceneItem({ icon, iconBg, name, defaultOn = true }) {
-  const [isOn, setIsOn] = useState(defaultOn);
-
-  return (
-    <div className="bg-[#1A1A1A] rounded-2xl px-4 py-3 flex justify-between items-center">
-      <div className="flex items-center gap-3">
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${iconBg}`}
-        >
-          {icon}
-        </div>
-        <span className="font-medium text-sm">{name}</span>
-      </div>
-
-      {/* Toggle Switch */}
-      <button
-        onClick={() => setIsOn(!isOn)}
-        className={`w-12 h-7 rounded-full relative transition-colors duration-300 shrink-0 ${
-          isOn ? 'bg-amber-500' : 'bg-gray-600'
-        }`}
-      >
-        <div
-          className={`w-5.5 h-5.5 bg-white rounded-full absolute top-[3px] shadow-md transition-transform duration-300 ${
-            isOn ? 'translate-x-[22px]' : 'translate-x-[3px]'
-          }`}
-        />
-      </button>
-    </div>
-  );
-}
-
-/* ─── Parent Component: Room Scenes ─── */
-export default function RoomScenes() {
-  // Dummy data — replace with API data later
-  const scenes = [
-    {
-      id: 1,
-      icon: '📍',
-      iconBg: 'bg-emerald-900/60',
-      name: 'Master Scene',
-      defaultOn: true,
-    },
-    {
-      id: 2,
-      icon: '🌙',
-      iconBg: 'bg-orange-900/60',
-      name: 'Night Scene',
-      defaultOn: true,
-    },
-    {
-      id: 3,
-      icon: '🎬',
-      iconBg: 'bg-purple-900/60',
-      name: 'Movie Scene',
-      defaultOn: true,
-    },
+import { useState } from "react";
+export default function RoomScene() {
+  const scenesData = [
+    { id: 1, icon: '📍', colorClass: 'bg-emerald-900/60', name: 'Master Scene' },
+    { id: 2, icon: '🌙', colorClass: 'bg-orange-900/60', name: 'Night Scene' },
+    { id: 3, icon: '🎬', colorClass: 'bg-purple-900/60', name: 'Movie Scene' },
   ];
-
+  const [sceneToggles, setSceneToggles] = useState({ 1: true, 2: true, 3: true });
+  const toggleScene = (id) => setSceneToggles((prev) => ({ ...prev, [id]: !prev[id] }));
   return (
     <div>
-      <h2 className="text-lg font-bold mb-3">
-        Room <span className="italic text-amber-400 font-semibold">Scenes</span>
-      </h2>
-      <div className="space-y-3">
-        {scenes.map((scene) => (
-          <SceneItem
-            key={scene.id}
-            icon={scene.icon}
-            iconBg={scene.iconBg}
-            name={scene.name}
-            defaultOn={scene.defaultOn}
-          />
+      <h2 className="text-lg font-bold mb-3 m-0">Room <span className="italic text-amber-500 font-semibold">Scenes</span></h2>
+      <div className="flex flex-col gap-3">
+        {scenesData.map((s) => (
+          <div className="bg-[#1a1a1a] rounded-2xl py-3 px-4 flex justify-between items-center" key={s.id}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${s.colorClass}`}>{s.icon}</div>
+              <span className="text-sm font-medium">{s.name}</span>
+            </div>
+            <button className={`w-12 h-7 rounded-full border-none relative cursor-pointer transition-colors duration-300 shrink-0 p-0 ${sceneToggles[s.id] ? 'bg-amber-500' : 'bg-gray-600'}`} onClick={() => toggleScene(s.id)}>
+              <div className={`w-[22px] h-[22px] bg-white rounded-full absolute top-[3px] transition-transform duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.3)] ${sceneToggles[s.id] ? 'translate-x-[22px]' : 'translate-x-[3px]'}`} />
+            </button>
+          </div>
         ))}
       </div>
     </div>
