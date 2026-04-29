@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 function ActionIcon({ type }) {
   const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
@@ -15,9 +16,10 @@ function ActionIcon({ type }) {
 }
 
 export default function QuickActions() {
+  const navigate = useNavigate();
   const actionsData = [
     { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'bg-gradient-to-r from-amber-500 to-yellow-300' },
-    { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true },
+    { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true, route: '/lights' },
     { id: 3, icon: 'snow', title: 'Air Conditioner', accent: 'bg-gradient-to-r from-blue-500 to-sky-400' },
     { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400' },
   ];
@@ -27,7 +29,7 @@ export default function QuickActions() {
       <h2 className="text-lg font-bold mb-3 m-0">Quick <span className="italic text-amber-500 font-semibold">Actions</span></h2>
       <div className="grid grid-cols-2 gap-3">
         {actionsData.map((a) => (
-          <div className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col justify-between min-h-[140px] border border-[rgba(55,55,55,0.5)] relative overflow-hidden" key={a.id}>
+          <div className={`bg-[#1a1a1a] rounded-2xl p-4 flex flex-col justify-between min-h-[140px] border border-[rgba(55,55,55,0.5)] relative overflow-hidden ${a.route ? 'cursor-pointer' : ''}`} key={a.id} onClick={() => a.route && navigate(a.route)}>
             <div className={`absolute bottom-0 left-0 right-0 h-[3px] ${a.accent}`} />
             <div className="flex justify-between items-start">
               <ActionIcon type={a.icon} />
