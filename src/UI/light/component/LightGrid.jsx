@@ -1,6 +1,5 @@
-import { useState } from "react";
-import lightOff from '../../assets/images/light_off.png';
-import lightOn from '../../assets/images/light_on.png';
+import lightOff from '../../../assets/images/light_off.png';
+import lightOn from '../../../assets/images/light_on.png';
 
 export default function LightGrid({ lightsData, lights, toggleLight }) {
     return (
