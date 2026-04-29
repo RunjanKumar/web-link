@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import './dashboard.css';
 
 // ── Dummy Data (replace with API later) ──
 const userData = { name: 'James Miller', room: 'Room 208', tagline: 'smart management' };
 
 const scenesData = [
-  { id: 1, icon: '📍', colorClass: 'scene-icon--green', name: 'Master Scene' },
-  { id: 2, icon: '🌙', colorClass: 'scene-icon--orange', name: 'Night Scene' },
-  { id: 3, icon: '🎬', colorClass: 'scene-icon--purple', name: 'Movie Scene' },
+  { id: 1, icon: '📍', colorClass: 'bg-emerald-900/60', name: 'Master Scene' },
+  { id: 2, icon: '🌙', colorClass: 'bg-orange-900/60', name: 'Night Scene' },
+  { id: 3, icon: '🎬', colorClass: 'bg-purple-900/60', name: 'Movie Scene' },
 ];
 
 const callsData = [
@@ -17,10 +16,10 @@ const callsData = [
 ];
 
 const actionsData = [
-  { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'amber' },
-  { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'green', hasSwitch: true },
-  { id: 3, icon: 'snow', title: 'Air Conditioner', accent: 'blue' },
-  { id: 4, icon: 'food', title: 'Food Order', accent: 'orange' },
+  { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'bg-gradient-to-r from-amber-500 to-yellow-300' },
+  { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true },
+  { id: 3, icon: 'snow', title: 'Air Conditioner', accent: 'bg-gradient-to-r from-blue-500 to-sky-400' },
+  { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400' },
 ];
 
 const navItems = [
@@ -69,19 +68,19 @@ export default function Dashboard() {
   const toggleScene = (id) => setSceneToggles((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-content">
+    <div className="min-h-screen bg-[#0d0d0d] text-white relative">
+      <div className="pt-14 px-5 pb-28 flex flex-col gap-6">
 
         {/* ── User Profile ── */}
-        <div className="user-profile">
+        <div className="flex justify-between items-start">
           <div>
-            <p className="user-profile__greeting">Welcome,</p>
-            <h1 className="user-profile__name">
-              {userData.name} <span className="user-profile__wave">👋</span>
+            <p className="text-sm text-gray-400 m-0">Welcome,</p>
+            <h1 className="text-[1.625rem] font-bold mt-1 m-0">
+              {userData.name} <span className="inline-block animate-wave origin-[70%_70%]">👋</span>
             </h1>
-            <p className="user-profile__room">{userData.room}, {userData.tagline}</p>
+            <p className="text-xs text-gray-500 mt-1 m-0">{userData.room}, {userData.tagline}</p>
           </div>
-          <button className="menu-btn">
+          <button className="w-10 h-10 rounded-full border border-gray-700 bg-transparent flex items-center justify-center cursor-pointer shrink-0 hover:bg-white/5">
             <svg width="4" height="18" viewBox="0 0 4 18" fill="none">
               <circle cx="2" cy="2" r="1.8" fill="white" />
               <circle cx="2" cy="9" r="1.8" fill="white" />
@@ -91,12 +90,12 @@ export default function Dashboard() {
         </div>
 
         {/* ── Door Control ── */}
-        <div className="door-control">
+        <div className="bg-[#1a1a1a] rounded-2xl px-5 py-4 flex justify-between items-center">
           <div>
-            <p className="door-control__title">{doorClosed ? 'Doors are closed' : 'Doors are open'}</p>
-            <p className="door-control__sub">Switch to open or close the doors</p>
+            <p className="text-sm font-semibold m-0">{doorClosed ? 'Doors are closed' : 'Doors are open'}</p>
+            <p className="text-xs text-gray-500 mt-1 m-0">Switch to open or close the doors</p>
           </div>
-          <button className={`door-btn ${doorClosed ? 'door-btn--closed' : 'door-btn--open'}`} onClick={() => setDoorClosed(!doorClosed)}>
+          <button className={`w-11 h-11 rounded-full border-none flex items-center justify-center cursor-pointer text-white transition-colors duration-300 ${doorClosed ? 'bg-amber-500' : 'bg-gray-600'}`} onClick={() => setDoorClosed(!doorClosed)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               {doorClosed
                 ? <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>
@@ -108,16 +107,16 @@ export default function Dashboard() {
 
         {/* ── Room Scenes ── */}
         <div>
-          <h2 className="section-title">Room <span>Scenes</span></h2>
-          <div className="scenes-list">
+          <h2 className="text-lg font-bold mb-3 m-0">Room <span className="italic text-amber-500 font-semibold">Scenes</span></h2>
+          <div className="flex flex-col gap-3">
             {scenesData.map((s) => (
-              <div className="scene-item" key={s.id}>
-                <div className="scene-item__left">
-                  <div className={`scene-icon ${s.colorClass}`}>{s.icon}</div>
-                  <span className="scene-item__name">{s.name}</span>
+              <div className="bg-[#1a1a1a] rounded-2xl py-3 px-4 flex justify-between items-center" key={s.id}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${s.colorClass}`}>{s.icon}</div>
+                  <span className="text-sm font-medium">{s.name}</span>
                 </div>
-                <button className={`toggle ${sceneToggles[s.id] ? 'toggle--on' : 'toggle--off'}`} onClick={() => toggleScene(s.id)}>
-                  <div className={`toggle__thumb ${sceneToggles[s.id] ? 'toggle__thumb--on' : 'toggle__thumb--off'}`} />
+                <button className={`w-12 h-7 rounded-full border-none relative cursor-pointer transition-colors duration-300 shrink-0 p-0 ${sceneToggles[s.id] ? 'bg-amber-500' : 'bg-gray-600'}`} onClick={() => toggleScene(s.id)}>
+                  <div className={`w-[22px] h-[22px] bg-white rounded-full absolute top-[3px] transition-transform duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.3)] ${sceneToggles[s.id] ? 'translate-x-[22px]' : 'translate-x-[3px]'}`} />
                 </button>
               </div>
             ))}
@@ -126,13 +125,13 @@ export default function Dashboard() {
 
         {/* ── Quick Calls ── */}
         <div>
-          <h2 className="section-title">Quick <span>Calls</span></h2>
-          <div className="calls-grid">
+          <h2 className="text-lg font-bold mb-3 m-0">Quick <span className="italic text-amber-500 font-semibold">Calls</span></h2>
+          <div className="grid grid-cols-3 gap-3">
             {callsData.map((c) => (
-              <div className="call-card" key={c.id}>
-                <div className="call-card__icon">{c.icon}</div>
-                <p className="call-card__title">{c.title}</p>
-                <p className="call-card__desc">{c.desc}</p>
+              <div className="bg-[#1a1a1a] rounded-2xl py-4 px-3 flex flex-col items-center text-center border border-[rgba(55,55,55,0.5)] cursor-pointer transition-colors duration-200 hover:bg-[#222]" key={c.id}>
+                <div className="text-[1.75rem] mb-2">{c.icon}</div>
+                <p className="text-xs font-semibold m-0">{c.title}</p>
+                <p className="text-[0.625rem] text-gray-500 mt-1 m-0 leading-tight">{c.desc}</p>
               </div>
             ))}
           </div>
@@ -140,28 +139,28 @@ export default function Dashboard() {
 
         {/* ── Quick Actions ── */}
         <div>
-          <h2 className="section-title">Quick <span>Actions</span></h2>
-          <div className="actions-grid">
+          <h2 className="text-lg font-bold mb-3 m-0">Quick <span className="italic text-amber-500 font-semibold">Actions</span></h2>
+          <div className="grid grid-cols-2 gap-3">
             {actionsData.map((a) => (
-              <div className="action-card" key={a.id}>
-                <div className={`action-card__accent action-card__accent--${a.accent}`} />
-                <div className="action-card__header">
+              <div className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col justify-between min-h-[140px] border border-[rgba(55,55,55,0.5)] relative overflow-hidden" key={a.id}>
+                <div className={`absolute bottom-0 left-0 right-0 h-[3px] ${a.accent}`} />
+                <div className="flex justify-between items-start">
                   <ActionIcon type={a.icon} />
-                  <button className="arrow-btn">
+                  <button className="w-7 h-7 rounded-full border border-gray-600 bg-transparent flex items-center justify-center text-white cursor-pointer">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M3.5 8.5L8.5 3.5M8.5 3.5H4M8.5 3.5V8" />
                     </svg>
                   </button>
                 </div>
-                <div className="action-card__body">
-                  <p className="action-card__title">{a.title}</p>
-                  {a.sub && <p className="action-card__sub">{a.sub}</p>}
+                <div className="mt-auto pt-3">
+                  <p className="text-sm font-bold m-0">{a.title}</p>
+                  {a.sub && <p className="text-[0.625rem] text-gray-500 mt-1 m-0">{a.sub}</p>}
                   {a.hasSwitch && (
-                    <div className="action-card__switch">
-                      <button className={`toggle toggle--sm ${masterSwitch ? 'toggle--on' : 'toggle--off'}`} onClick={() => setMasterSwitch(!masterSwitch)}>
-                        <div className={`toggle__thumb ${masterSwitch ? 'toggle__thumb--on' : 'toggle__thumb--off'}`} />
+                    <div className="flex items-center gap-2 mt-2">
+                      <button className={`w-10 h-[22px] rounded-full border-none relative cursor-pointer transition-colors duration-300 p-0 ${masterSwitch ? 'bg-amber-500' : 'bg-gray-600'}`} onClick={() => setMasterSwitch(!masterSwitch)}>
+                        <div className={`w-4 h-4 bg-white rounded-full absolute top-[3px] transition-transform duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.3)] ${masterSwitch ? 'translate-x-[20px]' : 'translate-x-[2px]'}`} />
                       </button>
-                      <span className="action-card__switch-label">Master Switch</span>
+                      <span className="text-[0.625rem] text-gray-400">Master Switch</span>
                     </div>
                   )}
                 </div>
@@ -172,13 +171,13 @@ export default function Dashboard() {
       </div>
 
       {/* ── Bottom Navigation ── */}
-      <nav className="bottom-nav">
-        <ul className="bottom-nav__list">
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#111111]/95 backdrop-blur-xl border-t border-[rgba(55,55,55,0.6)] py-2 px-4 z-50">
+        <ul className="flex justify-around items-center max-w-[28rem] mx-auto p-0 m-0 list-none">
           {navItems.map((n) => (
             <li key={n.id}>
-              <button className={`nav-btn ${activeNav === n.id ? 'nav-btn--active' : ''}`} onClick={() => setActiveNav(n.id)}>
+              <button className={`flex flex-col items-center gap-1 py-1 px-3 bg-transparent border-none cursor-pointer transition-colors duration-200 ${activeNav === n.id ? 'text-amber-500' : 'text-gray-500'}`} onClick={() => setActiveNav(n.id)}>
                 <NavIcon id={n.id} active={activeNav === n.id} />
-                <span className="nav-btn__label">{n.label}</span>
+                <span className="text-[0.625rem] font-medium">{n.label}</span>
               </button>
             </li>
           ))}
