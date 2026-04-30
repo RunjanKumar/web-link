@@ -1,6 +1,14 @@
+import ThreeDotMenu from '../../../globalComponents/ThreeDotMenu';
+
 export default function UserProfile() {
   // Dummy data — replace with API data later
   const userData = { name: 'James Miller', room: 'Room 208', tagline: 'smart management' };
+
+  // Menu items for three dot menu
+  const menuItems = [
+    { label: 'Share feedback', onClick: () => { /* TODO: Add share feedback logic */ } },
+    { label: 'Logout out', onClick: () => { /* TODO: Add logout logic */ } },
+  ];
 
   return (
     <div className="flex justify-between items-start">
@@ -11,13 +19,9 @@ export default function UserProfile() {
         </h1>
         <p className="text-xs text-gray-500 mt-1 m-0">{userData.room}, {userData.tagline}</p>
       </div>
-      <button className="w-10 h-10 rounded-full border border-gray-700 bg-transparent flex items-center justify-center cursor-pointer shrink-0 hover:bg-white/5">
-        <svg width="4" height="18" viewBox="0 0 4 18" fill="none">
-          <circle cx="2" cy="2" r="1.8" fill="white" />
-          <circle cx="2" cy="9" r="1.8" fill="white" />
-          <circle cx="2" cy="16" r="1.8" fill="white" />
-        </svg>
-      </button>
+
+      {/* ── Three Dot Menu ── */}
+      <ThreeDotMenu items={menuItems} />
     </div>
   );
 }
