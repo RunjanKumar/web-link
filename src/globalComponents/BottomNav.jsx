@@ -23,7 +23,7 @@ export default function BottomNav() {
         { id: 'reception', label: 'Reception', route: '/reception' },
         { id: 'food', label: 'Food', route: '/food' },
         { id: 'facilities', label: 'Facilities' },
-        { id: 'services', label: 'Services' },
+        { id: 'services', label: 'Services', route: '/services' },
     ];
     return (
         <nav className="fixed bottom-0 left-0 right-0 bg-[#111111]/95 backdrop-blur-xl border-t border-[rgba(55,55,55,0.6)] py-2 px-4 z-50">

@@ -14,9 +14,14 @@ export default {
           '60%': { transform: 'rotate(14deg)' },
           '80%': { transform: 'rotate(-4deg)' },
         },
+        slideDown: {
+          '0%': { transform: 'translateY(-20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       },
       animation: {
         wave: 'wave 2s ease-in-out infinite',
+        slideDown: 'slideDown 0.3s ease-out',
       },
     },
   },
