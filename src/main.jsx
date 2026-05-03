@@ -13,6 +13,10 @@ import ServiceRequest from './UI/service/ServiceRequest.jsx'
 import ReviewRequest from './UI/service/ReviewRequest.jsx'
 import AddDetails from './UI/service/AddDetails.jsx'
 import PendingRequest from './UI/service/PendingRequest.jsx'
+import Facilities from './UI/facility/Facilities.jsx'
+import FacilityDetail from './UI/facility/FacilityDetail.jsx'
+import ReserveTable from './UI/facility/ReserveTable.jsx'
+import UpcomingEvents from './UI/facility/UpcomingEvents.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -29,6 +33,10 @@ createRoot(document.getElementById('root')).render(
         <Route path="/services/review" element={<ReviewRequest />} />
         <Route path="/services/add-details" element={<AddDetails />} />
         <Route path="/services/pending" element={<PendingRequest />} />
+        <Route path="/facilities" element={<Facilities />} />
+        <Route path="/facilities/detail" element={<FacilityDetail />} />
+        <Route path="/facilities/reserve" element={<ReserveTable />} />
+        <Route path="/facilities/upcoming-events" element={<UpcomingEvents />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

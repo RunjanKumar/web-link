@@ -22,7 +22,7 @@ export default function BottomNav() {
         { id: 'home', label: 'Home', route: '/dashboard' },
         { id: 'reception', label: 'Reception', route: '/reception' },
         { id: 'food', label: 'Food', route: '/food' },
-        { id: 'facilities', label: 'Facilities' },
+        { id: 'facilities', label: 'Facilities', route: '/facilities' },
         { id: 'services', label: 'Services', route: '/services' },
     ];
     return (
