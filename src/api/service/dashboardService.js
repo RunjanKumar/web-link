@@ -13,4 +13,14 @@ export async function getCustomerProfile() {
     return response.data;
 }
 
-
+/**
+ * Fetches all room devices (lights, fans, scene buttons, etc.).
+ * GET /api/rooms/devices
+ * Authorization: <token>
+ *
+ * @returns {Promise<Object>} The room devices data from the backend.
+ */
+export async function getRoomDevices() {
+    const response = await apiClient.get(ENDPOINTS.ROOM_DEVICES);
+    return response.data;
+}

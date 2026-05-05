@@ -47,7 +47,7 @@ export default function QuickActions() {
                   <button className={`w-10 h-[22px] rounded-full border-none relative cursor-pointer transition-colors duration-300 p-0 ${masterSwitch ? 'bg-amber-500' : 'bg-gray-600'}`} onClick={() => setMasterSwitch(!masterSwitch)}>
                     <div className={`w-4 h-4 bg-white rounded-full absolute top-[3px] transition-transform duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.3)] ${masterSwitch ? 'translate-x-[20px]' : 'translate-x-[2px]'}`} />
                   </button>
-                  <span className="text-[0.625rem] text-gray-400">Master Switch</span>
+                  <span className="text-[0.625rem] text-gray-400">Master Scene</span>
                 </div>
               )}
             </div>

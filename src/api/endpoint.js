@@ -6,7 +6,8 @@ export const ENDPOINTS = {
     // ── Auth / Profile ──
     CUSTOMER_PROFILE: '/v1/customer/login/profile',
 
-    // ── Room Controls (implement later) ──
+    // ── Room Controls ──
+    ROOM_DEVICES: '/api/rooms/devices',
     ROOM_LIGHTS: '/v1/room/lights',
     ROOM_AC: '/v1/room/ac',
     ROOM_DOOR: '/v1/room/door',
