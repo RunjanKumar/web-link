@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
+import { ToastProvider } from './globalComponents/Toast'
 import App from './App.jsx'
 import Dashboard from './UI/dashboard/Dashboard.jsx'
 import LightControl from './UI/light/light.jsx'
@@ -22,6 +23,7 @@ import UpcomingEvents from './UI/facility/UpcomingEvents.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
+      <ToastProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<App />} />
@@ -41,6 +43,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/facilities/upcoming-events" element={<UpcomingEvents />} />
         </Routes>
       </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   </StrictMode>,
 )

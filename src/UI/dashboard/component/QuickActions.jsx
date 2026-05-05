@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
 function ActionIcon({ type }) {
@@ -15,7 +14,14 @@ function ActionIcon({ type }) {
   }
 }
 
-export default function QuickActions() {
+/**
+ * QuickActions component
+ *
+ * Props:
+ *   masterSwitch (boolean) — current Master Scene state (synced from RoomScene)
+ *   onToggleMaster () — callback to toggle Master Scene (calls RoomScene's toggleMasterScene)
+ */
+export default function QuickActions({ masterSwitch, onToggleMaster }) {
   const navigate = useNavigate();
   const actionsData = [
     { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'bg-gradient-to-r from-amber-500 to-yellow-300' },
@@ -23,7 +29,7 @@ export default function QuickActions() {
     { id: 3, icon: 'snow', title: 'Air Conditioner', accent: 'bg-gradient-to-r from-blue-500 to-sky-400', route: '/ac' },
     { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400' },
   ];
-  const [masterSwitch, setMasterSwitch] = useState(true);
+
   return (
     <div>
       <h2 className="text-lg font-bold mb-3 m-0">Quick <span className="italic text-amber-500 font-semibold">Actions</span></h2>
@@ -44,7 +50,14 @@ export default function QuickActions() {
               {a.sub && <p className="text-[0.625rem] text-gray-500 mt-1 m-0">{a.sub}</p>}
               {a.hasSwitch && (
                 <div className="flex items-center gap-2 mt-2">
-                  <button className={`w-10 h-[22px] rounded-full border-none relative cursor-pointer transition-colors duration-300 p-0 ${masterSwitch ? 'bg-amber-500' : 'bg-gray-600'}`} onClick={() => setMasterSwitch(!masterSwitch)}>
+                  <button
+                    className={`w-10 h-[22px] rounded-full border-none relative cursor-pointer transition-colors duration-300 p-0 ${masterSwitch ? 'bg-amber-500' : 'bg-gray-600'}`}
+                    onClick={(e) => {
+                      // Stop propagation so clicking the toggle doesn't also navigate to /lights
+                      e.stopPropagation();
+                      onToggleMaster?.();
+                    }}
+                  >
                     <div className={`w-4 h-4 bg-white rounded-full absolute top-[3px] transition-transform duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.3)] ${masterSwitch ? 'translate-x-[20px]' : 'translate-x-[2px]'}`} />
                   </button>
                   <span className="text-[0.625rem] text-gray-400">Master Scene</span>

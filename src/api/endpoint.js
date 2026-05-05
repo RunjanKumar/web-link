@@ -8,6 +8,7 @@ export const ENDPOINTS = {
 
     // ── Room Controls ──
     ROOM_DEVICES: '/api/rooms/devices',
+    DEVICE_EXEC: '/api/rooms/device/exec',
     ROOM_LIGHTS: '/v1/room/lights',
     ROOM_AC: '/v1/room/ac',
     ROOM_DOOR: '/v1/room/door',

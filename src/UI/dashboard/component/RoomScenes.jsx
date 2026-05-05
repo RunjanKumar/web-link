@@ -1,5 +1,23 @@
-import { useState, useEffect } from "react";
-import { getRoomDevices } from '../../../api/service/dashboardService';
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { getRoomDevices, execDevice } from '../../../api/service/dashboardService';
+import { useToast } from '../../../globalComponents/Toast';
+
+// ── WiFi Offline Icon (crossed-out wifi) ──
+function WifiOfflineIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      className="shrink-0">
+      <line x1="1" y1="1" x2="23" y2="23" />
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+      <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+      <line x1="12" y1="20" x2="12.01" y2="20" />
+    </svg>
+  );
+}
 
 // Scene icon/color mapping based on friendlyname
 const sceneStyles = {
@@ -10,24 +28,40 @@ const sceneStyles = {
 
 const defaultStyle = { icon: '🎭', colorClass: 'bg-blue-900/60' };
 
-export default function RoomScene() {
+/**
+ * RoomScene component — renders all scene buttons (Master Scene, DND, etc.)
+ *
+ * Props:
+ *   onMasterSceneChange(isOn) — called whenever Master Scene state changes,
+ *                                so the parent can keep QuickActions in sync.
+ *
+ * Ref methods (via forwardRef + useImperativeHandle):
+ *   toggleMasterScene() — allows parent to trigger Master Scene toggle
+ *                          (called when QuickActions Master Scene is clicked)
+ */
+const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
   const [scenesData, setScenesData] = useState([]);
   const [sceneToggles, setSceneToggles] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [masterSceneId, setMasterSceneId] = useState(null);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchScenes() {
       try {
+        console.log("🚀 [RoomScene] Fetching devices...");
         setIsLoading(true);
         const response = await getRoomDevices();
-
+        console.log("📦 [RoomScene] API response:", response);
         if (!cancelled && response?.data) {
-          // Filter: only devices where isSceneButton is true
+          console.log("📊 [RoomScene] Total devices:", response.data.length);
           const sceneDevices = response.data.filter(
             (device) => device.isSceneButton === true
           );
+          console.log("🎭 [RoomScene] Scene devices:", sceneDevices);
           setScenesData(sceneDevices);
 
           // Build initial toggle state from device status
@@ -36,18 +70,26 @@ export default function RoomScene() {
             try {
               const parsed = JSON.parse(device.status);
               initialToggles[device._id] = parsed?.state === 'ON';
-            } catch {
+            } catch (err) {
+              console.warn(`⚠️ Failed to parse status for ${device._id}`, err);
               initialToggles[device._id] = false;
             }
           });
           setSceneToggles(initialToggles);
+
+          // Find the Master Scene device and notify parent of its initial state
+          const masterDevice = sceneDevices.find((d) => d.isMasterScene === true);
+          if (masterDevice) {
+            setMasterSceneId(masterDevice._id);
+            onMasterSceneChange?.(initialToggles[masterDevice._id] ?? false);
+          }
         }
       } catch (err) {
         console.error('Scene devices fetch error:', err);
+        const backendMsg = err?.response?.data?.msg;
+        if (backendMsg) showToast(backendMsg, 'error');
       } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+        if (!cancelled) setIsLoading(false);
       }
     }
 
@@ -55,7 +97,47 @@ export default function RoomScene() {
     return () => { cancelled = true; };
   }, []);
 
-  const toggleScene = (id) => setSceneToggles((prev) => ({ ...prev, [id]: !prev[id] }));
+  // ── Toggle any scene — ONE API call with the scene's own channelid ──
+  const toggleScene = async (id) => {
+    const device = scenesData.find((d) => d._id === id);
+    const wasOn = sceneToggles[id];
+    const newAction = wasOn ? 'TurnOff' : 'TurnOn';
+
+    console.log(`🔘 Toggling scene: ${device?.friendlyname} → ${newAction}`);
+
+    // Optimistic UI update
+    setSceneToggles((prev) => ({ ...prev, [id]: !prev[id] }));
+
+    try {
+      await execDevice({
+        channelid: device?.channelid,
+        action: newAction,
+      });
+      console.log(`✅ Scene ${newAction} succeeded for ${device?.friendlyname}`);
+
+      // If this was the Master Scene, notify parent so QuickActions stays in sync
+      if (device?.isMasterScene) {
+        onMasterSceneChange?.(!wasOn);
+      }
+    } catch (err) {
+      console.error(`❌ Scene exec failed for ${device?.friendlyname}:`, err);
+      const backendMsg = err?.response?.data?.msg;
+      if (backendMsg) showToast(backendMsg, 'error');
+      // Rollback on failure
+      setSceneToggles((prev) => ({ ...prev, [id]: wasOn }));
+    }
+  };
+
+  // ── Expose toggleMasterScene() to parent via ref ──
+  // This allows QuickActions to trigger the Master Scene toggle
+  // through Dashboard, keeping both toggles in sync.
+  useImperativeHandle(ref, () => ({
+    toggleMasterScene: () => {
+      if (masterSceneId) {
+        toggleScene(masterSceneId);
+      }
+    },
+  }));
 
   // Don't render the section if there are no scene buttons
   if (!isLoading && scenesData.length === 0) return null;
@@ -76,11 +158,20 @@ export default function RoomScene() {
         <div className="flex flex-col gap-3">
           {scenesData.map((device) => {
             const style = sceneStyles[device.friendlyname] || defaultStyle;
+            const isOffline = device.onlinestate === 0;
             return (
               <div className="bg-[#1a1a1a] rounded-2xl py-3 px-4 flex justify-between items-center" key={device._id}>
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${style.colorClass}`}>{style.icon}</div>
-                  <span className="text-sm font-medium">{device.friendlyname}</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{device.friendlyname}</span>
+                    {isOffline && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <WifiOfflineIcon />
+                        <span className="text-[10px] text-red-400">Offline</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button
                   className={`w-12 h-7 rounded-full border-none relative cursor-pointer transition-colors duration-300 shrink-0 p-0 ${sceneToggles[device._id] ? 'bg-amber-500' : 'bg-gray-600'}`}
@@ -95,4 +186,6 @@ export default function RoomScene() {
       )}
     </div>
   );
-}
+});
+
+export default RoomScene;

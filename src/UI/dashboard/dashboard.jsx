@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from 'react';
 import useDashboardViewModel from '../../viewModel/dashboardViewModel';
 import UserProfile from './component/UserProfile';
 import DoorControl from './component/DoorControl';
@@ -9,6 +10,24 @@ import BottomNav from '../../globalComponents/BottomNav';
 // ── Main Dashboard Component ──
 export default function Dashboard() {
   const { name, room, hotelName, isLoading, error } = useDashboardViewModel();
+
+  // ── Master Scene sync state ──
+  // This state is shared between RoomScene and QuickActions
+  // so both toggles always show the same on/off value.
+  const [masterSceneOn, setMasterSceneOn] = useState(false);
+  const roomSceneRef = useRef(null);
+
+  // Called by RoomScene whenever Master Scene state changes
+  const handleMasterSceneChange = useCallback((isOn) => {
+    setMasterSceneOn(isOn);
+  }, []);
+
+  // Called by QuickActions when its Master Scene toggle is clicked
+  // This triggers RoomScene's toggleMasterScene() which sends the API call
+  // and then calls onMasterSceneChange to update the shared state.
+  const handleToggleMaster = useCallback(() => {
+    roomSceneRef.current?.toggleMasterScene();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white relative">
@@ -24,12 +43,18 @@ export default function Dashboard() {
 
         <DoorControl />
 
-        <RoomScene />
+        <RoomScene
+          ref={roomSceneRef}
+          onMasterSceneChange={handleMasterSceneChange}
+        />
 
         <QuickCalls />
 
         {/* ── Quick Actions ── */}
-        <QuickActions />
+        <QuickActions
+          masterSwitch={masterSceneOn}
+          onToggleMaster={handleToggleMaster}
+        />
       </div>
 
       <BottomNav />

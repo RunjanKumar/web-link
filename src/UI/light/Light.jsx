@@ -4,7 +4,7 @@ import LightGrid from "./component/LightGrid";
 import useLightViewModel from '../../viewModel/lightViewModel';
 
 export default function LightControl() {
-  const { masterSwitch, lights, toggleLight, toggleMaster, lightsData, isLoading, error } = useLightViewModel();
+  const { masterSwitch, lights, toggleLight, toggleMaster, lightsData, isLoading, error, fanLevels, updateFanLevel } = useLightViewModel();
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white relative">
@@ -51,7 +51,7 @@ export default function LightControl() {
             </div>
 
             {/* ── Lights Grid ── */}
-            <LightGrid lightsData={lightsData} lights={lights} toggleLight={toggleLight} />
+            <LightGrid lightsData={lightsData} lights={lights} toggleLight={toggleLight} fanLevels={fanLevels} updateFanLevel={updateFanLevel} />
           </>
         )}
       </div>

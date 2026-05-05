@@ -24,3 +24,22 @@ export async function getRoomDevices() {
     const response = await apiClient.get(ENDPOINTS.ROOM_DEVICES);
     return response.data;
 }
+
+/**
+ * Executes a command on a room device (turn on/off, set fan level, etc.).
+ * POST /api/rooms/device/exec
+ *
+ * @param {Object} params
+ * @param {string} params.channelid - The device channel ID
+ * @param {'TurnOn'|'TurnOff'} params.action - The action to perform
+ * @param {number} [params.level] - Fan speed level (only sent for Fan type)
+ * @returns {Promise<Object>} The API response
+ */
+export async function execDevice({ channelid, action, level }) {
+    const body = { channelid, action };
+    if (level !== undefined) {
+        body.level = level;
+    }
+    const response = await apiClient.post(ENDPOINTS.DEVICE_EXEC, body);
+    return response.data;
+}
