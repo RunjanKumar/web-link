@@ -9,7 +9,7 @@ import BottomNav from '../../globalComponents/BottomNav';
 
 // ── Main Dashboard Component ──
 export default function Dashboard() {
-  const { name, room, hotelName, isLoading, error } = useDashboardViewModel();
+  const { name, room, hotelName, isLoading, error, quickCallData } = useDashboardViewModel();
 
   // ── Master Scene sync state ──
   // This state is shared between RoomScene and QuickActions
@@ -48,7 +48,7 @@ export default function Dashboard() {
           onMasterSceneChange={handleMasterSceneChange}
         />
 
-        <QuickCalls />
+        <QuickCalls quickCallData={quickCallData} />
 
         {/* ── Quick Actions ── */}
         <QuickActions

@@ -2,8 +2,8 @@ import apiClient from '../client';
 import { ENDPOINTS } from '../endpoint';
 
 /**
- * Executes a command on a room device (turn on/off, set fan level, etc.).
- * POST /api/rooms/device/exec
+ * use for customer feedback
+ * POST v1/feedback
  *
  * @param {Object} params
  * @param {Number bte 1 t0 5} params.star - rating 

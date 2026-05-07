@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCustomerProfile } from '../api/service/dashboardService';
+import { getCustomerProfile, getQuickCall } from '../api/service/dashboardService';
 
 /**
  * ViewModel for the Dashboard / UserProfile.
@@ -19,6 +19,7 @@ export default function useDashboardViewModel() {
     const [profileData, setProfileData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [quickCallData, setQuickCallData] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -43,7 +44,28 @@ export default function useDashboardViewModel() {
             }
         }
 
+        async function fetchQuickCall() {
+            try {
+                setIsLoading(true);
+                setError(null);
+                const data = await getQuickCall();
+                if (!cancelled) {
+                    setQuickCallData(data.data);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('Quick Call fetch error:', err);
+                    setError(err?.response?.data?.message || 'Failed to load quick call');
+                }
+            } finally {
+                if (!cancelled) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
         fetchProfile();
+        fetchQuickCall();
         return () => { cancelled = true; };
     }, []);
     console.log("profileData", profileData);
@@ -55,7 +77,7 @@ export default function useDashboardViewModel() {
     const checkOut = profileData?.data?.bookRoomData[0]?.checkOutDate
 
     return {
-        profileData,
+        profileData, //infurtrue remobe name roomm all things and only pass profileData.
         name,
         room,
         hotelName,
@@ -63,5 +85,6 @@ export default function useDashboardViewModel() {
         checkOut,
         isLoading,
         error,
+        quickCallData,
     };
 }

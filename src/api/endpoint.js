@@ -6,6 +6,10 @@ export const ENDPOINTS = {
     // ── Auth / Profile ──
     CUSTOMER_PROFILE: '/v1/customer/login/profile',
 
+    //Quick Calls
+    QUICK_CALL: '/v1/quickCall',
+    
+
     // ── Room Controls ──
     ROOM_DEVICES: '/api/rooms/devices',
     DEVICE_EXEC: '/api/rooms/device/exec',

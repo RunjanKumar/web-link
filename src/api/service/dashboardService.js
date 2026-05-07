@@ -26,6 +26,18 @@ export async function getRoomDevices() {
 }
 
 /**
+ * Fetches all quick call list .
+ * POST /v1/quickCall
+ * Authorization: <token>
+ *
+ * @returns {Promise<Object>} The quick call list data from the backend.
+ */
+export async function getQuickCall() {
+    const response = await apiClient.get(ENDPOINTS.QUICK_CALL);
+    return response.data;
+}
+
+/**
  * Executes a command on a room device (turn on/off, set fan level, etc.).
  * POST /api/rooms/device/exec
  *
@@ -43,3 +55,5 @@ export async function execDevice({ channelid, action, level }) {
     const response = await apiClient.post(ENDPOINTS.DEVICE_EXEC, body);
     return response.data;
 }
+
+
