@@ -9,7 +9,7 @@ import BottomNav from '../../globalComponents/BottomNav';
 
 // ── Main Dashboard Component ──
 export default function Dashboard() {
-  const { name, room, hotelName, isLoading, error, quickCallData, handleQuickCallClick } = useDashboardViewModel();
+  const { profileData, isLoading, profileError, quickCallError, quickCallData, handleQuickCallClick } = useDashboardViewModel();
 
   // ── Master Scene sync state ──
   // This state is shared between RoomScene and QuickActions
@@ -34,11 +34,11 @@ export default function Dashboard() {
       <div className="pt-14 px-5 pb-28 flex flex-col gap-6">
         {/* user profile — receives real data from API */}
         <UserProfile
-          name={name}
-          room={room}
-          hotelName={hotelName}
+          name={profileData?.data?.user?.name}
+          room={profileData?.data?.bookRoomData[0]?.roomData?.roomNumber}
+          hotelName={profileData?.data?.hotelData?.name}
           isLoading={isLoading}
-          error={error}
+          error={profileError}
         />
 
         <DoorControl />
@@ -51,6 +51,7 @@ export default function Dashboard() {
         <QuickCalls
           quickCallData={quickCallData}
           handleQuickCallClick={handleQuickCallClick}
+          error={quickCallError}
         />
 
         {/* ── Quick Actions ── */}
