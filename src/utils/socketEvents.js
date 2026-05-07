@@ -35,3 +35,24 @@ export const SOCKET_CONFIG = {
     RECONNECTION_DELAY_MAX: 10000,
     TIMEOUT: 20000,
 };
+
+// ── Message status (WhatsApp-style, matches backend constants) ──
+export const MESSAGE_STATUS = {
+    SENT: 1,        // Sent by me
+    DELIVERED: 2,   // Delivered to other user
+    SEEN: 3,        // Seen by other user
+};
+
+// ── Message types (matches backend constants) ──
+export const MESSAGE_TYPES = {
+    TEXT: 1,
+    IMAGE: 2,
+    DOCUMENT: 3,
+};
+
+// ── User types (matches backend constants) ──
+export const USER_TYPES = {
+    ADMIN: 1,
+    STAFF: 2,
+    CUSTOMER: 3,
+};

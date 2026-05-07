@@ -7,22 +7,27 @@ import { ENDPOINTS } from '../endpoint';
  * ══════════════════════════════════════════════════════════════
  *
  * Handles non-realtime chat operations via HTTP:
- *   • Fetching message history (with pagination)
- *   • Any other REST-based chat endpoints
+ *   • Fetching conversation/message history (with skip/limit pagination)
  *
  * Realtime messaging goes through socketService, NOT here.
+ *
+ * Backend endpoint: GET /conversation/list
+ * Response shape:  { statusCode, message, data: { data: [...messages], totalCount } }
  */
 
 /**
- * Fetch chat message history.
- * GET /v1/chat/messages
+ * Fetch conversation message history.
+ * GET /conversation/list?skip=0&limit=50
  *
- * @param {Object} [params] – Optional pagination parameters
- * @param {number} [params.page] – Page number (1-indexed)
- * @param {number} [params.limit] – Messages per page
- * @returns {Promise<Object>} The chat messages response from backend
+ * Backend uses skip/limit pagination (not page-based).
+ * Messages are returned newest-first (sorted by _id: -1).
+ *
+ * @param {Object} [params] – Pagination parameters
+ * @param {number} [params.skip=0] – Number of messages to skip
+ * @param {number} [params.limit=50] – Number of messages to fetch
+ * @returns {Promise<Object>} { data: { data: [...], totalCount } }
  */
-export async function fetchChatMessages(params = {}) {
-    const response = await apiClient.get(ENDPOINTS.CHAT_MESSAGES, { params });
+export async function fetchConversationMessages(params = {}) {
+    const response = await apiClient.get(ENDPOINTS.CONVERSATION_LIST, { params });
     return response.data;
 }

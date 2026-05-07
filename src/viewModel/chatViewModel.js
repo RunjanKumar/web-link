@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
-import { CLIENT_EVENTS, SERVER_EVENTS } from '../utils/socketEvents';
-import { fetchChatMessages } from '../api/service/chatService';
+import { CLIENT_EVENTS, SERVER_EVENTS, MESSAGE_STATUS, USER_TYPES } from '../utils/socketEvents';
+import { fetchConversationMessages } from '../api/service/chatService';
 import useAuth from '../hooks/useAuth';
 
 /**
@@ -11,18 +11,20 @@ import useAuth from '../hooks/useAuth';
  *
  * The "brain" of the chat feature — all business logic lives here.
  *
- * Responsibilities:
- *   • Fetch initial messages via REST
- *   • Subscribe to socket events (newMessage, readMessage, typing)
- *   • Handle optimistic sends with tempId → real ID replacement
- *   • Deduplicate messages
- *   • Manage typing indicator state
- *   • Queue messages when offline
- *   • Provide pagination (load older messages)
- *   • Clean up all listeners on unmount
+ * Backend conversation model:
+ *   { _id, message, senderId, senderData: { name, userType },
+ *     customerId, hotelId, receivedBy: [{ userId, status }],
+ *     createdAt, messageType }
  *
- * UI components should ONLY read state and call actions from here.
+ * Message status (WhatsApp-style):
+ *   1 = SENT, 2 = DELIVERED, 3 = SEEN
+ *
+ * User types:
+ *   1 = ADMIN, 2 = STAFF, 3 = CUSTOMER (guest)
  */
+
+// ── Pagination config ──
+const PAGE_SIZE = 20;
 
 // ── Helper: generate a unique temp ID for optimistic messages ──
 let tempCounter = 0;
@@ -30,17 +32,49 @@ function generateTempId() {
     return `temp_${Date.now()}_${++tempCounter}`;
 }
 
-// ── Helper: normalize a backend message to our frontend shape ──
-function normalizeMessage(raw) {
+/**
+ * Normalize a backend conversation message to our frontend shape.
+ * Maps backend fields to a clean, consistent object.
+ *
+ * @param {Object} raw – Raw message from backend
+ * @param {string} currentUserId – The logged-in user's ID
+ */
+function normalizeMessage(raw, currentUserId) {
+    // Determine if this message was sent by the current user (guest)
+    const rawSenderId = raw.senderId?._id || raw.senderId || '';
+    const senderType = raw.senderData?.userType || raw.senderType;
+    const isOwn = rawSenderId === currentUserId || senderType === USER_TYPES.CUSTOMER;
+
+    // Extract message status from receivedBy array
+    // receivedBy contains: [{ userId, status }] where status matches MESSAGE_STATUS
+    let messageStatus = MESSAGE_STATUS.SENT;
+    if (raw.receivedBy && Array.isArray(raw.receivedBy)) {
+        // For guest's own messages: check the receiver's (staff's) status
+        // For staff messages: check our (guest's) status
+        const receiverEntry = raw.receivedBy.find(r =>
+            isOwn ? r.userId !== currentUserId : r.userId === currentUserId
+        );
+        if (receiverEntry) {
+            messageStatus = receiverEntry.status || MESSAGE_STATUS.SENT;
+        }
+    }
+    // If raw.status is directly available (from socket events), use it
+    if (raw.status && typeof raw.status === 'number') {
+        messageStatus = raw.status;
+    }
+
     return {
         id: raw._id || raw.id,
         text: raw.message || raw.text || '',
-        sender: raw.senderType || raw.sender || 'staff',
-        senderId: raw.senderId || null,
+        senderId: rawSenderId,
+        senderName: raw.senderData?.name || raw.senderName || (isOwn ? 'You' : 'Reception'),
+        senderType: senderType || (isOwn ? USER_TYPES.CUSTOMER : USER_TYPES.STAFF),
+        isOwn,
         timestamp: raw.createdAt || raw.timestamp || new Date().toISOString(),
-        read: raw.read ?? raw.isRead ?? false,
+        messageStatus, // 1=SENT, 2=DELIVERED, 3=SEEN (WhatsApp style)
         tempId: raw.tempId || null,
-        status: raw.status || 'sent', // 'sending' | 'sent' | 'read' | 'failed'
+        isSending: false,
+        isFailed: false,
     };
 }
 
@@ -49,15 +83,15 @@ export default function useChatViewModel() {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [isSending, setIsSending] = useState(false);
-    const [isStaffTyping, setIsStaffTyping] = useState(false);
     const [hasMoreMessages, setHasMoreMessages] = useState(false);
-    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
     const [pendingMessages, setPendingMessages] = useState([]);
 
     // ── Refs ──
     const messageIdsRef = useRef(new Set()); // For deduplication
-    const typingTimeoutRef = useRef(null);
+    const skipRef = useRef(0); // Current pagination offset
 
     // ── Context ──
     const { socketService, isConnected, connectionStatus } = useSocket();
@@ -74,22 +108,36 @@ export default function useChatViewModel() {
     }, []);
 
     // ════════════════════════════════════════════════════════════
-    // FETCH INITIAL MESSAGES (REST)
+    // EXTRACT MESSAGES FROM API RESPONSE
+    // ════════════════════════════════════════════════════════════
+    const extractFromResponse = useCallback((response) => {
+        // Backend response: { statusCode, message, data: { data: [...], totalCount } }
+        const responseData = response?.data || response;
+        const rawMessages = responseData?.data || responseData?.messages || [];
+        const count = responseData?.totalCount || 0;
+        return {
+            rawMessages: Array.isArray(rawMessages) ? rawMessages : [],
+            totalCount: count,
+        };
+    }, []);
+
+    // ════════════════════════════════════════════════════════════
+    // FETCH INITIAL MESSAGES (REST) — newest first, then reversed
     // ════════════════════════════════════════════════════════════
     const loadMessages = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await fetchChatMessages({ page: 1, limit: 50 });
+            const response = await fetchConversationMessages({
+                skip: 0,
+                limit: PAGE_SIZE,
+            });
 
-            // Handle various response shapes from backend
-            const rawMessages = response?.data?.messages
-                || response?.data
-                || response?.messages
-                || response
-                || [];
+            const { rawMessages, totalCount: total } = extractFromResponse(response);
 
-            const msgArray = Array.isArray(rawMessages) ? rawMessages : [];
-            const normalized = msgArray.map(normalizeMessage);
+            // Backend returns newest-first, we need oldest-first for chat display
+            const normalized = rawMessages
+                .map((raw) => normalizeMessage(raw, userId))
+                .reverse();
 
             // Populate dedup set
             messageIdsRef.current.clear();
@@ -99,47 +147,56 @@ export default function useChatViewModel() {
             });
 
             setMessages(normalized);
-            setHasMoreMessages(normalized.length >= 50);
-            setPage(1);
+            setTotalCount(total);
+            setHasMoreMessages(rawMessages.length < total);
+            skipRef.current = rawMessages.length;
         } catch (err) {
             console.error('[ChatVM] Failed to load messages:', err);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [userId, extractFromResponse]);
 
     // ════════════════════════════════════════════════════════════
-    // LOAD OLDER MESSAGES (PAGINATION)
+    // LOAD OLDER MESSAGES (PAGINATION — scroll up like WhatsApp)
     // ════════════════════════════════════════════════════════════
     const loadMoreMessages = useCallback(async () => {
-        if (!hasMoreMessages) return;
+        if (!hasMoreMessages || isLoadingMore) return;
 
         try {
-            const nextPage = page + 1;
-            const response = await fetchChatMessages({ page: nextPage, limit: 50 });
+            setIsLoadingMore(true);
+            const response = await fetchConversationMessages({
+                skip: skipRef.current,
+                limit: PAGE_SIZE,
+            });
 
-            const rawMessages = response?.data?.messages
-                || response?.data
-                || response?.messages
-                || response
-                || [];
+            const { rawMessages } = extractFromResponse(response);
+            if (rawMessages.length === 0) {
+                setHasMoreMessages(false);
+                return;
+            }
 
-            const msgArray = Array.isArray(rawMessages) ? rawMessages : [];
-            const normalized = msgArray.map(normalizeMessage);
+            // Normalize and reverse (newest-first → oldest-first)
+            const normalized = rawMessages
+                .map((raw) => normalizeMessage(raw, userId))
+                .reverse();
 
-            // Only add messages we haven't seen
+            // Only add messages we haven't seen (dedup)
             const newMsgs = normalized.filter((m) => addMessageIfNew(m));
 
             if (newMsgs.length > 0) {
+                // Prepend older messages to the top
                 setMessages((prev) => [...newMsgs, ...prev]);
-                setPage(nextPage);
+                skipRef.current += rawMessages.length;
             }
 
-            setHasMoreMessages(normalized.length >= 50);
+            setHasMoreMessages(skipRef.current < totalCount);
         } catch (err) {
             console.error('[ChatVM] Failed to load more messages:', err);
+        } finally {
+            setIsLoadingMore(false);
         }
-    }, [hasMoreMessages, page, addMessageIfNew]);
+    }, [hasMoreMessages, isLoadingMore, totalCount, userId, addMessageIfNew, extractFromResponse]);
 
     // ════════════════════════════════════════════════════════════
     // SEND MESSAGE (OPTIMISTIC UI)
@@ -154,12 +211,15 @@ export default function useChatViewModel() {
         const optimisticMsg = {
             id: tempId,
             text: trimmed,
-            sender: 'guest',
             senderId: userId,
+            senderName: 'You',
+            senderType: USER_TYPES.CUSTOMER,
+            isOwn: true,
             timestamp: new Date().toISOString(),
-            read: false,
+            messageStatus: MESSAGE_STATUS.SENT,
             tempId,
-            status: 'sending',
+            isSending: true,
+            isFailed: false,
         };
 
         // Add to UI immediately (optimistic)
@@ -172,7 +232,7 @@ export default function useChatViewModel() {
         if (!isConnected) {
             setMessages((prev) =>
                 prev.map((m) =>
-                    m.tempId === tempId ? { ...m, status: 'failed' } : m
+                    m.tempId === tempId ? { ...m, isSending: false, isFailed: true } : m
                 )
             );
             setPendingMessages((prev) => [...prev, { tempId, text: trimmed }]);
@@ -186,12 +246,12 @@ export default function useChatViewModel() {
             tempId,
         });
 
-        // Mark as sent after a short delay (if no server confirmation)
+        // Mark as sent after a short delay (fallback if no server confirmation)
         setTimeout(() => {
             setMessages((prev) =>
                 prev.map((m) =>
-                    m.tempId === tempId && m.status === 'sending'
-                        ? { ...m, status: 'sent' }
+                    m.tempId === tempId && m.isSending
+                        ? { ...m, isSending: false, messageStatus: MESSAGE_STATUS.SENT }
                         : m
                 )
             );
@@ -209,7 +269,7 @@ export default function useChatViewModel() {
         // Mark as sending again
         setMessages((prev) =>
             prev.map((m) =>
-                m.tempId === tempId ? { ...m, status: 'sending' } : m
+                m.tempId === tempId ? { ...m, isSending: true, isFailed: false } : m
             )
         );
 
@@ -232,25 +292,6 @@ export default function useChatViewModel() {
     }, [isConnected, socketService]);
 
     // ════════════════════════════════════════════════════════════
-    // EMIT TYPING INDICATOR (DEBOUNCED)
-    // ════════════════════════════════════════════════════════════
-    const emitTyping = useCallback(() => {
-        if (!isConnected) return;
-
-        socketService.emit(CLIENT_EVENTS.TYPING, { isTyping: true });
-
-        // Clear previous timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-        // Stop typing after 2 seconds of inactivity
-        typingTimeoutRef.current = setTimeout(() => {
-            socketService.emit(CLIENT_EVENTS.TYPING, { isTyping: false });
-        }, 2000);
-    }, [isConnected, socketService]);
-
-    // ════════════════════════════════════════════════════════════
     // SOCKET EVENT LISTENERS
     // ════════════════════════════════════════════════════════════
     useEffect(() => {
@@ -258,7 +299,7 @@ export default function useChatViewModel() {
 
         // ── New message from server ──
         const onNewMessage = (data) => {
-            const msg = normalizeMessage(data);
+            const msg = normalizeMessage(data, userId);
 
             // Check if this is a confirmation of our optimistic message
             if (data.tempId && messageIdsRef.current.has(data.tempId)) {
@@ -267,7 +308,7 @@ export default function useChatViewModel() {
                 setMessages((prev) =>
                     prev.map((m) =>
                         m.tempId === data.tempId
-                            ? { ...msg, status: 'sent' }
+                            ? { ...msg, isSending: false, messageStatus: MESSAGE_STATUS.SENT }
                             : m
                     )
                 );
@@ -287,38 +328,21 @@ export default function useChatViewModel() {
 
             setMessages((prev) =>
                 prev.map((m) =>
-                    m.id === msgId ? { ...m, read: true, status: 'read' } : m
+                    m.id === msgId
+                        ? { ...m, messageStatus: MESSAGE_STATUS.SEEN }
+                        : m
                 )
             );
-        };
-
-        // ── Typing indicator from staff ──
-        const onTyping = (data) => {
-            // Only show typing if it's from someone else
-            if (data?.userId !== userId) {
-                setIsStaffTyping(data?.isTyping ?? false);
-
-                // Auto-clear after 3 seconds (failsafe)
-                if (data?.isTyping) {
-                    setTimeout(() => setIsStaffTyping(false), 3000);
-                }
-            }
         };
 
         // Register listeners
         socketService.on(SERVER_EVENTS.NEW_MESSAGE, onNewMessage);
         socketService.on(SERVER_EVENTS.READ_MESSAGE, onReadMessage);
-        socketService.on(SERVER_EVENTS.USER_TYPING, onTyping);
 
         // ── Cleanup listeners on unmount ──
         return () => {
             socketService.off(SERVER_EVENTS.NEW_MESSAGE, onNewMessage);
             socketService.off(SERVER_EVENTS.READ_MESSAGE, onReadMessage);
-            socketService.off(SERVER_EVENTS.USER_TYPING, onTyping);
-
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
         };
     }, [isConnected, socketService, userId, addMessageIfNew]);
 
@@ -336,7 +360,9 @@ export default function useChatViewModel() {
                 // Update status to sending
                 setMessages((prev) =>
                     prev.map((m) =>
-                        m.tempId === pending.tempId ? { ...m, status: 'sending' } : m
+                        m.tempId === pending.tempId
+                            ? { ...m, isSending: true, isFailed: false }
+                            : m
                     )
                 );
             });
@@ -359,8 +385,8 @@ export default function useChatViewModel() {
         messages,
         inputText,
         isLoading,
+        isLoadingMore,
         isSending,
-        isStaffTyping,
         hasMoreMessages,
         connectionStatus,
         isConnected,
@@ -370,7 +396,6 @@ export default function useChatViewModel() {
         sendMessage,
         loadMoreMessages,
         markAsRead,
-        emitTyping,
         retryMessage,
         loadMessages,
     };

@@ -1,12 +1,14 @@
 /**
  * ChatMessages — message list container.
- * Handles auto-scroll, scroll-to-bottom FAB, date dividers, typing indicator,
+ * Handles auto-scroll, scroll-to-bottom FAB, date dividers,
  * and triggers load-more on scroll-to-top.
+ *
+ * NOTE: TypingIndicator is commented out for now — will be enabled in the future.
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
 import ChatBubble from './ChatBubble';
 import DateDivider from './DateDivider';
-import TypingIndicator from './TypingIndicator';
+// import TypingIndicator from './TypingIndicator'; // TODO: Enable when backend supports typing events
 import ScrollToBottom from './ScrollToBottom';
 import EmptyChat from './EmptyChat';
 
@@ -37,8 +39,8 @@ function buildMessageList(messages) {
 
 export default function ChatMessages({
     messages,
-    isStaffTyping,
     hasMoreMessages,
+    isLoadingMore,
     onLoadMore,
     onRetry,
     onMessageVisible,
@@ -47,6 +49,7 @@ export default function ChatMessages({
     const bottomRef = useRef(null);
     const [showScrollBtn, setShowScrollBtn] = useState(false);
     const isAtBottomRef = useRef(true);
+    const prevScrollHeightRef = useRef(0);
 
     // ── Check if user is at bottom ──
     const checkIfAtBottom = useCallback(() => {
@@ -70,12 +73,23 @@ export default function ChatMessages({
         }
     }, [messages, scrollToBottom]);
 
-    // ── Auto-scroll when typing indicator appears ──
+    // ── Preserve scroll position when loading older messages ──
     useEffect(() => {
-        if (isStaffTyping && isAtBottomRef.current) {
-            scrollToBottom();
+        const el = containerRef.current;
+        if (!el || !isLoadingMore) return;
+        prevScrollHeightRef.current = el.scrollHeight;
+    }, [isLoadingMore]);
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el || prevScrollHeightRef.current === 0) return;
+        const newScrollHeight = el.scrollHeight;
+        const diff = newScrollHeight - prevScrollHeightRef.current;
+        if (diff > 0) {
+            el.scrollTop += diff;
         }
-    }, [isStaffTyping, scrollToBottom]);
+        prevScrollHeightRef.current = 0;
+    }, [messages]);
 
     // ── Handle scroll events ──
     const handleScroll = useCallback(() => {
@@ -87,17 +101,17 @@ export default function ChatMessages({
         setShowScrollBtn(!atBottom);
 
         // Load more messages when scrolled to the top
-        if (el.scrollTop === 0 && hasMoreMessages && onLoadMore) {
+        if (el.scrollTop <= 10 && hasMoreMessages && onLoadMore && !isLoadingMore) {
             onLoadMore();
         }
-    }, [checkIfAtBottom, hasMoreMessages, onLoadMore]);
+    }, [checkIfAtBottom, hasMoreMessages, onLoadMore, isLoadingMore]);
 
     // ── Mark unread staff messages as read when visible ──
     useEffect(() => {
         if (!onMessageVisible) return;
 
         const unreadStaffMessages = messages.filter(
-            (m) => m.sender !== 'guest' && !m.read
+            (m) => !m.isOwn && m.messageStatus < 3
         );
 
         unreadStaffMessages.forEach((msg) => {
@@ -126,11 +140,19 @@ export default function ChatMessages({
                     <div className="flex justify-center py-2">
                         <button
                             onClick={onLoadMore}
-                            className="text-[11px] text-gray-500 bg-[#1a1a1a] border border-white/5
+                            disabled={isLoadingMore}
+                            className={`text-[11px] text-gray-500 bg-[#1a1a1a] border border-white/5
                                        rounded-full px-4 py-1.5 cursor-pointer hover:bg-[#222]
-                                       transition-colors"
+                                       transition-colors ${isLoadingMore ? 'opacity-50' : ''}`}
                         >
-                            Load older messages
+                            {isLoadingMore ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full border border-gray-500 border-t-gray-300 animate-spin" />
+                                    Loading...
+                                </span>
+                            ) : (
+                                'Load older messages'
+                            )}
                         </button>
                     </div>
                 )}
@@ -146,14 +168,13 @@ export default function ChatMessages({
                         <ChatBubble
                             key={item.key}
                             message={msg}
-                            isOwn={msg.sender === 'guest'}
                             onRetry={onRetry}
                         />
                     );
                 })}
 
-                {/* Typing indicator */}
-                {isStaffTyping && <TypingIndicator />}
+                {/* TypingIndicator — commented out for future use */}
+                {/* {isStaffTyping && <TypingIndicator />} */}
 
                 {/* Invisible scroll anchor */}
                 <div ref={bottomRef} />

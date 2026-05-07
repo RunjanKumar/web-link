@@ -14,12 +14,13 @@
  *   ├── LoadingChat         — skeleton loader (while loading)
  *   ├── ChatMessages        — message list container
  *   │   ├── DateDivider     — date separators
- *   │   ├── ChatBubble      — individual message
- *   │   │   └── MessageStatus — sent/read ticks
- *   │   ├── TypingIndicator — animated dots
+ *   │   ├── ChatBubble      — individual message (with show more/less)
+ *   │   │   └── MessageStatus — WhatsApp-style ticks (✓ ✓✓ ✓✓blue)
  *   │   ├── ScrollToBottom  — FAB scroll button
  *   │   └── EmptyChat       — no messages state
  *   └── ChatInput           — text input + send button
+ *
+ * NOTE: TypingIndicator is commented out — will be enabled in future.
  */
 import useChatViewModel from '../../viewModel/chatViewModel';
 import ChatHeader from './component/ChatHeader';
@@ -35,8 +36,8 @@ export default function Chat() {
         messages,
         inputText,
         isLoading,
+        isLoadingMore,
         isSending,
-        isStaffTyping,
         hasMoreMessages,
         connectionStatus,
         isConnected,
@@ -46,7 +47,6 @@ export default function Chat() {
         sendMessage,
         loadMoreMessages,
         markAsRead,
-        emitTyping,
         retryMessage,
     } = useChatViewModel();
 
@@ -66,8 +66,8 @@ export default function Chat() {
                 ) : (
                     <ChatMessages
                         messages={messages}
-                        isStaffTyping={isStaffTyping}
                         hasMoreMessages={hasMoreMessages}
+                        isLoadingMore={isLoadingMore}
                         onLoadMore={loadMoreMessages}
                         onRetry={retryMessage}
                         onMessageVisible={markAsRead}
@@ -79,7 +79,6 @@ export default function Chat() {
                     inputText={inputText}
                     setInputText={setInputText}
                     sendMessage={sendMessage}
-                    onTyping={emitTyping}
                     isSending={isSending}
                     isConnected={isConnected}
                 />

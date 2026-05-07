@@ -28,9 +28,8 @@ export const ENDPOINTS = {
     FACILITIES_RESERVE: '/v1/facilities/reserve',
     FACILITIES_RESERVATIONS: '/v1/facilities/reservations',
 
-    // ── Chat ──
-    CHAT_MESSAGES: '/v1/chat/messages',
-    CHAT_SEND: '/v1/chat/send',
+    // ── Chat / Conversation ──
+    CONVERSATION_LIST: '/conversation/list',
 
     // ── Feedback ──
     FEEDBACK: '/v1/feedback',

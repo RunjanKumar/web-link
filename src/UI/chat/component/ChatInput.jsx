@@ -1,6 +1,7 @@
 /**
  * ChatInput — message input bar with send button.
- * Emits typing indicator on keystroke and sends message on Enter or button click.
+ * Sends message on Enter or button click.
+ * NOTE: Typing indicator emission commented out — will be enabled in future.
  */
 import { useCallback } from 'react';
 
@@ -8,15 +9,15 @@ export default function ChatInput({
     inputText,
     setInputText,
     sendMessage,
-    onTyping,
+    // onTyping, // TODO: Enable when backend supports typing events
     isSending,
     isConnected,
 }) {
-    // Handle input change with typing indicator emission
+    // Handle input change
     const handleChange = useCallback((e) => {
         setInputText(e.target.value);
-        if (onTyping) onTyping();
-    }, [setInputText, onTyping]);
+        // if (onTyping) onTyping(); // TODO: Enable typing indicator in future
+    }, [setInputText]);
 
     // Handle Enter key to send message
     const handleKeyDown = useCallback((e) => {
