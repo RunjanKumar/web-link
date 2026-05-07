@@ -1,4 +1,4 @@
-export default function QuickCalls({ quickCallData }) {
+export default function QuickCalls({ quickCallData, handleQuickCallClick }) {
   console.log("quickCallData", quickCallData);
 
   const count = quickCallData?.length || 0;
@@ -23,6 +23,7 @@ export default function QuickCalls({ quickCallData }) {
         {quickCallData?.map((c) => (
           <div
             key={c._id}
+            onClick={() => handleQuickCallClick(c)}
             className="bg-[#1a1a1a] rounded-2xl py-4 px-3 flex flex-col items-center text-center border border-[rgba(55,55,55,0.5)] cursor-pointer transition-colors duration-200 hover:bg-[#222] shrink-0"
             style={{
               width:

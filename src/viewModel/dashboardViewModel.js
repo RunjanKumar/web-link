@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCustomerProfile, getQuickCall } from '../api/service/dashboardService';
+import { REDIRECT_TYPES } from '../utils/constant';
 
 /**
  * ViewModel for the Dashboard / UserProfile.
@@ -76,6 +77,13 @@ export default function useDashboardViewModel() {
     const checkIn = profileData?.data?.bookRoomData[0]?.checkInDate
     const checkOut = profileData?.data?.bookRoomData[0]?.checkOutDate
 
+    const handleQuickCallClick = (item) => {
+    if (item.redirectTypes === REDIRECT_TYPES.CALL && item.supportNumber) {
+      window.location.href = `tel:${item.supportNumber}`;
+    }
+    // TODO: handle FOOD_MANAGEMENT (redirectTypes === 2) when needed
+  };
+
     return {
         profileData, //infurtrue remobe name roomm all things and only pass profileData.
         name,
@@ -86,5 +94,6 @@ export default function useDashboardViewModel() {
         isLoading,
         error,
         quickCallData,
+        handleQuickCallClick,
     };
 }
