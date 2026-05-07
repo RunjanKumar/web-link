@@ -1,42 +1,65 @@
-import { useState, useEffect } from 'react';
-import { getCustomerProfile, getQuickCall } from '../api/service/dashboardService';
-import { REDIRECT_TYPES } from '../utils/constant';
+import { useState, useEffect, useCallback } from "react";
+import {
+    getCustomerProfile,
+    getQuickCall,
+} from "../api/service/dashboardService";
 
-/**
- * ViewModel for the Dashboard / UserProfile.
- * Fetches real guest profile data from the backend using the stored JWT.
- *
- * Returns:
- *   - profileData  : raw API response object (null while loading)
- *   - name         : guest display name
- *   - room         : room number/label
- *   - hotelName    : name of the hotel
- *   - checkIn      : check-in date string
- *   - checkOut     : check-out date string
- *   - isLoading    : true while API call is in-flight
- *   - error        : error message string if the call failed
- */
+import { REDIRECT_TYPES } from "../utils/constant";
+
 export default function useDashboardViewModel() {
     const [profileData, setProfileData] = useState(null);
+    const [quickCallData, setQuickCallData] = useState([]);
+
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [quickCallData, setQuickCallData] = useState(null);
+
+    const [profileError, setProfileError] = useState(null);
+    const [quickCallError, setQuickCallError] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
 
-        async function fetchProfile() {
+        async function fetchDashboardData() {
             try {
                 setIsLoading(true);
-                setError(null);
-                const data = await getCustomerProfile();
-                if (!cancelled) {
-                    setProfileData(data);
+
+                const [profileResult, quickCallResult] =
+                    await Promise.allSettled([
+                        getCustomerProfile(),
+                        getQuickCall(),
+                    ]);
+
+                if (cancelled) return;
+
+                // ── Profile API ──
+                if (profileResult.status === "fulfilled") {
+                    setProfileData(profileResult.value);
+                } else {
+                    console.error(
+                        "Profile fetch error:",
+                        profileResult.reason
+                    );
+
+                    setProfileError(
+                        profileResult.reason?.response?.data?.message ||
+                        "Failed to load profile"
+                    );
                 }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('Dashboard profile fetch error:', err);
-                    setError(err?.response?.data?.message || 'Failed to load profile');
+
+                // ── Quick Call API ──
+                if (quickCallResult.status === "fulfilled") {
+                    setQuickCallData(
+                        quickCallResult.value?.data || []
+                    );
+                } else {
+                    console.error(
+                        "Quick Call fetch error:",
+                        quickCallResult.reason
+                    );
+
+                    setQuickCallError(
+                        quickCallResult.reason?.response?.data?.message ||
+                        "Failed to load quick calls"
+                    );
                 }
             } finally {
                 if (!cancelled) {
@@ -45,55 +68,31 @@ export default function useDashboardViewModel() {
             }
         }
 
-        async function fetchQuickCall() {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const data = await getQuickCall();
-                if (!cancelled) {
-                    setQuickCallData(data.data);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('Quick Call fetch error:', err);
-                    setError(err?.response?.data?.message || 'Failed to load quick call');
-                }
-            } finally {
-                if (!cancelled) {
-                    setIsLoading(false);
-                }
-            }
-        }
+        fetchDashboardData();
 
-        fetchProfile();
-        fetchQuickCall();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, []);
-    console.log("profileData", profileData);
-    // ── Safely extract fields (adjust field names to match real API response) ──
-    const name = profileData?.data?.user?.name;
-    const room = profileData?.data?.bookRoomData[0]?.roomData?.roomNumber;
-    const hotelName = profileData?.data?.hotelData?.name;
-    const checkIn = profileData?.data?.bookRoomData[0]?.checkInDate
-    const checkOut = profileData?.data?.bookRoomData[0]?.checkOutDate
 
-    const handleQuickCallClick = (item) => {
-    if (item.redirectTypes === REDIRECT_TYPES.CALL && item.supportNumber) {
-      window.location.href = `tel:${item.supportNumber}`;
-    }
-    // TODO: handle FOOD_MANAGEMENT (redirectTypes === 2) when needed
-  };
+    const handleQuickCallClick = useCallback((item) => {
+        if (
+            item?.redirectTypes === REDIRECT_TYPES.CALL &&
+            item?.supportNumber
+        ) {
+            window.location.href = `tel:${item.supportNumber}`;
+        }
+    }, []);
 
     return {
-        profileData, //infurtrue remobe name roomm all things and only pass profileData.
-        name,
-        room,
-        hotelName,
-        checkIn,
-        checkOut,
-        isLoading,
-        error,
+        profileData,
         quickCallData,
+
+        profileError,
+        quickCallError,
+
+        isLoading,
+
         handleQuickCallClick,
     };
 }
