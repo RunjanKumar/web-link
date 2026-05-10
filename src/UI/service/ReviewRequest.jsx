@@ -96,7 +96,7 @@ export default function ReviewRequest() {
         const result = await handleSendRequest();
         if (result.success) {
             showToast('Your service request has been successfully submitted.', 'success');
-            navigate('/services/pending', { state: { showToast: false } });
+            navigate('/services/pending', { replace: true, state: { showToast: false } });
         } else {
             showToast(result.errorMessage || 'Failed to submit request.', 'error');
         }
