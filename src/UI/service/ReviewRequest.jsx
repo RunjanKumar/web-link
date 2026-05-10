@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
 import TrashIcon from '../../globalComponents/TrashIcon';
 import useServiceViewModel from '../../viewModel/serviceViewModel';
-import useServiceRequest from '../../context/ServiceRequestContext';
+import useServiceRequest from '../../hooks/useServiceRequest';
 
 /* ── Single review service item ── */
 function ReviewServiceItem({ item, onDelete, onAddDetails }) {

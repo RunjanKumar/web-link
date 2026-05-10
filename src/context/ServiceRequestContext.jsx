@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { ServiceRequestContext } from './serviceRequestDef';
 
 /**
  * ══════════════════════════════════════════════════════════════
- * SERVICE REQUEST CONTEXT
+ * SERVICE REQUEST CONTEXT — PROVIDER
  * ══════════════════════════════════════════════════════════════
  *
  * Persists selected services and their "why I want this" details
@@ -11,8 +12,6 @@ import { createContext, useContext, useState, useCallback } from 'react';
  *
  * State is cleared ONLY after the submit API succeeds.
  */
-
-const ServiceRequestContext = createContext(null);
 
 export function ServiceRequestProvider({ children }) {
     // Set of subcategory _id strings the user has requested
@@ -107,16 +106,4 @@ export function ServiceRequestProvider({ children }) {
             {children}
         </ServiceRequestContext.Provider>
     );
-}
-
-/**
- * Hook to consume the ServiceRequestContext.
- * Must be used within a <ServiceRequestProvider>.
- */
-export default function useServiceRequest() {
-    const context = useContext(ServiceRequestContext);
-    if (!context) {
-        throw new Error('useServiceRequest must be used within a ServiceRequestProvider');
-    }
-    return context;
 }

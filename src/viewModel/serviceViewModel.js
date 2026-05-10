@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getService, submitServiceRequest } from "../api/service/serviceService";
-import useServiceRequest from "../context/ServiceRequestContext";
+import useServiceRequest from "../hooks/useServiceRequest";
 
 export default function useServiceViewModel() {
 
