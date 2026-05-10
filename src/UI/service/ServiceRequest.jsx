@@ -16,6 +16,7 @@ export default function ServiceRequest() {
         toggleCategory,
         toggleRequest,
         isRequested,
+        isAlreadyBooked,
         hasRequestedServices,
     } = useServiceViewModel();
 
@@ -52,6 +53,7 @@ export default function ServiceRequest() {
                         onToggle={() => toggleCategory(cat._id)}
                         onToggleRequest={toggleRequest}
                         isRequested={isRequested}
+                        isAlreadyBooked={isAlreadyBooked}
                     />
                 ))}
             </div>

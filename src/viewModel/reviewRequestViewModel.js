@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getService, submitServiceRequest } from "../api/service/serviceService";
+import { getApiErrorMessage } from "../api/client";
 import useServiceRequest from "../hooks/useServiceRequest";
 
 /**
@@ -84,7 +85,6 @@ export default function useReviewRequestViewModel() {
      */
     const handleSendRequest = async () => {
         const grouped = buildGroupedItems();
-        console.log("grouped", grouped);
 
         // Build one payload per category (backend accepts one hotelFacilityId per call)
         const payloads = grouped.map((cat) => ({
@@ -95,21 +95,20 @@ export default function useReviewRequestViewModel() {
             })),
         }));
 
-        console.log("payloads", payloads);
         setIsSubmitting(true);
         try {
             // Fire one API call per category sequentially
             const results = [];
             for (const payload of payloads) {
-                console.log("Submitting payload for facility:", payload.hotelFacilityId);
                 const result = await submitServiceRequest(payload);
                 results.push(result);
             }
             clearAll();
             return { success: true, data: results };
         } catch (error) {
+            const errorMessage = getApiErrorMessage(error, 'Failed to submit service request.');
             console.error("Service request submission failed:", error);
-            return { success: false, error };
+            return { success: false, errorMessage };
         } finally {
             setIsSubmitting(false);
         }

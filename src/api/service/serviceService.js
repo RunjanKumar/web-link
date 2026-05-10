@@ -17,15 +17,10 @@ export async function getService() {
  * Submits a service request (booking).
  * POST /v1/hotelServices/book
  *
- * TODO: Replace the fake implementation below with the real API call
- *       once the backend is ready.
- *
- * @param {Array} payload - Array of { subcategoryId, details } objects.
+ * @param {Object} payload - { hotelFacilityId, subCategory: [{ subCategoryId, description }] }
  * @returns {Promise<Object>}
  */
 export async function submitServiceRequest(payload) {
-    console.log("payload", payload);
-    // ── Real API (uncomment when ready) ──
     const response = await apiClient.post(ENDPOINTS.SERVICE_REQUEST, payload);
     return response.data;
 }

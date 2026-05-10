@@ -1,12 +1,19 @@
-import { useEffect, useState } from "react";
-import { getService } from "../api/service/serviceService";
+import { useEffect, useState, useCallback } from "react";
+import { getService, getServiceRequest } from "../api/service/serviceService";
+import { getApiErrorMessage } from "../api/client";
+import { useToast } from "../globalComponents/Toast";
+import { BOOKING_STATUS } from "../utils/constant";
 import useServiceRequest from "../hooks/useServiceRequest";
 
 export default function useServiceViewModel() {
 
     const [categoriesData, setCategoriesData] = useState([]);
+    const [loading, setLoading] = useState(true);
     // First category expanded by default
     const [openCategories, setOpenCategories] = useState({});
+    // Set of subcategory IDs that are already booked (pending / in-progress)
+    const [bookedSubCategoryIds, setBookedSubCategoryIds] = useState(new Set());
+    const { showToast } = useToast();
 
     // Pull request state from the shared context (persists across navigation)
     const {
@@ -16,28 +23,70 @@ export default function useServiceViewModel() {
     } = useServiceRequest();
 
     useEffect(() => {
-        async function getServiceData() {
-            const data = await getService();
-            console.log('data', data.data.serviceData);
-            setCategoriesData(data?.data?.serviceData);
-            setOpenCategories({
-                [data?.data?.serviceData[0]?._id]: true,
-            });
+        async function fetchData() {
+            setLoading(true);
+            try {
+                // Fetch services and booked requests in parallel
+                const [serviceRes, bookedRes] = await Promise.all([
+                    getService(),
+                    getServiceRequest(),
+                ]);
+
+                // Process service categories
+                const serviceData = serviceRes?.data?.serviceData || [];
+                setCategoriesData(serviceData);
+                setOpenCategories({
+                    [serviceData[0]?._id]: true,
+                });
+
+                // Build a Set of subcategory IDs that are already booked
+                // (status = PENDING or IN_PROGRESS)
+                const bookedData = bookedRes?.data || [];
+                const activeBookedIds = new Set();
+                bookedData.forEach((item) => {
+                    if (
+                        item.status === BOOKING_STATUS.PENDING ||
+                        item.status === BOOKING_STATUS.IN_PROGRESS
+                    ) {
+                        // The backend should return `subCategoryId` on each booked item
+                        if (item.subCategoryId) {
+                            activeBookedIds.add(item.subCategoryId);
+                        }
+                    }
+                });
+                setBookedSubCategoryIds(activeBookedIds);
+            } catch (err) {
+                const message = getApiErrorMessage(err, 'Failed to load services.');
+                showToast(message, 'error');
+                console.error('ServiceViewModel fetch error:', err);
+            } finally {
+                setLoading(false);
+            }
         }
-        getServiceData();
+        fetchData();
     }, []);
 
     const toggleCategory = (id) => {
         setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }))
     };
 
+    /**
+     * Check if a subcategory is already booked (pending or in-progress).
+     * These items should show as "Requested" and not be toggleable.
+     */
+    const isAlreadyBooked = useCallback(
+        (subCategoryId) => bookedSubCategoryIds.has(subCategoryId),
+        [bookedSubCategoryIds]
+    );
+
     return {
         categoriesData,
+        loading,
         openCategories,
         toggleCategory,
         toggleRequest,
         isRequested,
+        isAlreadyBooked,
         hasRequestedServices,
     };
 }
-

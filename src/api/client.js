@@ -35,4 +35,23 @@ apiClient.interceptors.response.use(
     }
 );
 
+/**
+ * Extracts a user-friendly error message from an Axios error.
+ * Checks `error.response.data.message` (backend standard format) first,
+ * then falls back to `error.message`, then a generic fallback.
+ *
+ * @param {Error} error - Axios error object
+ * @param {string} [fallback='Something went wrong. Please try again.'] - Default message
+ * @returns {string} Human-readable error message
+ */
+export function getApiErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
+    if (error?.response?.data?.message) {
+        return error.response.data.message;
+    }
+    if (error?.message) {
+        return error.message;
+    }
+    return fallback;
+}
+
 export default apiClient;

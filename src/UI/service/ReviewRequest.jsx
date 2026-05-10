@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
 import TrashIcon from '../../globalComponents/TrashIcon';
+import { useToast } from '../../globalComponents/Toast';
 import useReviewRequestViewModel from '../../viewModel/reviewRequestViewModel';
 
 /* ── Single review service item ── */
@@ -78,6 +80,8 @@ function ReviewCategorySection({ category, onDelete, onAddDetails }) {
    ── Review Request Page ──
    ══════════════════════════════════════════════════ */
 export default function ReviewRequest() {
+    const navigate = useNavigate();
+    const { showToast } = useToast();
     const {
         fetchCategories,
         buildGroupedItems,
@@ -86,6 +90,17 @@ export default function ReviewRequest() {
         handleSendRequest,
         isSubmitting,
     } = useReviewRequestViewModel();
+
+    // Wraps the ViewModel's submit with toast + navigation
+    const onSubmit = async () => {
+        const result = await handleSendRequest();
+        if (result.success) {
+            showToast('Your service request has been successfully submitted.', 'success');
+            navigate('/services/pending', { state: { showToast: false } });
+        } else {
+            showToast(result.errorMessage || 'Failed to submit request.', 'error');
+        }
+    };
 
     // Fetch categories on mount so grouped items can be built
     useEffect(() => {
@@ -130,7 +145,7 @@ export default function ReviewRequest() {
                 {/* ── Send Request Button ── */}
                 {totalItems > 0 && (
                     <button
-                        onClick={handleSendRequest}
+                        onClick={onSubmit}
                         disabled={isSubmitting}
                         className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-4 ${isSubmitting ? 'opacity-60 pointer-events-none' : ''}`}
                     >

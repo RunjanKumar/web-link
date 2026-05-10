@@ -1,4 +1,30 @@
-export default function SubcategoryCard({ item, onToggleRequest, requested, disabled}) {
+export default function SubcategoryCard({ item, onToggleRequest, requested, alreadyBooked, disabled }) {
+    // Already booked (pending/in-progress) takes highest priority — non-toggleable
+    const isLocked = alreadyBooked || disabled;
+
+    /* ── Determine button label ── */
+    const getButtonLabel = () => {
+        if (disabled) return 'Unavailable';
+        if (alreadyBooked) return 'Requested';
+        if (requested) return 'Requested';
+        return 'Request';
+    };
+
+    /* ── Determine button styles ── */
+    const getButtonStyles = () => {
+        if (disabled) {
+            return 'bg-transparent border-gray-700 text-gray-600 cursor-not-allowed';
+        }
+        if (alreadyBooked) {
+            // Distinct "already booked" style — green-tinted, non-interactive
+            return 'bg-green-500/10 border-green-500/50 text-green-400 cursor-default';
+        }
+        if (requested) {
+            return 'bg-yellow-400/15 border-yellow-500/80 text-yellow-400 cursor-pointer hover:bg-yellow-400/25 active:scale-95';
+        }
+        return 'bg-transparent border-yellow-500/60 text-yellow-400 cursor-pointer hover:bg-yellow-400/10 active:scale-95';
+    };
+
     return (
         <div
             className={`flex items-center gap-4 py-4 px-2 border-b border-gray-800/50 last:border-b-0 transition-opacity duration-200 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}
@@ -19,16 +45,11 @@ export default function SubcategoryCard({ item, onToggleRequest, requested, disa
 
             {/* Request / Requested / Unavailable button */}
             <button
-                onClick={() => !disabled && onToggleRequest(item._id)}
-                disabled={disabled}
-                className={`shrink-0 px-4 py-1.5 rounded-md text-xs font-semibold border transition-all duration-200 ${disabled
-                    ? 'bg-transparent border-gray-700 text-gray-600 cursor-not-allowed'
-                    : requested
-                        ? 'bg-yellow-400/15 border-yellow-500/80 text-yellow-400 cursor-pointer hover:bg-yellow-400/25 active:scale-95'
-                        : 'bg-transparent border-yellow-500/60 text-yellow-400 cursor-pointer hover:bg-yellow-400/10 active:scale-95'
-                    }`}
+                onClick={() => !isLocked && onToggleRequest(item._id)}
+                disabled={isLocked}
+                className={`shrink-0 px-4 py-1.5 rounded-md text-xs font-semibold border transition-all duration-200 ${getButtonStyles()}`}
             >
-                {disabled ? 'Unavailable' : requested ? 'Requested' : 'Request'}
+                {getButtonLabel()}
             </button>
         </div>
     );

@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { submitFeedback } from "../api/service/feedbackService";
+import { getApiErrorMessage } from "../api/client";
+import { useToast } from "../globalComponents/Toast";
 
 export default function useFeedbackViewModel() {
     const [star, setStar] = useState(0);
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
+    const { showToast } = useToast();
 
     // when user clicks star
     function handleRatingChange(value) {
-        console.log("star rating is", value);
         setStar(value);
     }
 
     // when user types message
     function handleMessageChange(event) {
-        console.log("message is", event.target.value);
         setNotes(event.target.value);
     }
 
@@ -22,7 +23,13 @@ export default function useFeedbackViewModel() {
         setLoading(true);
         try {
             await submitFeedback({ star, notes });
+            showToast('Thank you for your feedback!', 'success');
+            // Reset form after successful submission
+            setStar(0);
+            setNotes('');
         } catch (error) {
+            const message = getApiErrorMessage(error, 'Failed to submit feedback.');
+            showToast(message, 'error');
             console.error('Error submitting feedback:', error);
         } finally {
             setLoading(false);
@@ -37,6 +44,4 @@ export default function useFeedbackViewModel() {
         handleMessageChange,
         handleSubmit
     };
-
-
 }

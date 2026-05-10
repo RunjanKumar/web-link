@@ -2,7 +2,7 @@ import ChevronIcon from '../../../globalComponents/ChevronIcon';
 import SubcategoryCard from './SubcategoryCard';
 import { formatTime12Hour } from '../../../utils/commonFunction';
 
-export default function CategorySection({ category, isOpen, onToggle, onToggleRequest, isRequested }) {
+export default function CategorySection({ category, isOpen, onToggle, onToggleRequest, isRequested, isAlreadyBooked }) {
     return (
         <div className="mb-4">
             {/* Category header */}
@@ -35,6 +35,7 @@ export default function CategorySection({ category, isOpen, onToggle, onToggleRe
                             item={sub}
                             onToggleRequest={onToggleRequest}
                             requested={isRequested(sub._id)}
+                            alreadyBooked={isAlreadyBooked?.(sub._id)}
                             disabled={!category.isAvailable}
                         />
                     ))}
@@ -42,4 +43,4 @@ export default function CategorySection({ category, isOpen, onToggle, onToggleRe
             </div>
         </div>
     );
-}
+}
