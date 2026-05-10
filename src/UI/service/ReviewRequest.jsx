@@ -1,18 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
-
-/* ── Trash icon ── */
-function TrashIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#facc15" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            <line x1="10" y1="11" x2="10" y2="17" />
-            <line x1="14" y1="11" x2="14" y2="17" />
-        </svg>
-    );
-}
+import TrashIcon from '../../globalComponents/TrashIcon';
 
 /* ── Single review service item ── */
 function ReviewServiceItem({ item, onDelete, onAddDetails }) {
@@ -91,6 +80,7 @@ function ReviewCategorySection({ category, onDelete, onAddDetails }) {
 export default function ReviewRequest() {
     const navigate = useNavigate();
     const location = useLocation();
+    console.log("location.state?.groupedItems", location.state?.groupedItems);
 
     // Get grouped items from navigation state and keep in local state for mutations
     const [groupedItems, setGroupedItems] = useState(

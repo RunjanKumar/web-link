@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import BackButton from '../../globalComponents/BackButton';
+import BackButton from '../../../globalComponents/BackButton';
 
 /* ── Booking Status Constants ── */
 const BOOKING_STATUS = {

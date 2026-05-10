@@ -19,9 +19,7 @@ export const ENDPOINTS = {
     ROOM_SCENES: '/v1/room/scenes',
 
     // ── Services ──
-    SERVICES_CATEGORIES: '/v1/services/categories',
-    SERVICES_REQUEST: '/v1/services/request',
-    SERVICES_HISTORY: '/v1/services/requests',
+    SERVICE: '/v1/hotelServices',
 
     // ── Facilities ──
     FACILITIES: '/v1/facilities',
