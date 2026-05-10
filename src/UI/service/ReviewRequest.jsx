@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
 import TrashIcon from '../../globalComponents/TrashIcon';
+import useServiceViewModel from '../../viewModel/serviceViewModel';
+import useServiceRequest from '../../context/ServiceRequestContext';
 
 /* ── Single review service item ── */
 function ReviewServiceItem({ item, onDelete, onAddDetails }) {
@@ -55,7 +57,7 @@ function ReviewCategorySection({ category, onDelete, onAddDetails }) {
             <div className="bg-[#141414] border border-gray-800/60 rounded-t-xl px-4 py-3.5">
                 <div className="flex items-center gap-3">
                     <div className="w-1 h-6 bg-yellow-400 rounded-full" />
-                    <h3 className="text-white text-base font-bold m-0">{category.categoryName}</h3>
+                    <h3 className="text-white text-base font-bold m-0">{category.categoryName || category.name}</h3>
                 </div>
             </div>
 
@@ -79,41 +81,34 @@ function ReviewCategorySection({ category, onDelete, onAddDetails }) {
    ══════════════════════════════════════════════════ */
 export default function ReviewRequest() {
     const navigate = useNavigate();
-    const location = useLocation();
-    console.log("location.state?.groupedItems", location.state?.groupedItems);
+    const { buildGroupedItems, submitRequest, isSubmitting } = useServiceViewModel();
+    const { toggleRequest } = useServiceRequest();
 
-    // Get grouped items from navigation state and keep in local state for mutations
-    const [groupedItems, setGroupedItems] = useState(
-        location.state?.groupedItems || []
-    );
+    // Build grouped items from context (persisted state)
+    const groupedItems = buildGroupedItems();
 
     const handleDelete = (subcategoryId) => {
-        setGroupedItems((prev) => {
-            return prev
-                .map((cat) => ({
-                    ...cat,
-                    subcategories: cat.subcategories.filter((s) => s.id !== subcategoryId),
-                }))
-                .filter((cat) => cat.subcategories.length > 0);
-        });
+        // Remove from context — this un-requests the service
+        toggleRequest(subcategoryId);
     };
 
     const handleAddDetails = (item) => {
         navigate('/services/add-details', {
-            state: {
-                service: item,
-                groupedItems: groupedItems,
-            }
+            state: { serviceId: item._id, serviceName: item.name }
         });
     };
 
-    const handleSendRequest = () => {
-        // Flatten grouped items into a flat list for the pending page
-        const flatItems = groupedItems.flatMap((cat) => cat.subcategories);
-        // TODO: Replace with actual API call to send all requests to backend
-        navigate('/services/pending', {
-            state: { submittedItems: flatItems, showToast: true }
-        });
+    const handleSendRequest = async () => {
+        const result = await submitRequest();
+        if (result.success) {
+            // Navigate to pending with the submitted items for display
+            navigate('/services/pending', {
+                state: { submittedItems: result.items, showToast: true }
+            });
+        } else {
+            // Stay on page — context still has all data
+            console.error('Failed to submit request:', result.error);
+        }
     };
 
     const totalItems = groupedItems.reduce((sum, cat) => sum + cat.subcategories.length, 0);
@@ -134,7 +129,7 @@ export default function ReviewRequest() {
                 {totalItems > 0 ? (
                     groupedItems.map((cat) => (
                         <ReviewCategorySection
-                            key={cat.id}
+                            key={cat._id}
                             category={cat}
                             onDelete={handleDelete}
                             onAddDetails={handleAddDetails}
@@ -153,9 +148,10 @@ export default function ReviewRequest() {
                 {totalItems > 0 && (
                     <button
                         onClick={handleSendRequest}
-                        className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-4"
+                        disabled={isSubmitting}
+                        className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-4 ${isSubmitting ? 'opacity-60 pointer-events-none' : ''}`}
                     >
-                        Send Request
+                        {isSubmitting ? 'Submitting...' : 'Send Request'}
                     </button>
                 )}
             </div>

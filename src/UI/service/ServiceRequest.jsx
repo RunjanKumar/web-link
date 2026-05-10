@@ -17,12 +17,10 @@ export default function ServiceRequest() {
         toggleRequest,
         isRequested,
         hasRequestedServices,
-        getRequestedItemsGrouped,
     } = useServiceViewModel();
 
     const handleReviewRequest = () => {
-        const groupedItems = getRequestedItemsGrouped();
-        navigate('/services/review', { state: { groupedItems } });
+        navigate('/services/review');
     };
 
     const menuItems = [

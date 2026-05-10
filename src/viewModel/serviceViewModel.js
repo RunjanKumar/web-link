@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { getService } from "../api/service/serviceService";
+import { getService, submitServiceRequest } from "../api/service/serviceService";
+import useServiceRequest from "../context/ServiceRequestContext";
 
 export default function useServiceViewModel() {
 
     const [categoriesData, setCategoriesData] = useState([]);
     // First category expanded by default
     const [openCategories, setOpenCategories] = useState({});
-    // Track which services have been requested (set of subcategory IDs)
-    const [requestedServices, setRequestedServices] = useState(new Set());
+    // Submitting state for loading indicator
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Pull request state from the shared context (persists across navigation)
+    const {
+        toggleRequest,
+        isRequested,
+        hasRequestedServices,
+        getRequestedItemsGrouped,
+        serviceDetails,
+        clearAll,
+    } = useServiceRequest();
 
     useEffect(() => {
         async function getServiceData() {
@@ -25,31 +36,39 @@ export default function useServiceViewModel() {
         setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }))
     };
 
-    const toggleRequest = (subcategoryId) => {
-        setRequestedServices((prev) => {
-            console.log(prev, "subcategoryId", subcategoryId);
-            const next = new Set(prev);
-            if (next.has(subcategoryId)) {
-                next.delete(subcategoryId);
-            } else {
-                next.add(subcategoryId);
-            }
-            return next;
-        });
+    /**
+     * Build the grouped items for ReviewRequest page.
+     * Uses categoriesData from API + requestedServices from context.
+     */
+    const buildGroupedItems = () => {
+        return getRequestedItemsGrouped(categoriesData);
     };
 
-    const isRequested = (subcategoryId) => requestedServices.has(subcategoryId);
-
-    const hasRequestedServices = requestedServices.size > 0;
-
-    const getRequestedItemsGrouped = () => {
-        console.log("categoriesData", categoriesData);
-        return categoriesData
-            .map((cat) => ({
-                ...cat,
-                subcategories: cat.subCategoriesIds.filter((s) => requestedServices.has(s._id)),
+    /**
+     * Submit the service request to the backend.
+     * On success → clears context state.
+     * Returns { success, data } so the caller can navigate on success.
+     */
+    const submitRequest = async () => {
+        const grouped = buildGroupedItems();
+        const payload = grouped.flatMap((cat) =>
+            cat.subcategories.map((sub) => ({
+                subcategoryId: sub._id,
+                details: serviceDetails[sub._id] || '',
             }))
-            .filter((cat) => cat.subcategories.length > 0);
+        );
+
+        setIsSubmitting(true);
+        try {
+            const result = await submitServiceRequest(payload);
+            clearAll();
+            return { success: true, data: result, items: grouped.flatMap((c) => c.subcategories) };
+        } catch (error) {
+            console.error('Service request submission failed:', error);
+            return { success: false, error };
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return {
@@ -59,6 +78,8 @@ export default function useServiceViewModel() {
         toggleRequest,
         isRequested,
         hasRequestedServices,
-        getRequestedItemsGrouped,
+        buildGroupedItems,
+        submitRequest,
+        isSubmitting,
     };
 }

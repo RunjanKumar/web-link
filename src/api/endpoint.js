@@ -20,6 +20,7 @@ export const ENDPOINTS = {
 
     // ── Services ──
     SERVICE: '/v1/hotelServices',
+    SERVICE_REQUEST: '/v1/hotelServices/book',
 
     // ── Facilities ──
     FACILITIES: '/v1/facilities',

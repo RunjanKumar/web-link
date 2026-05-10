@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BackButton from '../../../globalComponents/BackButton';
+import useServiceRequest from '../../../context/ServiceRequestContext';
 
 /* ══════════════════════════════════════════════════
    ── Add Details Page ──
@@ -8,26 +9,18 @@ import BackButton from '../../../globalComponents/BackButton';
 export default function AddDetails() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { setDetail, getDetail } = useServiceRequest();
 
-    const service = location.state?.service || {};
-    const groupedItems = location.state?.groupedItems || [];
+    const serviceId = location.state?.serviceId || '';
+    const serviceName = location.state?.serviceName || 'Service';
 
-    const [message, setMessage] = useState(service.details || '');
+    // Initialize from context (persisted details)
+    const [message, setMessage] = useState(getDetail(serviceId));
 
     const handleDone = () => {
-        // Update the service item with details, then go back to review
-        const updatedItems = groupedItems.map((cat) => ({
-            ...cat,
-            subcategories: cat.subcategories.map((sub) =>
-                sub.id === service.id
-                    ? { ...sub, details: message }
-                    : sub
-            ),
-        }));
-
-        navigate('/services/review', {
-            state: { groupedItems: updatedItems }
-        });
+        // Save details into context — persists across navigation
+        setDetail(serviceId, message);
+        navigate(-1); // Go back to ReviewRequest
     };
 
     return (
@@ -45,7 +38,7 @@ export default function AddDetails() {
                 {/* ── Service Name Badge ── */}
                 <div className="mt-4 mb-6">
                     <span className="inline-block bg-[#1a1a1a] border border-gray-800 text-yellow-400 text-sm font-semibold px-4 py-2 rounded-xl">
-                        {service.name || 'Service'}
+                        {serviceName}
                     </span>
                 </div>
 
