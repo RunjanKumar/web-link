@@ -24,16 +24,13 @@ export async function getService() {
  * @returns {Promise<Object>}
  */
 export async function submitServiceRequest(payload) {
-    // ── Fake API: logs and resolves after a short delay ──
-    console.log('🚀 [FAKE API] submitServiceRequest payload:', payload);
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log('✅ [FAKE API] Service request submitted successfully');
-            resolve({ success: true, message: 'Request submitted (fake)' });
-        }, 800);
-    });
-
+    console.log("payload", payload);
     // ── Real API (uncomment when ready) ──
-    // const response = await apiClient.post(ENDPOINTS.SERVICE_REQUEST, payload);
-    // return response.data;
+    const response = await apiClient.post(ENDPOINTS.SERVICE_REQUEST, payload);
+    return response.data;
+}
+
+export async function  getServiceRequest() {
+    const response = await apiClient.get(ENDPOINTS.GET_SERVICE_REQUEST);
+    return response.data;
 }

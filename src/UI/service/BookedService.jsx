@@ -1,28 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import BackButton from '../../../globalComponents/BackButton';
+import BackButton from '../../globalComponents/BackButton';
+import { BOOKING_STATUS } from "../../utils/constant"
+import BookedServiceCard from './components/BookedServiceCard';
+import useBookedServiceModel from '../../viewModel/bookServiceViewModel';
 
-/* ── Booking Status Constants ── */
-const BOOKING_STATUS = {
-    PENDING: 1,
-    IN_PROGRESS: 2,
-    COMPLETED: 3,
-    CANCEL: 4,
-};
-
-const STATUS_LABELS = {
-    [BOOKING_STATUS.PENDING]: 'Pending',
-    [BOOKING_STATUS.IN_PROGRESS]: 'In Progress',
-    [BOOKING_STATUS.COMPLETED]: 'Completed',
-    [BOOKING_STATUS.CANCEL]: 'Cancelled',
-};
-
-const STATUS_STYLES = {
-    [BOOKING_STATUS.PENDING]: 'bg-yellow-500/15 border-yellow-500/60 text-yellow-400',
-    [BOOKING_STATUS.IN_PROGRESS]: 'bg-blue-500/15 border-blue-500/60 text-blue-400',
-    [BOOKING_STATUS.COMPLETED]: 'bg-green-500/15 border-green-500/60 text-green-400',
-    [BOOKING_STATUS.CANCEL]: 'bg-red-500/15 border-red-500/60 text-red-400',
-};
 
 /* ── Success Toast ── */
 function SuccessToast({ show, onClose }) {
@@ -51,46 +33,15 @@ function SuccessToast({ show, onClose }) {
     );
 }
 
-/* ── Single pending service card (status only, no action buttons) ── */
-function PendingServiceCard({ item }) {
-    const isCompleted = item.status === BOOKING_STATUS.COMPLETED;
-    const isCancelled = item.status === BOOKING_STATUS.CANCEL;
-
-    return (
-        <div className={`bg-[#111111] rounded-xl border border-gray-800/40 px-4 py-4 mb-3 transition-opacity duration-300 ${(isCompleted || isCancelled) ? 'opacity-50' : ''}`}>
-            {/* Top row: name + time */}
-            <div className="flex items-start justify-between gap-3">
-                <h4 className="text-white text-sm font-semibold m-0 leading-snug">{item.name}</h4>
-                <span className="text-gray-400 text-xs shrink-0">{item.requestedAt}</span>
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-500 text-xs m-0 mt-1 leading-relaxed">{item.description}</p>
-
-            {/* Details (if added) */}
-            {item.details && (
-                <p className="text-yellow-400/70 text-xs m-0 mt-1.5 leading-relaxed italic">
-                    Details : {item.details}
-                </p>
-            )}
-
-            {/* Status badge */}
-            <div className="flex items-center justify-end mt-3">
-                <span className={`inline-block px-3 py-1 rounded-md text-xs font-semibold border ${STATUS_STYLES[item.status]}`}>
-                    {STATUS_LABELS[item.status]}
-                </span>
-            </div>
-        </div>
-    );
-}
 
 /* ══════════════════════════════════════════════════
    ── Pending Request Page ──
    ══════════════════════════════════════════════════ */
-export default function PendingRequest() {
+export default function BookedService() {
     const navigate = useNavigate();
     const location = useLocation();
-
+    const { bookedServiceData } = useBookedServiceModel();
+     console.log("data i nservice", bookedServiceData);
     const showToastInitially = location.state?.showToast || false;
     const incomingItems = location.state?.submittedItems || [];
 
@@ -99,7 +50,7 @@ export default function PendingRequest() {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
 
-        return incomingItems.map((item) => ({
+        return bookedServiceData.map((item) => ({
             ...item,
             status: BOOKING_STATUS.PENDING,
             requestedAt: timeStr,
@@ -133,13 +84,13 @@ export default function PendingRequest() {
 
                 {/* ── Title ── */}
                 <h1 className="text-[1.75rem] font-bold m-0 mt-1 mb-6 leading-tight">
-                    Pending Request
+                    Service Request
                 </h1>
 
                 {/* ── Pending / In Progress Services ── */}
-                {pendingServices.length > 0 && (
-                    pendingServices.map((item) => (
-                        <PendingServiceCard key={item.id} item={item} />
+                {bookedServiceData.length > 0 && (
+                    bookedServiceData.map((item) => (
+                        <BookedServiceCard key={item.id} item={item} />
                     ))
                 )}
 

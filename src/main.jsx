@@ -16,7 +16,7 @@ import Feedback from './UI/feedback/Feedback.jsx'
 import ServiceRequest from './UI/service/ServiceRequest.jsx'
 import ReviewRequest from './UI/service/ReviewRequest.jsx'
 import AddDetails from './UI/service/components/AddDetails.jsx'
-import PendingRequest from './UI/service/components/PendingRequest.jsx'
+import BookedService from './UI/service/BookedService.jsx'
 import Facilities from './UI/facility/Facilities.jsx'
 import FacilityDetail from './UI/facility/FacilityDetail.jsx'
 import ReserveTable from './UI/facility/ReserveTable.jsx'
@@ -40,7 +40,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/services" element={<ServiceRequest />} />
                 <Route path="/services/review" element={<ReviewRequest />} />
                 <Route path="/services/add-details" element={<AddDetails />} />
-                <Route path="/services/pending" element={<PendingRequest />} />
+                <Route path="/services/pending" element={<BookedService />} />
                 <Route path="/facilities" element={<Facilities />} />
                 <Route path="/facilities/detail" element={<FacilityDetail />} />
                 <Route path="/facilities/reserve" element={<ReserveTable />} />

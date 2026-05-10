@@ -21,6 +21,7 @@ export const ENDPOINTS = {
     // ── Services ──
     SERVICE: '/v1/hotelServices',
     SERVICE_REQUEST: '/v1/hotelServices/book',
+    GET_SERVICE_REQUEST: '/v1/hotelServices/book/customer',
 
     // ── Facilities ──
     FACILITIES: '/v1/facilities',

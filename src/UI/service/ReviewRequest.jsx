@@ -1,9 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import BackButton from '../../globalComponents/BackButton';
 import TrashIcon from '../../globalComponents/TrashIcon';
-import useServiceViewModel from '../../viewModel/serviceViewModel';
-import useServiceRequest from '../../hooks/useServiceRequest';
+import useReviewRequestViewModel from '../../viewModel/reviewRequestViewModel';
 
 /* ── Single review service item ── */
 function ReviewServiceItem({ item, onDelete, onAddDetails }) {
@@ -80,37 +78,22 @@ function ReviewCategorySection({ category, onDelete, onAddDetails }) {
    ── Review Request Page ──
    ══════════════════════════════════════════════════ */
 export default function ReviewRequest() {
-    const navigate = useNavigate();
-    const { buildGroupedItems, submitRequest, isSubmitting } = useServiceViewModel();
-    const { toggleRequest } = useServiceRequest();
+    const {
+        fetchCategories,
+        buildGroupedItems,
+        handleDelete,
+        handleAddDetails,
+        handleSendRequest,
+        isSubmitting,
+    } = useReviewRequestViewModel();
+
+    // Fetch categories on mount so grouped items can be built
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     // Build grouped items from context (persisted state)
     const groupedItems = buildGroupedItems();
-
-    const handleDelete = (subcategoryId) => {
-        // Remove from context — this un-requests the service
-        toggleRequest(subcategoryId);
-    };
-
-    const handleAddDetails = (item) => {
-        navigate('/services/add-details', {
-            state: { serviceId: item._id, serviceName: item.name }
-        });
-    };
-
-    const handleSendRequest = async () => {
-        const result = await submitRequest();
-        if (result.success) {
-            // Navigate to pending with the submitted items for display
-            navigate('/services/pending', {
-                state: { submittedItems: result.items, showToast: true }
-            });
-        } else {
-            // Stay on page — context still has all data
-            console.error('Failed to submit request:', result.error);
-        }
-    };
-
     const totalItems = groupedItems.reduce((sum, cat) => sum + cat.subcategories.length, 0);
 
     return (
