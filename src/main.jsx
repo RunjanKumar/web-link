@@ -26,7 +26,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <SocketProvider>
-        <Toaster position="top-center" theme="dark" richColors closeButton />
+        <Toaster position="top-right" theme="dark" richColors closeButton />
           <ServiceRequestProvider>
             <BrowserRouter>
               <Routes>
