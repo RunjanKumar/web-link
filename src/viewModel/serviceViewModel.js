@@ -4,9 +4,10 @@ import { getApiErrorMessage } from "../api/client";
 import { useToast } from "../globalComponents/Toast";
 import { BOOKING_STATUS } from "../utils/constant";
 import useServiceRequest from "../hooks/useServiceRequest";
+import { useNavigate } from "react-router-dom";
 
 export default function useServiceViewModel() {
-
+    const navigate = useNavigate();
     const [categoriesData, setCategoriesData] = useState([]);
     const [loading, setLoading] = useState(true);
     // First category expanded by default
@@ -79,6 +80,15 @@ export default function useServiceViewModel() {
         [bookedSubCategoryIds]
     );
 
+    const handleReviewRequest = () => {
+        navigate('/services/review');
+    };
+
+    const menuItems = [
+        { label: 'Request history', onClick: () => navigate('/services/pending', { state: { submittedItems: [], showToast: false } }) },
+        { label: 'Help', onClick: () => navigate('/chat', { state: { submittedItems: [], showToast: false } }) },
+    ];
+
     return {
         categoriesData,
         loading,
@@ -88,5 +98,7 @@ export default function useServiceViewModel() {
         isRequested,
         isAlreadyBooked,
         hasRequestedServices,
+        handleReviewRequest,
+        menuItems,
     };
 }

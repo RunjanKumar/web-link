@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getService, submitServiceRequest } from "../api/service/serviceService";
 import { getApiErrorMessage } from "../api/client";
 import useServiceRequest from "../hooks/useServiceRequest";
+import { useToast } from "../globalComponents/Toast";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -15,6 +16,7 @@ import useServiceRequest from "../hooks/useServiceRequest";
  *   - Deleting (un-requesting) a service
  *   - Navigating to add/edit details
  *   - Building the correct submit payload & calling the API
+ *   - Toast feedback & post-submit navigation
  *
  * Submit payload format (one object per category):
  * {
@@ -26,14 +28,13 @@ import useServiceRequest from "../hooks/useServiceRequest";
  */
 export default function useReviewRequestViewModel() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const [categoriesData, setCategoriesData] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const {
         toggleRequest,
-        isRequested,
-        hasRequestedServices,
         getRequestedItemsGrouped,
         serviceDetails,
         clearAll,
@@ -114,13 +115,28 @@ export default function useReviewRequestViewModel() {
         }
     };
 
+    /**
+     * Full submit orchestration — calls API, shows toast, navigates.
+     * The page just needs to call this single function.
+     */
+    const handleSubmit = async () => {
+        const result = await handleSendRequest();
+        if (result.success) {
+            showToast('Your service request has been successfully submitted.', 'success');
+            navigate('/services/pending', { replace: true, state: { showToast: false } });
+        } else {
+            showToast(result.errorMessage || 'Failed to submit request.', 'error');
+        }
+    };
+
+
     return {
         categoriesData,
         fetchCategories,
         buildGroupedItems,
         handleDelete,
         handleAddDetails,
-        handleSendRequest,
-        isSubmitting,
+        handleSubmit,
+        isSubmitting, 
     };
 }

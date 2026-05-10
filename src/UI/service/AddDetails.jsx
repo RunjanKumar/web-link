@@ -1,27 +1,16 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import BackButton from '../../../globalComponents/BackButton';
-import useServiceRequest from '../../../hooks/useServiceRequest';
+import BackButton from '../../globalComponents/BackButton';
+import useAddDetailsViewModel from '../../viewModel/addDetailsViewModel';
 
 /* ══════════════════════════════════════════════════
    ── Add Details Page ──
    ══════════════════════════════════════════════════ */
 export default function AddDetails() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const { setDetail, getDetail } = useServiceRequest();
-
-    const serviceId = location.state?.serviceId || '';
-    const serviceName = location.state?.serviceName || 'Service';
-
-    // Initialize from context (persisted details)
-    const [message, setMessage] = useState(getDetail(serviceId));
-
-    const handleDone = () => {
-        // Save details into context — persists across navigation
-        setDetail(serviceId, message);
-        navigate(-1); // Go back to ReviewRequest
-    };
+    const {
+        serviceName,
+        message,
+        setMessage,
+        handleDone,
+    } = useAddDetailsViewModel();
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">

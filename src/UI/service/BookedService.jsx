@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
 import { useToast } from '../../globalComponents/Toast';
-import { BOOKING_STATUS } from "../../utils/constant";
 import BookedServiceCard from './components/BookedServiceCard';
 import useBookedServiceModel from '../../viewModel/bookServiceViewModel';
 
@@ -14,7 +13,16 @@ export default function BookedService() {
     const navigate = useNavigate();
     const location = useLocation();
     const { showToast } = useToast();
-    const { bookedServiceData, loading, error, refetch } = useBookedServiceModel();
+    const {
+        pendingServices,
+        inProgressServices,
+        completedServices,
+        cancelledServices,
+        hasAnyServices,
+        loading,
+        error,
+        refetch,
+    } = useBookedServiceModel();
 
     // Show success toast if navigated here after a successful submission
     const showToastInitially = location.state?.showToast || false;
@@ -33,22 +41,6 @@ export default function BookedService() {
             showToast(error, 'error');
         }
     }, [error, showToast]);
-
-    // ── Group services by status ──
-    const pendingServices = bookedServiceData.filter(
-        (s) => s.status === BOOKING_STATUS.PENDING
-    );
-    const inProgressServices = bookedServiceData.filter(
-        (s) => s.status === BOOKING_STATUS.IN_PROGRESS
-    );
-    const completedServices = bookedServiceData.filter(
-        (s) => s.status === BOOKING_STATUS.COMPLETED
-    );
-    const cancelledServices = bookedServiceData.filter(
-        (s) => s.status === BOOKING_STATUS.CANCEL
-    );
-
-    const hasAnyServices = bookedServiceData.length > 0;
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">

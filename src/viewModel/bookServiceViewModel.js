@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { getServiceRequest } from "../api/service/serviceService";
 import { getApiErrorMessage } from "../api/client";
+import { BOOKING_STATUS } from "../utils/constant";
 
 /**
  * ViewModel for the BookedService page.
  * Fetches all booked service requests for the customer and exposes
- * loading / error states for production-quality UX.
+ * loading / error states + status-grouped lists for production-quality UX.
  */
 export default function useBookedServiceModel() {
     const [bookedServiceData, setBookedServiceData] = useState([]);
@@ -31,8 +32,33 @@ export default function useBookedServiceModel() {
         fetchBookedServiceData();
     }, [fetchBookedServiceData]);
 
+    /* ── Group services by status ── */
+    const pendingServices = useMemo(
+        () => bookedServiceData.filter((s) => s.status === BOOKING_STATUS.PENDING),
+        [bookedServiceData]
+    );
+    const inProgressServices = useMemo(
+        () => bookedServiceData.filter((s) => s.status === BOOKING_STATUS.IN_PROGRESS),
+        [bookedServiceData]
+    );
+    const completedServices = useMemo(
+        () => bookedServiceData.filter((s) => s.status === BOOKING_STATUS.COMPLETED),
+        [bookedServiceData]
+    );
+    const cancelledServices = useMemo(
+        () => bookedServiceData.filter((s) => s.status === BOOKING_STATUS.CANCEL),
+        [bookedServiceData]
+    );
+
+    const hasAnyServices = bookedServiceData.length > 0;
+
     return {
         bookedServiceData,
+        pendingServices,
+        inProgressServices,
+        completedServices,
+        cancelledServices,
+        hasAnyServices,
         loading,
         error,
         refetch: fetchBookedServiceData,

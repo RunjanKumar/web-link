@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
 import ThreeDotMenu from '../../globalComponents/ThreeDotMenu';
 import BottomNav from '../../globalComponents/BottomNav';
@@ -9,7 +8,6 @@ import CategorySection from './components/CategorySection';
    ── Main ServiceRequest Page ──
    ══════════════════════════════════════════════════ */
 export default function ServiceRequest() {
-    const navigate = useNavigate();
     const {
         categoriesData,
         openCategories,
@@ -18,16 +16,9 @@ export default function ServiceRequest() {
         isRequested,
         isAlreadyBooked,
         hasRequestedServices,
+        handleReviewRequest,
+        menuItems,
     } = useServiceViewModel();
-
-    const handleReviewRequest = () => {
-        navigate('/services/review');
-    };
-
-    const menuItems = [
-        { label: 'Request history', onClick: () => navigate('/services/pending', { state: { submittedItems: [], showToast: false } }) },
-        // { label: 'Help', onClick: () => { /* TODO */ } },
-    ];
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative">
