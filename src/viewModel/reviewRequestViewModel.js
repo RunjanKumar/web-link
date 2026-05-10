@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getService, submitServiceRequest } from "../api/service/serviceService";
 import { getApiErrorMessage } from "../api/client";
 import useServiceRequest from "../hooks/useServiceRequest";
-import { useToast } from "../globalComponents/Toast";
+import { toast } from "sonner";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -28,7 +28,7 @@ import { useToast } from "../globalComponents/Toast";
  */
 export default function useReviewRequestViewModel() {
     const navigate = useNavigate();
-    const { showToast } = useToast();
+
 
     const [categoriesData, setCategoriesData] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,10 +122,10 @@ export default function useReviewRequestViewModel() {
     const handleSubmit = async () => {
         const result = await handleSendRequest();
         if (result.success) {
-            showToast('Your service request has been successfully submitted.', 'success');
+            toast.success('Your service request has been successfully submitted.');
             navigate('/services/pending', { replace: true, state: { showToast: false } });
         } else {
-            showToast(result.errorMessage || 'Failed to submit request.', 'error');
+            toast.error(result.errorMessage || 'Failed to submit request.');
         }
     };
 

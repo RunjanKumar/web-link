@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import BackButton from '../../globalComponents/BackButton';
 
 /* ── Booking Status Constants ── */
@@ -65,32 +66,7 @@ function StatusIcon() {
     );
 }
 
-/* ── Success Toast ── */
-function SuccessToast({ show, onClose }) {
-    if (!show) return null;
 
-    return (
-        <div className="mb-5 bg-[#2d6a30] rounded-xl px-4 py-3 flex items-center gap-3 animate-slideDown">
-            <div className="w-10 h-10 min-w-[2.5rem] rounded-full bg-white/20 flex items-center justify-center">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                </svg>
-            </div>
-            <div className="flex-1">
-                <p className="text-white text-base font-bold m-0">Great!</p>
-                <p className="text-white/80 text-xs m-0 mt-0.5">Your booking has been successfully submitted.</p>
-            </div>
-            <button
-                onClick={onClose}
-                className="shrink-0 w-7 h-7 flex items-center justify-center bg-transparent border-none cursor-pointer text-white/70 hover:text-white"
-            >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M18 6L6 18" /><path d="M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    );
-}
 
 /* ── Single Booking Card ── */
 function BookingCard({ booking }) {
@@ -151,15 +127,13 @@ export default function UpcomingEvents() {
         return list;
     });
 
-    const [showToast, setShowToast] = useState(showToastInitially);
-
-    // Auto-dismiss toast after 4 seconds
+    // Show success toast if navigated here after a successful booking
     useEffect(() => {
-        if (showToast) {
-            const timer = setTimeout(() => setShowToast(false), 4000);
-            return () => clearTimeout(timer);
+        if (showToastInitially) {
+            toast.success('Your booking has been successfully submitted.');
+            window.history.replaceState({}, '');
         }
-    }, [showToast]);
+    }, [showToastInitially]);
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
@@ -168,8 +142,7 @@ export default function UpcomingEvents() {
                 {/* ── Back Button ── */}
                 <BackButton />
 
-                {/* ── Success Toast ── */}
-                <SuccessToast show={showToast} onClose={() => setShowToast(false)} />
+
 
                 {/* ── Title ── */}
                 <h1 className="text-[1.75rem] font-bold m-0 mt-1 mb-6 leading-tight">

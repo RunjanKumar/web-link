@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 import { SocketProvider } from './context/SocketContext'
-import { ToastProvider } from './globalComponents/Toast'
+import { Toaster } from 'sonner'
 import { ServiceRequestProvider } from './context/ServiceRequestContext'
 import App from './App.jsx'
 import Dashboard from './UI/dashboard/Dashboard.jsx'
@@ -26,7 +26,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <SocketProvider>
-        <ToastProvider>
+        <Toaster position="top-center" theme="dark" richColors closeButton />
           <ServiceRequestProvider>
             <BrowserRouter>
               <Routes>
@@ -48,7 +48,7 @@ createRoot(document.getElementById('root')).render(
               </Routes>
             </BrowserRouter>
           </ServiceRequestProvider>
-        </ToastProvider>
+
       </SocketProvider>
     </AuthProvider>
   </StrictMode>,

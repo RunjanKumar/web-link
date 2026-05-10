@@ -1,6 +1,6 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { getRoomDevices, execDevice } from '../../../api/service/dashboardService';
-import { useToast } from '../../../globalComponents/Toast';
+import { toast } from 'sonner';
 
 // ── WiFi Offline Icon (crossed-out wifi) ──
 function WifiOfflineIcon() {
@@ -45,7 +45,7 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
   const [isLoading, setIsLoading] = useState(true);
   const [masterSceneId, setMasterSceneId] = useState(null);
 
-  const { showToast } = useToast();
+
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +87,7 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
       } catch (err) {
         console.error('Scene devices fetch error:', err);
         const backendMsg = err?.response?.data?.msg;
-        if (backendMsg) showToast(backendMsg, 'error');
+        if (backendMsg) toast.error(backendMsg);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -122,7 +122,7 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
     } catch (err) {
       console.error(`❌ Scene exec failed for ${device?.friendlyname}:`, err);
       const backendMsg = err?.response?.data?.msg;
-      if (backendMsg) showToast(backendMsg, 'error');
+      if (backendMsg) toast.error(backendMsg);
       // Rollback on failure
       setSceneToggles((prev) => ({ ...prev, [id]: wasOn }));
     }

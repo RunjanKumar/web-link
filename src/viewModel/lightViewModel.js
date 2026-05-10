@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getRoomDevices, execDevice } from '../api/service/dashboardService';
-import { useToast } from '../globalComponents/Toast';
+import { toast } from 'sonner';
 
 export default function useLightViewModel() {
     const [lightsData, setLightsData] = useState([]);
@@ -11,8 +11,7 @@ export default function useLightViewModel() {
     const [fanLevels, setFanLevels] = useState({});
     const [masterSceneDevice, setMasterSceneDevice] = useState(null); // The Master Scene channel device
 
-    // ── Access the global toast system ──
-    const { showToast } = useToast();
+
 
     // ─────────────────────────────────────────────────────────────
     // DEBOUNCE REFS FOR FAN SPEED
@@ -117,7 +116,7 @@ export default function useLightViewModel() {
                     // ── Show backend error message in toast ──
                     const backendMsg = err?.response?.data?.msg;
                     if (backendMsg) {
-                        showToast(backendMsg, 'error');
+                        toast.error(backendMsg);
                     }
                     setError(err?.response?.data?.message || 'Failed to load devices');
                 }
@@ -166,7 +165,7 @@ export default function useLightViewModel() {
             // ── Show backend error message in toast ──
             const backendMsg = err?.response?.data?.msg;
             if (backendMsg) {
-                showToast(backendMsg, 'error');
+                toast.error(backendMsg);
             }
             // Rollback on failure
             setLights((prev) => ({ ...prev, [id]: wasOn }));
@@ -202,7 +201,7 @@ export default function useLightViewModel() {
             console.error(`❌ Master exec failed:`, err);
             const backendMsg = err?.response?.data?.msg;
             if (backendMsg) {
-                showToast(backendMsg, 'error');
+                toast.error(backendMsg);
             }
             // Rollback on failure
             setMasterSwitch(!newState);
@@ -269,13 +268,13 @@ export default function useLightViewModel() {
                 // ── Show backend error message in toast ──
                 const backendMsg = err?.response?.data?.msg;
                 if (backendMsg) {
-                    showToast(backendMsg, 'error');
+                    toast.error(backendMsg);
                 }
                 // Rollback on failure
                 setFanLevels((prev) => ({ ...prev, [id]: prevLevel }));
             }
         }, 400);
-    }, [lightsData, fanLevels, showToast]);
+    }, [lightsData, fanLevels]);
 
     // ── Cleanup all debounce timers when component unmounts ──
     useEffect(() => {

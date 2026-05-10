@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
-import { useToast } from '../../globalComponents/Toast';
+import { toast } from 'sonner';
 import BookedServiceCard from './components/BookedServiceCard';
 import useBookedServiceModel from '../../viewModel/bookServiceViewModel';
 
@@ -12,7 +12,7 @@ import useBookedServiceModel from '../../viewModel/bookServiceViewModel';
 export default function BookedService() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { showToast } = useToast();
+
     const {
         pendingServices,
         inProgressServices,
@@ -29,18 +29,18 @@ export default function BookedService() {
 
     useEffect(() => {
         if (showToastInitially) {
-            showToast('Your service request has been successfully submitted.', 'success');
+            toast.success('Your service request has been successfully submitted.');
             // Clear the navigation state so the toast doesn't re-appear on refresh
             window.history.replaceState({}, '');
         }
-    }, [showToastInitially, showToast]);
+    }, [showToastInitially]);
 
     // Show error toast when API fails
     useEffect(() => {
         if (error) {
-            showToast(error, 'error');
+            toast.error(error);
         }
-    }, [error, showToast]);
+    }, [error]);
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">

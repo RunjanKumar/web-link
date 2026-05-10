@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { getService, getServiceRequest } from "../api/service/serviceService";
 import { getApiErrorMessage } from "../api/client";
-import { useToast } from "../globalComponents/Toast";
+import { toast } from "sonner";
 import { BOOKING_STATUS } from "../utils/constant";
 import useServiceRequest from "../hooks/useServiceRequest";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ export default function useServiceViewModel() {
     const [openCategories, setOpenCategories] = useState({});
     // Set of subcategory IDs that are already booked (pending / in-progress)
     const [bookedSubCategoryIds, setBookedSubCategoryIds] = useState(new Set());
-    const { showToast } = useToast();
+
 
     // Pull request state from the shared context (persists across navigation)
     const {
@@ -58,7 +58,7 @@ export default function useServiceViewModel() {
                 setBookedSubCategoryIds(activeBookedIds);
             } catch (err) {
                 const message = getApiErrorMessage(err, 'Failed to load services.');
-                showToast(message, 'error');
+                toast.error(message);
                 console.error('ServiceViewModel fetch error:', err);
             } finally {
                 setLoading(false);
