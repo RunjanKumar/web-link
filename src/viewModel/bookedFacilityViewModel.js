@@ -1,120 +1,106 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getFacilityReservations } from "../api/service/facilityService";
 import { getApiErrorMessage } from "../api/client";
-import { HOTEL_FACILITY_BOOKING_STATUS } from "../utils/constant";
+import {
+    HOTEL_FACILITY_BOOKING_STATUS,
+    FACILITY_STATUS_LABELS,
+    FACILITY_STATUS_COLORS,
+} from "../utils/constant";
+import { formattedDate, formattedTime } from "../utils/commonFunction";
 
 /**
  * ══════════════════════════════════════════════════════════════
  * BOOKED FACILITY VIEWMODEL
  * ══════════════════════════════════════════════════════════════
  *
- * LEARNING: This is the EXACT same pattern as bookServiceViewModel.js
- * but for facility reservations instead of service requests.
- *
- * Pattern:
- *   1. On mount → fetch all reservations from API
- *   2. Group them by status (Pending, Confirmed, Completed, Cancelled)
- *   3. Expose grouped lists + loading/error to the UI
- *
- * If you compare this with bookServiceViewModel.js side-by-side,
- * you'll see they're almost identical — that's the beauty of MVVM!
+ * Responsibilities:
+ *   1. Fetch all facility reservations from the API
+ *   2. Transform raw data into display-ready format
+ *   3. Group reservations by status (Pending, Approved, Disapproved)
+ *   4. Expose formatted data + loading/error state to the View
  */
+
+/* ── Transform a raw reservation into display-ready data ── */
+function formatBookingForDisplay(booking) {
+    const name =
+        booking.name ||
+        booking.facilityName ||
+        booking.hotelFacilityId?.name ||
+        'Facility';
+
+    const dateTimeStr = booking.bookingDate || booking.dateTime || booking.requestedAt || booking.createdAt;
+    const guests = booking.numberOfGuests || booking.numberOfPeople || booking.guests || 0;
+    const status = booking.status || HOTEL_FACILITY_BOOKING_STATUS.PENDING;
+
+    return {
+        id: booking._id,
+        displayDate: dateTimeStr
+            ? `${formattedDate(dateTimeStr)} at ${formattedTime(dateTimeStr)}`
+            : '',
+        displayGuests: guests ? `${guests} ${guests === 1 ? 'guest' : 'guests'}` : '',
+        displayName: name,
+        displayStatusLabel: FACILITY_STATUS_LABELS[status] || 'Unknown',
+        displayStatusColor: FACILITY_STATUS_COLORS[status] || '#6b7280',
+        status,
+    };
+}
 
 export default function useBookedFacilityViewModel() {
     const [reservations, setReservations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ══════════════════════════════════════════════════════════
-    // FETCH RESERVATIONS
-    //
-    // LEARNING: useCallback ensures this function reference stays
-    // stable across re-renders. Without it, useEffect would fire
-    // on every render because the function would be "new" each time.
-    // ══════════════════════════════════════════════════════════
+    // ── Fetch reservations from API ──
     const fetchReservations = useCallback(async () => {
-        console.log('📋 [BookedFacilityVM] fetchReservations() — Starting...');
         setLoading(true);
         setError(null);
 
         try {
             const response = await getFacilityReservations();
-            console.log('📋 [BookedFacilityVM] Raw API response:', response);
-
-            // ──────────────────────────────────────────────────
-            // LEARNING: Extract the array from the response.
-            // Backend may nest it differently, so we try multiple paths.
-            // The console.log above shows you the ACTUAL shape.
-            // ──────────────────────────────────────────────────
             const data = response?.data || response || [];
-            console.log('📋 [BookedFacilityVM] Extracted reservations array:', data);
-            console.log('📋 [BookedFacilityVM] Total reservations:', data.length);
-
-            // Log first item shape for learning
-            if (data.length > 0) {
-                console.log('📋 [BookedFacilityVM] First reservation (shape reference):', JSON.stringify(data[0], null, 2));
-            }
-
             setReservations(data);
         } catch (err) {
-            console.error('❌ [BookedFacilityVM] fetchReservations() FAILED:', err);
             const message = getApiErrorMessage(err, 'Failed to load reservations.');
             setError(message);
         } finally {
             setLoading(false);
-            console.log('📋 [BookedFacilityVM] fetchReservations() — Done');
         }
     }, []);
 
     // ── Auto-fetch on mount ──
     useEffect(() => {
-        console.log('📋 [BookedFacilityVM] Component mounted → fetching reservations...');
         fetchReservations();
     }, [fetchReservations]);
 
-    // ══════════════════════════════════════════════════════════
-    // GROUP BY STATUS
-    //
-    // LEARNING: useMemo caches the filtered arrays.
-    // They only re-compute when `reservations` changes.
-    // This is the EXACT same pattern as bookServiceViewModel.js
-    // ══════════════════════════════════════════════════════════
+    // ── Format all reservations for display ──
+    const formattedReservations = useMemo(
+        () => reservations.map(formatBookingForDisplay),
+        [reservations]
+    );
 
-    const pendingReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.PENDING);
-        console.log('📋 [BookedFacilityVM] Pending count:', filtered.length);
-        return filtered;
-    }, [reservations]);
+    // ── Group by status ──
+    const pendingReservations = useMemo(
+        () => formattedReservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.PENDING),
+        [formattedReservations]
+    );
 
-    // const inProgressReservations = useMemo(() => {
-    //     const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.IN_PROGRESS);
-    //     console.log('📋 [BookedFacilityVM] In Progress count:', filtered.length);
-    //     return filtered;
-    // }, [reservations]);
+    const approvedReservations = useMemo(
+        () => formattedReservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.APPROVED),
+        [formattedReservations]
+    );
 
-    const completedReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.APPROVED);
-        console.log('📋 [BookedFacilityVM] Completed count:', filtered.length);
-        return filtered;
-    }, [reservations]);
-
-    const cancelledReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.DISAPPROVED);
-        console.log('📋 [BookedFacilityVM] Cancelled count:', filtered.length);
-        return filtered;
-    }, [reservations]);
+    const disapprovedReservations = useMemo(
+        () => formattedReservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.DISAPPROVED),
+        [formattedReservations]
+    );
 
     const hasAnyReservations = reservations.length > 0;
 
-    // ══════════════════════════════════════════════════════════
-    // RETURN — everything the UpcomingEvents UI needs
-    // ══════════════════════════════════════════════════════════
+    // ── Return everything the View needs ──
     return {
-        reservations,
         pendingReservations,
-        // inProgressReservations,
-        completedReservations,
-        cancelledReservations,
+        approvedReservations,
+        disapprovedReservations,
         hasAnyReservations,
         loading,
         error,

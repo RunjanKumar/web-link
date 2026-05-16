@@ -32,3 +32,18 @@ export const HOTEL_FACILITY_BOOKING_STATUS = {
   DISAPPROVED: 3,
   CANCELLED: 4, // in future use for customer
 };
+
+/* ── Facility Booking Status — Display Config ── */
+export const FACILITY_STATUS_LABELS = {
+  [HOTEL_FACILITY_BOOKING_STATUS.PENDING]: 'Booking Pending',
+  [HOTEL_FACILITY_BOOKING_STATUS.APPROVED]: 'Booking Confirm',
+  [HOTEL_FACILITY_BOOKING_STATUS.DISAPPROVED]: 'Booking Disapproved',
+  [HOTEL_FACILITY_BOOKING_STATUS.CANCELLED]: 'Booking Cancelled',
+};
+
+export const FACILITY_STATUS_COLORS = {
+  [HOTEL_FACILITY_BOOKING_STATUS.PENDING]: '#ef4444',    // red
+  [HOTEL_FACILITY_BOOKING_STATUS.APPROVED]: '#22c55e',   // green
+  [HOTEL_FACILITY_BOOKING_STATUS.DISAPPROVED]: '#ef4444', // red
+  [HOTEL_FACILITY_BOOKING_STATUS.CANCELLED]: '#6b7280',  // gray
+};
