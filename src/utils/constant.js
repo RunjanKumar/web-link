@@ -25,6 +25,7 @@ export const STATUS_STYLES = {
     [BOOKING_STATUS.CANCEL]: 'bg-red-500/15 border-red-500/60 text-red-400',
 };
 
+
 export const HOTEL_FACILITY_BOOKING_STATUS = {
   PENDING: 1,
   APPROVED: 2,

@@ -54,7 +54,7 @@ export default function useFacilityDetailViewModel() {
         { label: 'Location', value: facility.location || '' },
         { label: 'Location Area', value: facility.locationlink || '' },
         { label: 'Pricing', value: pricingText },
-        { label: 'Contact', value: facility.contact || '' },
+        { label: 'Contact', value: facility.phoneNumber || '' },
         { label: 'Capacity', value: capacityText },
         { label: 'Area', value: facility.area || '' },
     ];

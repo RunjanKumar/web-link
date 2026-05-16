@@ -34,7 +34,7 @@ export default function FacilityDetail() {
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
 
             {/* ── Hero Image ── */}
-            <div className="relative w-full h-[45vh] min-h-[280px] overflow-hidden">
+            <div className="relative w-full h-[45vh] min-h-[320px] overflow-hidden">
                 <OverlayBackButton onClick={goBack} />
                 {facility.image ? (
                     <img
@@ -52,15 +52,15 @@ export default function FacilityDetail() {
             </div>
 
             {/* ── Content ── */}
-            <div className="px-5 pb-6 flex flex-col flex-1 -mt-2">
+            <div className="px-5 pb-6 pt-4 flex flex-col flex-1">
 
                 {/* Category badge */}
-                {categoryName && (
+                {/* {categoryName && (
                     <span className="text-yellow-400 text-xs font-semibold mb-1">{categoryName}</span>
-                )}
+                )} */}
 
                 {/* Name */}
-                <h1 className="text-[1.6rem] font-bold m-0 mb-5 leading-tight">
+                <h1 className="text-yellow-400 text-[1.6rem] font-bold m-0 mb-5 leading-tight break-words">
                     {facility.name}
                 </h1>
 
