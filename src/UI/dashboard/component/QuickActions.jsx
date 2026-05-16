@@ -27,7 +27,7 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
     { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'bg-gradient-to-r from-amber-500 to-yellow-300' },
     { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true, route: '/lights' },
     { id: 3, icon: 'snow', title: 'Air Conditioner', accent: 'bg-gradient-to-r from-blue-500 to-sky-400', route: '/ac' },
-    { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400' },
+    { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400',route: '/food' },
   ];
 
   return (

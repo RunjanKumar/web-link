@@ -8,7 +8,7 @@ import QuickActions from "./component/QuickActions";
 import BottomNav from '../../globalComponents/BottomNav';
 
 // ── Main Dashboard Component ──
-export default function Dashboard() {
+export default function DashboardNew() {
   const { profileData, isLoading, profileError, quickCallError, quickCallData, handleQuickCallClick } = useDashboardViewModel();
 
   // ── Master Scene sync state ──
@@ -33,6 +33,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0d0d0d] text-white relative">
       <div className="pt-14 px-5 pb-28 flex flex-col gap-6">
         {/* user profile — receives real data from API */}
+        {/* <h2>HI</h2> */}
         <UserProfile
           name={profileData?.data?.user?.name}
           room={profileData?.data?.bookRoomData[0]?.roomData?.roomNumber}
