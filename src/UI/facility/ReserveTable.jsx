@@ -1,5 +1,19 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import useReserveViewModel from '../../viewModel/reserveViewModel';
+
+/**
+ * ══════════════════════════════════════════════════════════════
+ * RESERVE TABLE PAGE
+ * ══════════════════════════════════════════════════════════════
+ *
+ * LEARNING: This page uses the reserveViewModel for ALL logic.
+ * The component only does rendering — no API calls, no validation.
+ *
+ * Pattern comparison:
+ *   ReviewRequest.jsx → uses reviewRequestViewModel (for services)
+ *   ReserveTable.jsx  → uses reserveViewModel (for facilities)
+ *   Same MVVM pattern, different feature!
+ */
 
 /* ── Back button overlayed on image ── */
 function OverlayBackButton({ onClick }) {
@@ -46,38 +60,25 @@ export default function ReserveTable() {
 
     const facility = location.state?.facility || {};
 
-    const [dateTime, setDateTime] = useState('');
-    const [numberOfPeople, setNumberOfPeople] = useState('');
-    const [showPeoplePicker, setShowPeoplePicker] = useState(false);
+    console.log('🎫 [ReserveTable] Page loaded with facility:', facility.name || facility._id);
 
-    const peopleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20];
+    // ── LEARNING: All logic comes from the ViewModel ──
+    // The component just renders UI and calls ViewModel actions
+    const {
+        dateTime,
+        setDateTime,
+        numberOfPeople,
+        showPeoplePicker,
+        peopleOptions,
+        selectPeople,
+        togglePeoplePicker,
+        submitReservation,
+        isSubmitting,
+    } = useReserveViewModel(facility);
 
-    const handleReserve = () => {
-        // TODO: Replace with actual API call to reserve
-        if (!dateTime) {
-            alert('Please select date and time');
-            return;
-        }
-        if (!numberOfPeople) {
-            alert('Please select number of people');
-            return;
-        }
-
-        const dt = new Date(dateTime);
-        const formattedDate = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-        const formattedTime = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
-
-        navigate('/facilities/upcoming-events', {
-            state: {
-                showToast: true,
-                newBooking: {
-                    dateTime: `${formattedDate} at ${formattedTime}`,
-                    guests: numberOfPeople,
-                    facilityName: facility.name,
-                },
-            }
-        });
-    };
+    // ── Adapt to backend field names for display ──
+    const image = facility.image || facility.imageUrl || facility.photo;
+    const name = facility.name || facility.facilityName || 'Facility';
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
@@ -85,11 +86,17 @@ export default function ReserveTable() {
             {/* ── Hero Image ── */}
             <div className="relative w-full h-[45vh] min-h-[280px] overflow-hidden">
                 <OverlayBackButton onClick={() => navigate(-1)} />
-                <img
-                    src={facility.image}
-                    alt={facility.name}
-                    className="w-full h-full object-cover"
-                />
+                {image ? (
+                    <img
+                        src={image}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+                        <span className="text-gray-600 text-sm">No image available</span>
+                    </div>
+                )}
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0d0d0d] to-transparent" />
             </div>
 
@@ -128,7 +135,7 @@ export default function ReserveTable() {
                 {/* ── Number of People Field ── */}
                 <div className="relative mb-4">
                     <button
-                        onClick={() => setShowPeoplePicker(!showPeoplePicker)}
+                        onClick={togglePeoplePicker}
                         className="w-full bg-[#141414] text-left text-sm rounded-xl px-4 py-4 pr-12 border border-gray-800 outline-none box-border cursor-pointer hover:border-gray-700 focus:border-yellow-500/50 transition-colors duration-200"
                     >
                         <span className={numberOfPeople ? 'text-white' : 'text-gray-500'}>
@@ -145,7 +152,7 @@ export default function ReserveTable() {
                             {peopleOptions.map((num) => (
                                 <button
                                     key={num}
-                                    onClick={() => { setNumberOfPeople(num); setShowPeoplePicker(false); }}
+                                    onClick={() => selectPeople(num)}
                                     className={`w-full text-left px-4 py-3 text-sm border-none cursor-pointer transition-colors duration-150 ${numberOfPeople === num
                                         ? 'bg-yellow-400/10 text-yellow-400 font-semibold'
                                         : 'bg-transparent text-gray-300 hover:bg-white/5'
@@ -162,11 +169,22 @@ export default function ReserveTable() {
                 <div className="flex-1" />
 
                 {/* ── Reserve Button ── */}
+                {/* LEARNING: isSubmitting from ViewModel disables the button
+                    and shows a spinner while the API call is in progress */}
                 <button
-                    onClick={handleReserve}
-                    className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-6"
+                    onClick={submitReservation}
+                    disabled={isSubmitting}
+                    className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-6 ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                 >
-                    Reserve a table
+                    {isSubmitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <span className="w-5 h-5 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+                            Reserving…
+                        </span>
+                    ) : (
+                        'Reserve a table'
+                    )}
                 </button>
             </div>
         </div>

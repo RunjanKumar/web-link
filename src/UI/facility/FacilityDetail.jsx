@@ -1,6 +1,19 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+/**
+ * ══════════════════════════════════════════════════════════════
+ * FACILITY DETAIL PAGE
+ * ══════════════════════════════════════════════════════════════
+ *
+ * LEARNING: This page receives facility data via navigation state
+ * (location.state.facility). It doesn't need its own ViewModel
+ * because it doesn't make API calls — it just displays data
+ * passed from the Facilities list page.
+ *
+ * Flow: Facilities page → click card → navigate here with state
+ */
+
 /* ── Back button overlayed on image ── */
 function OverlayBackButton({ onClick }) {
     return (
@@ -19,6 +32,8 @@ function OverlayBackButton({ onClick }) {
 /* ── Description with Show More / Show Less ── */
 function ExpandableDescription({ text }) {
     const [expanded, setExpanded] = useState(false);
+    if (!text) return null;
+
     const charLimit = 150;
     const isLong = text.length > charLimit;
 
@@ -42,70 +57,13 @@ function ExpandableDescription({ text }) {
 
 /* ── Info Row (label + value) ── */
 function InfoSection({ label, value }) {
+    if (!value) return null;
     return (
         <div className="mt-5">
             <h3 className="text-white text-base font-bold m-0 mb-1">{label}</h3>
             <p className="text-gray-400 text-sm m-0 leading-relaxed">{value}</p>
         </div>
     );
-}
-
-/* ── Dining detail sections ── */
-function DiningDetail({ facility }) {
-    return (
-        <>
-            <ExpandableDescription text={facility.detailDescription} />
-            <InfoSection label="Cuisine" value={facility.cuisine} />
-            <InfoSection label="Timings" value={facility.timings} />
-            <InfoSection label="Average Price" value={`Avg price for 2 ₹ ${facility.avgPrice}`} />
-        </>
-    );
-}
-
-/* ── Event detail sections ── */
-function EventDetail({ facility }) {
-    return (
-        <>
-            <ExpandableDescription text={facility.detailDescription} />
-            <InfoSection label="Max Capacity" value={`${facility.maxCapacity} people`} />
-            <InfoSection label="Area" value={facility.area} />
-        </>
-    );
-}
-
-/* ── Fitness detail sections ── */
-function FitnessDetail({ facility }) {
-    return (
-        <>
-            <ExpandableDescription text={facility.detailDescription} />
-            <InfoSection label="Timings" value={facility.timings} />
-            <InfoSection label="Equipment" value={facility.equipment} />
-            <InfoSection label="Area" value={facility.area} />
-        </>
-    );
-}
-
-/* ── Spa detail sections ── */
-function SpaDetail({ facility }) {
-    return (
-        <>
-            <ExpandableDescription text={facility.detailDescription} />
-            <InfoSection label="Timings" value={facility.timings} />
-            <InfoSection label="Treatments" value={facility.treatments} />
-            <InfoSection label="Price Range" value={facility.priceRange} />
-        </>
-    );
-}
-
-/* ── Render correct detail layout ── */
-function FacilityInfo({ facility, type }) {
-    switch (type) {
-        case 'dining': return <DiningDetail facility={facility} />;
-        case 'event': return <EventDetail facility={facility} />;
-        case 'fitness': return <FitnessDetail facility={facility} />;
-        case 'spa': return <SpaDetail facility={facility} />;
-        default: return null;
-    }
 }
 
 /* ══════════════════════════════════════════════════
@@ -116,9 +74,28 @@ export default function FacilityDetail() {
     const location = useLocation();
 
     const facility = location.state?.facility || {};
-    const facilityType = location.state?.facilityType || 'dining';
+    const facilityType = location.state?.facilityType || '';
+
+    console.log('🔍 [FacilityDetail] Received facility data:', JSON.stringify(facility, null, 2));
+    console.log('🔍 [FacilityDetail] Facility type:', facilityType);
+
+    // ── Adapt to backend field names ──
+    // LEARNING: The backend might use different field names than our UI expects.
+    // We map them here so the rest of the component doesn't need to worry.
+    const name = facility.name || facility.facilityName || 'Facility';
+    const image = facility.image || facility.imageUrl || facility.photo;
+    const description = facility.detailDescription || facility.description || '';
+    const timings = facility.timings || facility.timing || '';
+    const cuisine = facility.cuisine || '';
+    const avgPrice = facility.avgPrice || facility.price || '';
+    const maxCapacity = facility.maxCapacity || facility.capacity || '';
+    const area = facility.area || '';
+    const equipment = facility.equipment || '';
+    const treatments = facility.treatments || '';
+    const priceRange = facility.priceRange || '';
 
     const handleCheckAvailability = () => {
+        console.log('🔍 [FacilityDetail] Navigating to reserve page for:', name);
         navigate('/facilities/reserve', {
             state: { facility }
         });
@@ -130,11 +107,17 @@ export default function FacilityDetail() {
             {/* ── Hero Image with overlay back button ── */}
             <div className="relative w-full h-[45vh] min-h-[280px] overflow-hidden">
                 <OverlayBackButton onClick={() => navigate(-1)} />
-                <img
-                    src={facility.image}
-                    alt={facility.name}
-                    className="w-full h-full object-cover"
-                />
+                {image ? (
+                    <img
+                        src={image}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+                        <span className="text-gray-600 text-sm">No image available</span>
+                    </div>
+                )}
                 {/* Bottom gradient fade */}
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0d0d0d] to-transparent" />
             </div>
@@ -144,11 +127,23 @@ export default function FacilityDetail() {
 
                 {/* ── Facility Name ── */}
                 <h1 className="text-[1.6rem] font-bold m-0 mb-5 leading-tight">
-                    {facility.name}
+                    {name}
                 </h1>
 
-                {/* ── Type-specific details ── */}
-                <FacilityInfo facility={facility} type={facilityType} />
+                {/* ── Description ── */}
+                <ExpandableDescription text={description} />
+
+                {/* ── Dynamic Info Sections ── */}
+                {/* LEARNING: We render all possible fields conditionally.
+                    InfoSection returns null if value is empty. */}
+                <InfoSection label="Cuisine" value={cuisine} />
+                <InfoSection label="Timings" value={timings} />
+                <InfoSection label="Average Price" value={avgPrice ? `Avg price for 2 ₹ ${avgPrice}` : ''} />
+                <InfoSection label="Max Capacity" value={maxCapacity ? `${maxCapacity} people` : ''} />
+                <InfoSection label="Area" value={area} />
+                <InfoSection label="Equipment" value={equipment} />
+                <InfoSection label="Treatments" value={treatments} />
+                <InfoSection label="Price Range" value={priceRange} />
 
                 {/* ── Spacer ── */}
                 <div className="flex-1" />

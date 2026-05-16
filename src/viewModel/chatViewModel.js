@@ -301,9 +301,8 @@ export default function useChatViewModel() {
         const onNewMessage = (data) => {
             const msg = normalizeMessage(data, userId);
 
-            // Check if this is a confirmation of our optimistic message
+            // ── Case 1: Server echoed back our tempId → replace optimistic message
             if (data.tempId && messageIdsRef.current.has(data.tempId)) {
-                // Replace optimistic message with confirmed one
                 messageIdsRef.current.add(msg.id);
                 setMessages((prev) =>
                     prev.map((m) =>
@@ -315,7 +314,41 @@ export default function useChatViewModel() {
                 return;
             }
 
-            // New message from the other party — deduplicate
+            // ── Case 2: This is our own message echoed back WITHOUT tempId
+            //    (backend broadcast). Find and replace the matching optimistic message.
+            if (msg.isOwn) {
+                setMessages((prev) => {
+                    // Look for an optimistic message (has tempId, is sending or just sent)
+                    // that matches this confirmed message by text content
+                    const optimisticIndex = prev.findIndex(
+                        (m) => m.tempId && m.isOwn && m.text === msg.text && (m.isSending || !m.id || m.id === m.tempId)
+                    );
+
+                    if (optimisticIndex !== -1) {
+                        // Replace the optimistic message with the confirmed one
+                        messageIdsRef.current.add(msg.id);
+                        const updated = [...prev];
+                        updated[optimisticIndex] = {
+                            ...msg,
+                            isSending: false,
+                            messageStatus: msg.messageStatus || MESSAGE_STATUS.SENT,
+                        };
+                        return updated;
+                    }
+
+                    // Already have this message by real ID — skip entirely
+                    if (messageIdsRef.current.has(msg.id)) {
+                        return prev;
+                    }
+
+                    // Truly new own message (e.g., sent from another device)
+                    messageIdsRef.current.add(msg.id);
+                    return [...prev, msg];
+                });
+                return;
+            }
+
+            // ── Case 3: New message from the other party — deduplicate by ID
             if (addMessageIfNew(msg)) {
                 setMessages((prev) => [...prev, msg]);
             }

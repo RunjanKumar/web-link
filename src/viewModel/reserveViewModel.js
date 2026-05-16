@@ -1,0 +1,134 @@
+import { useState, useCallback } from "react";
+import { submitFacilityReservation } from "../api/service/facilityService";
+import { getApiErrorMessage } from "../api/client";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+
+/**
+ * ══════════════════════════════════════════════════════════════
+ * RESERVE VIEWMODEL
+ * ══════════════════════════════════════════════════════════════
+ *
+ * LEARNING: This ViewModel handles the "Reserve a table" form.
+ *
+ * Pattern (same as reviewRequestViewModel.js for services):
+ *   1. Hold form state (dateTime, numberOfPeople)
+ *   2. On submit → validate → call API → handle success/error
+ *   3. On success → navigate to bookings page with toast
+ *
+ * Data flow:
+ *   User fills form → clicks Reserve → submitReservation()
+ *   → submitFacilityReservation(payload) API call
+ *   → Success → navigate('/facilities/upcoming-events')
+ *   → Error → toast.error(message)
+ */
+
+export default function useReserveViewModel(facility) {
+    // ── Form State ──
+    const [dateTime, setDateTime] = useState('');
+    const [numberOfPeople, setNumberOfPeople] = useState('');
+    const [showPeoplePicker, setShowPeoplePicker] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const navigate = useNavigate();
+
+    // People options for the dropdown
+    const peopleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20];
+
+    // ══════════════════════════════════════════════════════════
+    // SELECT NUMBER OF PEOPLE
+    // ══════════════════════════════════════════════════════════
+    const selectPeople = useCallback((num) => {
+        console.log('📝 [ReserveVM] People selected:', num);
+        setNumberOfPeople(num);
+        setShowPeoplePicker(false);
+    }, []);
+
+    // ══════════════════════════════════════════════════════════
+    // TOGGLE PEOPLE PICKER
+    // ══════════════════════════════════════════════════════════
+    const togglePeoplePicker = useCallback(() => {
+        setShowPeoplePicker((prev) => !prev);
+    }, []);
+
+    // ══════════════════════════════════════════════════════════
+    // SUBMIT RESERVATION
+    //
+    // LEARNING: This is the main action. It:
+    //   1. Validates inputs
+    //   2. Builds the API payload
+    //   3. Calls the API service function
+    //   4. Handles success → navigate + toast
+    //   5. Handles error → toast.error
+    // ══════════════════════════════════════════════════════════
+    const submitReservation = useCallback(async () => {
+        console.log('📝 [ReserveVM] submitReservation() called');
+
+        // ── Step 1: Validate ──
+        if (!dateTime) {
+            console.log('⚠️ [ReserveVM] Validation failed: no dateTime');
+            toast.error('Please select date and time');
+            return;
+        }
+        if (!numberOfPeople) {
+            console.log('⚠️ [ReserveVM] Validation failed: no numberOfPeople');
+            toast.error('Please select number of people');
+            return;
+        }
+
+        // ── Step 2: Build payload ──
+        // LEARNING: The payload shape must match what the backend expects.
+        // Adjust field names here if backend requires different keys.
+        const payload = {
+            hotelFacilityId: facility?._id || facility?.id,
+            dateTime: new Date(dateTime).toISOString(),
+            numberOfPeople: Number(numberOfPeople),
+        };
+
+        console.log('📝 [ReserveVM] Payload built:', JSON.stringify(payload, null, 2));
+        console.log('📝 [ReserveVM] Facility being reserved:', facility?.name || facility?._id);
+
+        // ── Step 3: Call API ──
+        setIsSubmitting(true);
+        try {
+            console.log('📝 [ReserveVM] Calling submitFacilityReservation()...');
+            const response = await submitFacilityReservation(payload);
+            console.log('✅ [ReserveVM] Reservation SUCCESS:', response);
+
+            // ── Step 4: Success → navigate ──
+            toast.success('Your reservation has been successfully submitted!');
+            navigate('/facilities/upcoming-events', {
+                state: { showToast: false },
+            });
+
+        } catch (err) {
+            // ── Step 5: Error → toast ──
+            console.error('❌ [ReserveVM] Reservation FAILED:', err);
+            const message = getApiErrorMessage(err, 'Failed to submit reservation.');
+            toast.error(message);
+        } finally {
+            setIsSubmitting(false);
+            console.log('📝 [ReserveVM] submitReservation() — Done');
+        }
+    }, [dateTime, numberOfPeople, facility, navigate]);
+
+    // ══════════════════════════════════════════════════════════
+    // RETURN — everything the ReserveTable UI needs
+    // ══════════════════════════════════════════════════════════
+    return {
+        // Form state
+        dateTime,
+        setDateTime,
+        numberOfPeople,
+        showPeoplePicker,
+        peopleOptions,
+
+        // Actions
+        selectPeople,
+        togglePeoplePicker,
+        submitReservation,
+
+        // Loading state
+        isSubmitting,
+    };
+}

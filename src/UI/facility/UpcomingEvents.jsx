@@ -1,29 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import BackButton from '../../globalComponents/BackButton';
+import useBookedFacilityViewModel from '../../viewModel/bookedFacilityViewModel';
+import { formattedDate, formattedTime } from '../../utils/commonFunction';
+import { BOOKING_STATUS, STATUS_LABELS, STATUS_STYLES } from '../../utils/constant';
 
-/* ── Booking Status Constants ── */
-const BOOKING_STATUS = {
-    PENDING: 1,
-    CONFIRMED: 2,
-    COMPLETED: 3,
-    CANCELLED: 4,
-};
-
-const STATUS_LABELS = {
-    [BOOKING_STATUS.PENDING]: 'Booking Pending',
-    [BOOKING_STATUS.CONFIRMED]: 'Booking Confirm',
-    [BOOKING_STATUS.COMPLETED]: 'Completed',
-    [BOOKING_STATUS.CANCELLED]: 'Cancelled',
-};
-
-const STATUS_COLORS = {
-    [BOOKING_STATUS.PENDING]: 'text-yellow-400',
-    [BOOKING_STATUS.CONFIRMED]: 'text-green-400',
-    [BOOKING_STATUS.COMPLETED]: 'text-blue-400',
-    [BOOKING_STATUS.CANCELLED]: 'text-red-400',
-};
+/**
+ * ══════════════════════════════════════════════════════════════
+ * UPCOMING EVENTS / FACILITY BOOKINGS PAGE
+ * ══════════════════════════════════════════════════════════════
+ *
+ * LEARNING: This page follows the EXACT same pattern as BookedService.jsx
+ *
+ * Compare side-by-side:
+ *   BookedService.jsx → useBookedServiceModel → getServiceRequest()
+ *   UpcomingEvents.jsx → useBookedFacilityViewModel → getFacilityReservations()
+ *
+ * Same MVVM pattern, different data source!
+ */
 
 /* ── Icons ── */
 function CalendarIcon() {
@@ -66,37 +61,50 @@ function StatusIcon() {
     );
 }
 
-
-
 /* ── Single Booking Card ── */
 function BookingCard({ booking }) {
-    const statusColor = STATUS_COLORS[booking.status] || 'text-gray-400';
+    // ── Adapt to backend field names ──
+    const name = booking.name || booking.facilityName || booking.hotelFacilityId?.name || 'Facility';
+    const dateTimeStr = booking.dateTime || booking.requestedAt || booking.createdAt;
+    const guests = booking.numberOfPeople || booking.guests || '';
+    const status = booking.status || BOOKING_STATUS.PENDING;
+
+    const statusStyle = STATUS_STYLES[status] || 'bg-gray-500/15 border-gray-500/60 text-gray-400';
+    const statusLabel = STATUS_LABELS[status] || 'Unknown';
+
+    const isCompleted = status === BOOKING_STATUS.COMPLETED;
+    const isCancelled = status === BOOKING_STATUS.CANCEL;
 
     return (
-        <div className="bg-[#111111] rounded-xl border border-gray-800/40 px-4 py-4 mb-4">
+        <div className={`bg-[#111111] rounded-xl border border-gray-800/40 px-4 py-4 mb-4 transition-opacity duration-300 ${(isCompleted || isCancelled) ? 'opacity-50' : ''}`}>
             {/* Date & Time */}
-            <div className="flex items-center gap-3 mb-3">
-                <CalendarIcon />
-                <span className="text-gray-300 text-sm">{booking.dateTime}</span>
-            </div>
+            {dateTimeStr && (
+                <div className="flex items-center gap-3 mb-3">
+                    <CalendarIcon />
+                    <span className="text-gray-300 text-sm">
+                        {formattedDate(dateTimeStr)} {formattedTime(dateTimeStr)}
+                    </span>
+                </div>
+            )}
 
             {/* Guests */}
-            <div className="flex items-center gap-3 mb-3">
-                <PeopleIcon />
-                <span className="text-gray-300 text-sm">{booking.guests} {booking.guests === 1 ? 'guest' : 'guests'}</span>
-            </div>
+            {guests && (
+                <div className="flex items-center gap-3 mb-3">
+                    <PeopleIcon />
+                    <span className="text-gray-300 text-sm">{guests} {guests === 1 ? 'guest' : 'guests'}</span>
+                </div>
+            )}
 
             {/* Facility Name */}
             <div className="flex items-center gap-3 mb-3">
                 <LocationIcon />
-                <span className="text-gray-300 text-sm">{booking.facilityName}</span>
+                <span className="text-gray-300 text-sm">{name}</span>
             </div>
 
-            {/* Status */}
-            <div className="flex items-center gap-3">
-                <StatusIcon />
-                <span className={`text-sm font-semibold ${statusColor}`}>
-                    {STATUS_LABELS[booking.status]}
+            {/* Status badge */}
+            <div className="flex items-center justify-end mt-3">
+                <span className={`inline-block px-3 py-1 rounded-md text-xs font-semibold border ${statusStyle}`}>
+                    {statusLabel}
                 </span>
             </div>
         </div>
@@ -111,21 +119,19 @@ export default function UpcomingEvents() {
     const location = useLocation();
 
     const showToastInitially = location.state?.showToast || false;
-    const newBooking = location.state?.newBooking || null;
-    const existingBookings = location.state?.bookings || [];
 
-    // Build bookings list
-    const [bookings] = useState(() => {
-        const list = [...existingBookings];
-        if (newBooking) {
-            list.unshift({
-                ...newBooking,
-                id: Date.now(),
-                status: BOOKING_STATUS.PENDING,
-            });
-        }
-        return list;
-    });
+    // ── LEARNING: All data comes from the ViewModel ──
+    // Compare with BookedService.jsx — exact same pattern!
+    const {
+        pendingReservations,
+        inProgressReservations,
+        completedReservations,
+        cancelledReservations,
+        hasAnyReservations,
+        loading,
+        error,
+        refetch,
+    } = useBookedFacilityViewModel();
 
     // Show success toast if navigated here after a successful booking
     useEffect(() => {
@@ -135,6 +141,13 @@ export default function UpcomingEvents() {
         }
     }, [showToastInitially]);
 
+    // Show error toast when API fails
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
+        }
+    }, [error]);
+
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
             <div className="pt-12 px-5 pb-6 flex flex-col flex-1">
@@ -142,22 +155,85 @@ export default function UpcomingEvents() {
                 {/* ── Back Button ── */}
                 <BackButton />
 
-
-
                 {/* ── Title ── */}
                 <h1 className="text-[1.75rem] font-bold m-0 mt-1 mb-6 leading-tight">
-                    Upcoming events
+                    My Bookings
                 </h1>
 
-                {/* ── Booking Cards ── */}
-                {bookings.length > 0 ? (
-                    bookings.map((booking) => (
-                        <BookingCard key={booking.id} booking={booking} />
-                    ))
-                ) : (
+                {/* ── Loading State ── */}
+                {loading && (
                     <div className="flex-1 flex items-center justify-center">
-                        <p className="text-gray-500 text-sm">No upcoming events</p>
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-10 h-10 rounded-full border-4 border-yellow-400/20 border-t-yellow-400 animate-spin" />
+                            <p className="text-gray-400 text-sm">Loading bookings…</p>
+                        </div>
                     </div>
+                )}
+
+                {/* ── Error State ── */}
+                {!loading && error && (
+                    <div className="flex-1 flex flex-col items-center justify-center gap-4">
+                        <p className="text-gray-400 text-sm">{error}</p>
+                        <button
+                            onClick={refetch}
+                            className="px-6 py-2 rounded-full text-sm font-semibold border border-yellow-500/60 text-yellow-400 bg-transparent cursor-pointer hover:bg-yellow-400/10 active:scale-95 transition-all duration-200"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
+                {/* ── Booking Lists (grouped by status) ── */}
+                {/* LEARNING: Same grouped-by-status pattern as BookedService.jsx */}
+                {!loading && !error && (
+                    <>
+                        {/* ── Pending ── */}
+                        {pendingReservations.length > 0 && (
+                            <>
+                                <h2 className="text-yellow-400/80 text-sm font-semibold m-0 mb-3">Pending</h2>
+                                {pendingReservations.map((booking) => (
+                                    <BookingCard key={booking._id} booking={booking} />
+                                ))}
+                            </>
+                        )}
+
+                        {/* ── In Progress / Confirmed ── */}
+                        {inProgressReservations.length > 0 && (
+                            <>
+                                <h2 className="text-blue-400/80 text-sm font-semibold m-0 mt-4 mb-3">Confirmed</h2>
+                                {inProgressReservations.map((booking) => (
+                                    <BookingCard key={booking._id} booking={booking} />
+                                ))}
+                            </>
+                        )}
+
+                        {/* ── Completed ── */}
+                        {completedReservations.length > 0 && (
+                            <>
+                                <h2 className="text-green-400/80 text-sm font-semibold m-0 mt-4 mb-3">Completed</h2>
+                                {completedReservations.map((booking) => (
+                                    <BookingCard key={booking._id} booking={booking} />
+                                ))}
+                            </>
+                        )}
+
+                        {/* ── Cancelled ── */}
+                        {cancelledReservations.length > 0 && (
+                            <>
+                                <h2 className="text-red-400/80 text-sm font-semibold m-0 mt-4 mb-3">Cancelled</h2>
+                                {cancelledReservations.map((booking) => (
+                                    <BookingCard key={booking._id} booking={booking} />
+                                ))}
+                            </>
+                        )}
+
+                        {/* ── Empty State ── */}
+                        {!hasAnyReservations && (
+                            <div className="flex-1 flex items-center justify-center">
+                                <p className="text-gray-500 text-sm">No bookings yet</p>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* ── Spacer ── */}

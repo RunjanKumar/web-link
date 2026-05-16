@@ -8,7 +8,7 @@ export const ENDPOINTS = {
 
     //Quick Calls
     QUICK_CALL: '/v1/quickCall',
-    
+
 
     // ── Room Controls ──
     ROOM_DEVICES: '/api/rooms/devices',
@@ -24,9 +24,9 @@ export const ENDPOINTS = {
     GET_SERVICE_REQUEST: '/v1/hotelServices/book/customer',
 
     // ── Facilities ──
-    FACILITIES: '/v1/facilities',
-    FACILITIES_RESERVE: '/v1/facilities/reserve',
-    FACILITIES_RESERVATIONS: '/v1/facilities/reservations',
+    FACILITIES: '/v1/hotelFacility',
+    FACILITIES_RESERVE: '/v1/hotelFacility/book', // post 
+    FACILITIES_RESERVATIONS: '/v1/hotelFacility/book', // get
 
     // ── Chat / Conversation ──
     CONVERSATION_LIST: '/conversation/list',
