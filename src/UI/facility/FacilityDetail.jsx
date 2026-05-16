@@ -84,7 +84,7 @@ export default function FacilityDetail() {
                     onClick={handleBookNow}
                     className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-8"
                 >
-                    Book Now
+                    Check Availablity
                 </button>
             </div>
         </div>
