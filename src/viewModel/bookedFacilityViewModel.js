@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getFacilityReservations } from "../api/service/facilityService";
 import { getApiErrorMessage } from "../api/client";
-import { BOOKING_STATUS } from "../utils/constant";
+import { HOTEL_FACILITY_BOOKING_STATUS } from "../utils/constant";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -79,26 +79,27 @@ export default function useBookedFacilityViewModel() {
     // They only re-compute when `reservations` changes.
     // This is the EXACT same pattern as bookServiceViewModel.js
     // ══════════════════════════════════════════════════════════
+
     const pendingReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === BOOKING_STATUS.PENDING);
+        const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.PENDING);
         console.log('📋 [BookedFacilityVM] Pending count:', filtered.length);
         return filtered;
     }, [reservations]);
 
-    const inProgressReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === BOOKING_STATUS.IN_PROGRESS);
-        console.log('📋 [BookedFacilityVM] In Progress count:', filtered.length);
-        return filtered;
-    }, [reservations]);
+    // const inProgressReservations = useMemo(() => {
+    //     const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.IN_PROGRESS);
+    //     console.log('📋 [BookedFacilityVM] In Progress count:', filtered.length);
+    //     return filtered;
+    // }, [reservations]);
 
     const completedReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === BOOKING_STATUS.COMPLETED);
+        const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.APPROVED);
         console.log('📋 [BookedFacilityVM] Completed count:', filtered.length);
         return filtered;
     }, [reservations]);
 
     const cancelledReservations = useMemo(() => {
-        const filtered = reservations.filter((r) => r.status === BOOKING_STATUS.CANCEL);
+        const filtered = reservations.filter((r) => r.status === HOTEL_FACILITY_BOOKING_STATUS.DISAPPROVED);
         console.log('📋 [BookedFacilityVM] Cancelled count:', filtered.length);
         return filtered;
     }, [reservations]);
@@ -111,7 +112,7 @@ export default function useBookedFacilityViewModel() {
     return {
         reservations,
         pendingReservations,
-        inProgressReservations,
+        // inProgressReservations,
         completedReservations,
         cancelledReservations,
         hasAnyReservations,

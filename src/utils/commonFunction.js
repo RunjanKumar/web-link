@@ -25,3 +25,11 @@ export const formattedDate = (date) =>
     month: 'short',
     year: 'numeric',
   });
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export const formatDays = (days) => {
+  if (!days || !Array.isArray(days)) return '';
+  if (days.length === 7) return 'Open all days';
+  return days.map((d) => DAY_NAMES[d]).join(', ');
+};

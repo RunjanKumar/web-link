@@ -1,4 +1,4 @@
-import { formatTime12Hour } from '../../../utils/commonFunction';
+import { formatTime12Hour, formatDays } from '../../../utils/commonFunction';
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -25,15 +25,6 @@ import { formatTime12Hour } from '../../../utils/commonFunction';
  *   facility → one item from the types[] array
  *   onClick  → callback when card is tapped
  */
-
-/* ── Day name map ── */
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function formatDays(days) {
-    if (!days || !Array.isArray(days)) return '';
-    if (days.length === 7) return 'Open all days';
-    return days.map((d) => DAY_NAMES[d]).join(', ');
-}
 
 export default function FacilityCard({ facility, onClick }) {
     const disabled = !facility.isAvailable;

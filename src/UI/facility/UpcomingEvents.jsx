@@ -124,7 +124,7 @@ export default function UpcomingEvents() {
     // Compare with BookedService.jsx — exact same pattern!
     const {
         pendingReservations,
-        inProgressReservations,
+        // inProgressReservations,
         completedReservations,
         cancelledReservations,
         hasAnyReservations,
@@ -198,19 +198,19 @@ export default function UpcomingEvents() {
                         )}
 
                         {/* ── In Progress / Confirmed ── */}
-                        {inProgressReservations.length > 0 && (
+                        {/* {inProgressReservations.length > 0 && (
                             <>
                                 <h2 className="text-blue-400/80 text-sm font-semibold m-0 mt-4 mb-3">Confirmed</h2>
                                 {inProgressReservations.map((booking) => (
                                     <BookingCard key={booking._id} booking={booking} />
                                 ))}
                             </>
-                        )}
+                        )} */}
 
                         {/* ── Completed ── */}
                         {completedReservations.length > 0 && (
                             <>
-                                <h2 className="text-green-400/80 text-sm font-semibold m-0 mt-4 mb-3">Completed</h2>
+                                <h2 className="text-green-400/80 text-sm font-semibold m-0 mt-4 mb-3">Approved</h2>
                                 {completedReservations.map((booking) => (
                                     <BookingCard key={booking._id} booking={booking} />
                                 ))}
@@ -220,7 +220,7 @@ export default function UpcomingEvents() {
                         {/* ── Cancelled ── */}
                         {cancelledReservations.length > 0 && (
                             <>
-                                <h2 className="text-red-400/80 text-sm font-semibold m-0 mt-4 mb-3">Cancelled</h2>
+                                <h2 className="text-red-400/80 text-sm font-semibold m-0 mt-4 mb-3">Disapproved</h2>
                                 {cancelledReservations.map((booking) => (
                                     <BookingCard key={booking._id} booking={booking} />
                                 ))}

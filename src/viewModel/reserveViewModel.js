@@ -80,13 +80,14 @@ export default function useReserveViewModel(facility) {
         // LEARNING: facility is a types[] item from the backend.
         // It has _id (the type's ID), facilityId (parent category ID).
         const payload = {
-            hotelFacilityId: facility?._id,
-            dateTime: new Date(dateTime).toISOString(),
-            numberOfPeople: Number(numberOfPeople),
+            facilityId: facility?.facilityId,
+            facilityTypeId: facility?._id,
+            bookingDate: new Date(dateTime).toISOString(),
+            numberOfGuests: Number(numberOfPeople),
         };
 
         console.log('📝 [ReserveVM] Payload built:', JSON.stringify(payload, null, 2));
-        console.log('📝 [ReserveVM] Facility being reserved:', facility?.name);
+        console.log(facility, '📝 [ReserveVM] Facility being reserved:', facility?.name);
 
         // ── Step 3: Call API ──
         setIsSubmitting(true);

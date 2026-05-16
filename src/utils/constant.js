@@ -24,3 +24,10 @@ export const STATUS_STYLES = {
     [BOOKING_STATUS.COMPLETED]: 'bg-green-500/15 border-green-500/60 text-green-400',
     [BOOKING_STATUS.CANCEL]: 'bg-red-500/15 border-red-500/60 text-red-400',
 };
+
+export const HOTEL_FACILITY_BOOKING_STATUS = {
+  PENDING: 1,
+  APPROVED: 2,
+  DISAPPROVED: 3,
+  CANCELLED: 4, // in future use for customer
+};
