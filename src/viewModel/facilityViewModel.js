@@ -10,22 +10,28 @@ import { useNavigate } from "react-router-dom";
  * ══════════════════════════════════════════════════════════════
  *
  * LEARNING: This is the "brain" of the Facilities page.
- * It follows the MVVM pattern exactly like serviceViewModel.js:
  *
- *   1. On mount → fetch facilities from API
- *   2. Process the response → group by category type
- *   3. Expose state + actions → UI renders them
+ * Backend response structure:
+ *   data: [
+ *     {
+ *       _id, name: "Dining", imageUrl: "...",       ← Category (tab)
+ *       types: [                                     ← Items inside this category
+ *         { _id, name, description, image, startTime, endTime, days, isAvailable, ... }
+ *       ]
+ *     },
+ *     { _id, name: "Spa", imageUrl: "...", types: [...] },
+ *   ]
  *
- * Data flow:
- *   Component mounts → useEffect fires → getFacility() API call
- *   → Response arrives → normalize data → setState → UI re-renders
+ * So:
+ *   - Tabs    = top-level items (each has _id, name, imageUrl)
+ *   - Cards   = types[] array inside the selected tab's category
  */
 
 export default function useFacilityViewModel() {
     // ── State ──
-    const [facilities, setFacilities] = useState([]);
-    const [activeType, setActiveType] = useState(null); // Will be set after API response
-    const [facilityTypes, setFacilityTypes] = useState([]);
+    // Raw categories from API — each has { _id, name, imageUrl, types: [...] }
+    const [categories, setCategories] = useState([]);
+    const [activeType, setActiveType] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -44,62 +50,35 @@ export default function useFacilityViewModel() {
             console.log('🏨 [FacilityVM] Raw API response:', response);
 
             // ──────────────────────────────────────────────────
-            // LEARNING: Extract data from backend response
+            // LEARNING: Extract the categories array
             //
-            // The backend typically returns:
-            //   { statusCode: 200, message: "...", data: { facilityData: [...] } }
-            //   OR { statusCode: 200, data: [...] }
-            //
-            // We try multiple paths to be safe:
+            // Backend returns: { statusCode, message, data: [...] }
+            // Each element = one category (Dining, Spa, etc.)
             // ──────────────────────────────────────────────────
-            const facilityData = response?.data?.facilityData
+            const data = response?.data?.facilityData
                 || response?.data?.data
                 || response?.data
                 || [];
 
-            console.log('🏨 [FacilityVM] Extracted facilityData:', facilityData);
-            console.log('🏨 [FacilityVM] Number of facilities:', facilityData.length);
+            console.log('🏨 [FacilityVM] Categories extracted:', data.length);
 
-            // Log the first item to understand the shape
-            if (facilityData.length > 0) {
-                console.log('🏨 [FacilityVM] First facility item (for shape reference):', JSON.stringify(facilityData[0], null, 2));
+            // Log first category for shape reference
+            if (data.length > 0) {
+                console.log('🏨 [FacilityVM] First category shape:', JSON.stringify({
+                    _id: data[0]._id,
+                    name: data[0].name,
+                    imageUrl: data[0].imageUrl,
+                    typesCount: data[0].types?.length,
+                    firstType: data[0].types?.[0],
+                }, null, 2));
             }
 
-            setFacilities(facilityData);
-
-            // ──────────────────────────────────────────────────
-            // LEARNING: Build dynamic tabs from the data
-            //
-            // Each facility might have:
-            //   - category / type / facilityType field
-            //   - OR they might come pre-grouped
-            //
-            // We'll build tabs from unique category names
-            // ──────────────────────────────────────────────────
-            const uniqueTypes = [];
-            const seenIds = new Set();
-
-            facilityData.forEach((item) => {
-                // Try multiple possible field names for the category
-                const typeId = item.category?._id || item.categoryId || item.type || item._id;
-                const typeLabel = item.category?.name || item.categoryName || item.type || item.name || 'Other';
-
-                if (!seenIds.has(typeId)) {
-                    seenIds.add(typeId);
-                    uniqueTypes.push({
-                        id: typeId,
-                        label: typeLabel,
-                    });
-                }
-            });
-
-            console.log('🏨 [FacilityVM] Built dynamic tabs:', uniqueTypes);
-            setFacilityTypes(uniqueTypes);
+            setCategories(data);
 
             // Set first tab as active by default
-            if (uniqueTypes.length > 0 && !activeType) {
-                console.log('🏨 [FacilityVM] Setting default active tab:', uniqueTypes[0].id);
-                setActiveType(uniqueTypes[0].id);
+            if (data.length > 0) {
+                console.log('🏨 [FacilityVM] Setting default active tab:', data[0]._id, '(', data[0].name, ')');
+                setActiveType(data[0]._id);
             }
 
         } catch (err) {
@@ -109,30 +88,34 @@ export default function useFacilityViewModel() {
             toast.error(message);
         } finally {
             setLoading(false);
-            console.log('🏨 [FacilityVM] fetchFacilities() — Done (loading = false)');
+            console.log('🏨 [FacilityVM] fetchFacilities() — Done');
         }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
-    // ══════════════════════════════════════════════════════════
-    // INITIAL LOAD
-    // LEARNING: useEffect with [] runs ONCE on mount.
-    // This triggers the API call as soon as the page loads.
-    // ══════════════════════════════════════════════════════════
+    // ── Auto-fetch on mount ──
     useEffect(() => {
         console.log('🏨 [FacilityVM] Component mounted → fetching facilities...');
         fetchFacilities();
     }, [fetchFacilities]);
 
     // ══════════════════════════════════════════════════════════
-    // FILTERED FACILITIES
-    // LEARNING: Filter the full list to show only the active tab's items
+    // DERIVED STATE
     // ══════════════════════════════════════════════════════════
-    const filteredFacilities = facilities.filter((item) => {
-        const typeId = item.category?._id || item.categoryId || item.type || item._id;
-        return typeId === activeType;
-    });
 
-    console.log('🏨 [FacilityVM] Active tab:', activeType, '→ Filtered count:', filteredFacilities.length);
+    // Build tabs from categories — each tab = { id, label, imageUrl }
+    const facilityTypes = categories.map((cat) => ({
+        id: cat._id,
+        label: cat.name,
+        imageUrl: cat.imageUrl || '',
+    }));
+
+    // Find the active category object
+    const activeCategory = categories.find((cat) => cat._id === activeType) || null;
+
+    // The items to show = types[] inside the active category
+    const facilities = activeCategory?.types || [];
+
+    console.log('🏨 [FacilityVM] Active tab:', activeCategory?.name, '→ Items count:', facilities.length);
 
     // ══════════════════════════════════════════════════════════
     // HANDLE TAB CHANGE
@@ -145,12 +128,17 @@ export default function useFacilityViewModel() {
     // ══════════════════════════════════════════════════════════
     // NAVIGATION HANDLERS
     // ══════════════════════════════════════════════════════════
-    const handleFacilityClick = useCallback((facility) => {
-        console.log('🏨 [FacilityVM] Facility clicked:', facility.name || facility._id);
+    const handleFacilityClick = useCallback((facilityItem) => {
+        console.log('🏨 [FacilityVM] Facility clicked:', facilityItem.name);
+        // Pass both the types[] item AND the parent category info
         navigate('/facilities/detail', {
-            state: { facility, facilityType: activeType }
+            state: {
+                facility: facilityItem,
+                categoryName: activeCategory?.name || '',
+                categoryImageUrl: activeCategory?.imageUrl || '',
+            }
         });
-    }, [navigate, activeType]);
+    }, [navigate, activeCategory]);
 
     const menuItems = [
         { label: 'My Bookings', onClick: () => navigate('/facilities/upcoming-events') },
@@ -158,16 +146,14 @@ export default function useFacilityViewModel() {
     ];
 
     // ══════════════════════════════════════════════════════════
-    // RETURN — everything the UI needs
-    // LEARNING: The ViewModel returns a clean "contract" to the UI.
-    // The UI doesn't know/care about API details.
+    // RETURN
     // ══════════════════════════════════════════════════════════
     return {
         // State
-        facilities: filteredFacilities,
-        allFacilities: facilities,
-        facilityTypes,
-        activeType,
+        facilities,          // types[] items for the active tab
+        facilityTypes,       // tab definitions [{id, label, imageUrl}]
+        activeType,          // currently selected tab _id
+        activeCategory,      // full category object (for header image etc.)
         loading,
         error,
 

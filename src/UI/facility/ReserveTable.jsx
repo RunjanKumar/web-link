@@ -76,9 +76,9 @@ export default function ReserveTable() {
         isSubmitting,
     } = useReserveViewModel(facility);
 
-    // ── Adapt to backend field names for display ──
-    const image = facility.image || facility.imageUrl || facility.photo;
-    const name = facility.name || facility.facilityName || 'Facility';
+    // ── Backend field names (from types[] item) ──
+    const image = facility.image;
+    const name = facility.name || 'Facility';
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">

@@ -1,18 +1,31 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { formatTime12Hour } from '../../utils/commonFunction';
 
 /**
  * ══════════════════════════════════════════════════════════════
  * FACILITY DETAIL PAGE
  * ══════════════════════════════════════════════════════════════
  *
- * LEARNING: This page receives facility data via navigation state
- * (location.state.facility). It doesn't need its own ViewModel
- * because it doesn't make API calls — it just displays data
- * passed from the Facilities list page.
+ * LEARNING: This page receives a types[] item via location.state.
+ * It shows full details of one facility type (e.g., one restaurant).
  *
- * Flow: Facilities page → click card → navigate here with state
+ * The facility object shape (from types[]):
+ *   { _id, name, description, image, startTime, endTime,
+ *     days, isAvailable, cuisine, location, locationlink, pricing }
+ *
+ * Also receives:
+ *   categoryName   → parent category name (e.g., "Dining")
+ *   categoryImageUrl → parent category image
  */
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function formatDays(days) {
+    if (!days || !Array.isArray(days)) return '';
+    if (days.length === 7) return 'Open all days';
+    return days.map((d) => DAY_NAMES[d]).join(', ');
+}
 
 /* ── Back button overlayed on image ── */
 function OverlayBackButton({ onClick }) {
@@ -56,12 +69,12 @@ function ExpandableDescription({ text }) {
 }
 
 /* ── Info Row (label + value) ── */
-function InfoSection({ label, value }) {
-    if (!value) return null;
+function InfoSection({ label, value, children }) {
+    if (!value && !children) return null;
     return (
         <div className="mt-5">
             <h3 className="text-white text-base font-bold m-0 mb-1">{label}</h3>
-            <p className="text-gray-400 text-sm m-0 leading-relaxed">{value}</p>
+            {children || <p className="text-gray-400 text-sm m-0 leading-relaxed">{value}</p>}
         </div>
     );
 }
@@ -73,29 +86,15 @@ export default function FacilityDetail() {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Receive the types[] item + category info from navigation
     const facility = location.state?.facility || {};
-    const facilityType = location.state?.facilityType || '';
+    const categoryName = location.state?.categoryName || '';
 
-    console.log('🔍 [FacilityDetail] Received facility data:', JSON.stringify(facility, null, 2));
-    console.log('🔍 [FacilityDetail] Facility type:', facilityType);
-
-    // ── Adapt to backend field names ──
-    // LEARNING: The backend might use different field names than our UI expects.
-    // We map them here so the rest of the component doesn't need to worry.
-    const name = facility.name || facility.facilityName || 'Facility';
-    const image = facility.image || facility.imageUrl || facility.photo;
-    const description = facility.detailDescription || facility.description || '';
-    const timings = facility.timings || facility.timing || '';
-    const cuisine = facility.cuisine || '';
-    const avgPrice = facility.avgPrice || facility.price || '';
-    const maxCapacity = facility.maxCapacity || facility.capacity || '';
-    const area = facility.area || '';
-    const equipment = facility.equipment || '';
-    const treatments = facility.treatments || '';
-    const priceRange = facility.priceRange || '';
+    console.log('🔍 [FacilityDetail] Received facility:', JSON.stringify(facility, null, 2));
+    console.log('🔍 [FacilityDetail] Category:', categoryName);
 
     const handleCheckAvailability = () => {
-        console.log('🔍 [FacilityDetail] Navigating to reserve page for:', name);
+        console.log('🔍 [FacilityDetail] Navigating to reserve page for:', facility.name);
         navigate('/facilities/reserve', {
             state: { facility }
         });
@@ -104,13 +103,13 @@ export default function FacilityDetail() {
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
 
-            {/* ── Hero Image with overlay back button ── */}
+            {/* ── Hero Image ── */}
             <div className="relative w-full h-[45vh] min-h-[280px] overflow-hidden">
                 <OverlayBackButton onClick={() => navigate(-1)} />
-                {image ? (
+                {facility.image ? (
                     <img
-                        src={image}
-                        alt={name}
+                        src={facility.image}
+                        alt={facility.name}
                         className="w-full h-full object-cover"
                     />
                 ) : (
@@ -125,35 +124,72 @@ export default function FacilityDetail() {
             {/* ── Content ── */}
             <div className="px-5 pb-6 flex flex-col flex-1 -mt-2">
 
-                {/* ── Facility Name ── */}
+                {/* Category badge */}
+                {categoryName && (
+                    <span className="text-yellow-400 text-xs font-semibold mb-1">{categoryName}</span>
+                )}
+
+                {/* Name */}
                 <h1 className="text-[1.6rem] font-bold m-0 mb-5 leading-tight">
-                    {name}
+                    {facility.name}
                 </h1>
 
-                {/* ── Description ── */}
-                <ExpandableDescription text={description} />
+                {/* Description */}
+                <ExpandableDescription text={facility.description} />
 
-                {/* ── Dynamic Info Sections ── */}
-                {/* LEARNING: We render all possible fields conditionally.
-                    InfoSection returns null if value is empty. */}
-                <InfoSection label="Cuisine" value={cuisine} />
-                <InfoSection label="Timings" value={timings} />
-                <InfoSection label="Average Price" value={avgPrice ? `Avg price for 2 ₹ ${avgPrice}` : ''} />
-                <InfoSection label="Max Capacity" value={maxCapacity ? `${maxCapacity} people` : ''} />
-                <InfoSection label="Area" value={area} />
-                <InfoSection label="Equipment" value={equipment} />
-                <InfoSection label="Treatments" value={treatments} />
-                <InfoSection label="Price Range" value={priceRange} />
+                {/* Type (e.g., "cafe") */}
+                <InfoSection label="Type" value={facility.type} />
+
+                {/* Cuisine */}
+                <InfoSection label="Cuisine" value={facility.cuisine} />
+
+                {/* Timings */}
+                {facility.startTime && facility.endTime && (
+                    <InfoSection label="Timings">
+                        <p className="text-gray-400 text-sm m-0">
+                            {formatTime12Hour(facility.startTime)} – {formatTime12Hour(facility.endTime)}
+                        </p>
+                    </InfoSection>
+                )}
+
+                {/* Available Days */}
+                <InfoSection label="Available Days" value={formatDays(facility.days)} />
+
+                {/* Location */}
+                <InfoSection label="Location" value={facility.location} />
+
+                {/* Location Link / Area */}
+                {facility.locationlink && (
+                    <InfoSection label="Location Area">
+                        <p className="text-gray-400 text-sm m-0">{facility.locationlink}</p>
+                    </InfoSection>
+                )}
+
+                {/* Pricing */}
+                {facility.pricing > 0 && (
+                    <InfoSection label="Pricing" value={`₹ ${facility.pricing}`} />
+                )}
+
+                {/* Contact (if backend sends it) */}
+                <InfoSection label="Contact" value={facility.contact} />
+
+                {/* Capacity (if backend sends it) */}
+                {facility.capacity > 0 && (
+                    <InfoSection label="Capacity" value={`${facility.capacity} people`} />
+                )}
+
+                {/* Area (if backend sends it) */}
+                <InfoSection label="Area" value={facility.area} />
 
                 {/* ── Spacer ── */}
                 <div className="flex-1" />
 
-                {/* ── Check Availability Button ── */}
+                {/* ── Book Now Button ── */}
                 <button
                     onClick={handleCheckAvailability}
                     className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-8"
                 >
-                    Check Availability
+                    Book Now
                 </button>
             </div>
         </div>

@@ -1,111 +1,31 @@
-import { useNavigate } from 'react-router-dom';
 import ThreeDotMenu from '../../globalComponents/ThreeDotMenu';
 import BottomNav from '../../globalComponents/BottomNav';
 import useFacilityViewModel from '../../viewModel/facilityViewModel';
+import FacilityTabs from './components/FacilityTabs';
+import FacilityCard from './components/FacilityCard';
 
 /**
  * ══════════════════════════════════════════════════════════════
  * FACILITIES PAGE
  * ══════════════════════════════════════════════════════════════
  *
- * LEARNING: This page uses the MVVM pattern.
- * It does NOT call APIs directly — it gets everything from the ViewModel.
+ * LEARNING: This page follows the MVVM pattern.
  *
- * The ViewModel provides:
- *   - facilities (filtered by active tab)
- *   - facilityTypes (dynamic tabs from API)
- *   - loading / error states
- *   - actions (setActiveType, handleFacilityClick, etc.)
+ * Backend data flow:
+ *   1. ViewModel fetches categories from API
+ *   2. Categories become tabs (FacilityTabs component)
+ *   3. The active category's types[] become cards (FacilityCard component)
+ *   4. Clicking a card navigates to FacilityDetail page
+ *
+ * Components used:
+ *   - FacilityTabs → renders tab buttons from category names
+ *   - FacilityCard → renders one types[] item as a card
  */
-
-/* ── Tab Buttons (dynamic from API) ── */
-function FacilityTabs({ types, activeType, onSelect }) {
-    return (
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-            {types.map((t) => {
-                const isActive = t.id === activeType;
-                return (
-                    <button
-                        key={t.id}
-                        onClick={() => onSelect(t.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border shrink-0 cursor-pointer transition-all duration-200 active:scale-95 ${isActive
-                            ? 'bg-yellow-400 border-yellow-400 text-black'
-                            : 'bg-transparent border-gray-700 text-yellow-400 hover:bg-white/5'
-                            }`}
-                    >
-                        {t.label}
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
-
-/* ── Generic Facility Card (works with any backend data shape) ── */
-function FacilityCard({ facility, onClick }) {
-    const disabled = facility.isAvailable === false;
-    // Try multiple possible field names for image
-    const image = facility.image || facility.imageUrl || facility.photo;
-    // Try multiple possible field names for name
-    const name = facility.name || facility.facilityName || 'Unnamed Facility';
-    // Try multiple possible field names for description
-    const description = facility.description || facility.detailDescription || '';
-    // Timing info
-    const timings = facility.timings || facility.timing || '';
-    // Price info
-    const price = facility.avgPrice || facility.price || facility.priceRange || '';
-
-    return (
-        <div
-            onClick={() => !disabled && onClick(facility)}
-            className={`${disabled ? '' : 'cursor-pointer active:scale-[0.98] transition-transform duration-150'}`}
-        >
-            <div className={`bg-[#111111] rounded-2xl border border-gray-800/40 overflow-hidden mb-4 transition-opacity duration-200 ${disabled ? 'opacity-40 grayscale' : ''}`}>
-                <div className="flex">
-                    {/* Left Info */}
-                    <div className="flex-1 p-4 flex flex-col justify-between">
-                        <div>
-                            <h3 className="text-white text-lg font-bold m-0">{name}</h3>
-                            {timings && (
-                                <p className="text-gray-400 text-xs m-0 mt-1">Timings - {timings}</p>
-                            )}
-                            {description && (
-                                <p className="text-gray-500 text-xs m-0 mt-2 leading-relaxed line-clamp-2">
-                                    {description}
-                                </p>
-                            )}
-                        </div>
-                        {price && (
-                            <p className="text-yellow-400 text-xs font-semibold m-0 mt-3">
-                                {typeof price === 'number' ? `Avg price ₹ ${price}` : price}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Right Image */}
-                    {image && (
-                        <div className="w-[140px] min-h-[160px]">
-                            <img src={image} alt={name} className="w-full h-full object-cover" />
-                        </div>
-                    )}
-                </div>
-
-                {/* Disabled overlay */}
-                {disabled && (
-                    <div className="px-4 pb-3 pt-0">
-                        <span className="text-red-400/80 text-xs font-medium">Currently Unavailable</span>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
 
 /* ══════════════════════════════════════════════════
    ── Main Facilities Page ──
    ══════════════════════════════════════════════════ */
 export default function Facilities() {
-    const navigate = useNavigate();
     const {
         facilityTypes,
         activeType,
@@ -160,7 +80,7 @@ export default function Facilities() {
                 {/* ── Facility Content ── */}
                 {!loading && !error && (
                     <>
-                        {/* ── Facility Type Tabs ── */}
+                        {/* ── Category Tabs ── */}
                         {facilityTypes.length > 0 && (
                             <FacilityTabs
                                 types={facilityTypes}
@@ -169,13 +89,13 @@ export default function Facilities() {
                             />
                         )}
 
-                        {/* ── Facility Cards ── */}
+                        {/* ── Facility Type Cards ── */}
                         <div className="mt-5">
                             {facilities.length > 0 ? (
-                                facilities.map((facility) => (
+                                facilities.map((item) => (
                                     <FacilityCard
-                                        key={facility._id || facility.id}
-                                        facility={facility}
+                                        key={item._id}
+                                        facility={item}
                                         onClick={handleFacilityClick}
                                     />
                                 ))

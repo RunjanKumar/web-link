@@ -77,16 +77,16 @@ export default function useReserveViewModel(facility) {
         }
 
         // ── Step 2: Build payload ──
-        // LEARNING: The payload shape must match what the backend expects.
-        // Adjust field names here if backend requires different keys.
+        // LEARNING: facility is a types[] item from the backend.
+        // It has _id (the type's ID), facilityId (parent category ID).
         const payload = {
-            hotelFacilityId: facility?._id || facility?.id,
+            hotelFacilityId: facility?._id,
             dateTime: new Date(dateTime).toISOString(),
             numberOfPeople: Number(numberOfPeople),
         };
 
         console.log('📝 [ReserveVM] Payload built:', JSON.stringify(payload, null, 2));
-        console.log('📝 [ReserveVM] Facility being reserved:', facility?.name || facility?._id);
+        console.log('📝 [ReserveVM] Facility being reserved:', facility?.name);
 
         // ── Step 3: Call API ──
         setIsSubmitting(true);
