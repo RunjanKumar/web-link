@@ -24,7 +24,7 @@ import InfoSection from './components/InfoSection';
 export default function FacilityDetail() {
     const {
         facility,
-        categoryName,
+        // categoryName,
         infoSections,
         goBack,
         handleBookNow,

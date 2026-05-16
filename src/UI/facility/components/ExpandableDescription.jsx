@@ -13,7 +13,7 @@ export default function ExpandableDescription({ text, charLimit = 150 }) {
 
     return (
         <div>
-            <h3 className="text-white text-base font-bold m-0 mb-2">Description</h3>
+            <h3 className="text-white/70 text-[18px] font-semibold leading-[100%] m-0 mb-2">Description</h3>
             <p className="text-gray-400 text-sm m-0 leading-relaxed">
                 {expanded || !isLong ? text : `${text.slice(0, charLimit)}...`}
                 {isLong && (

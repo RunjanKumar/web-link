@@ -11,7 +11,7 @@ export default function InfoSection({ label, value, children }) {
     if (!value && !children) return null;
     return (
         <div className="mt-5">
-            <h3 className="text-white text-base font-bold m-0 mb-1">{label}</h3>
+            <h3 className="text-white/70 text-[18px] font-semibold leading-[100%] m-0 mb-2">{label}</h3>
             {children || <p className="text-gray-400 text-sm m-0 leading-relaxed">{value}</p>}
         </div>
     );
