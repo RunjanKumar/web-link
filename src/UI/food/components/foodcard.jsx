@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import useGlobal from "../../../hooks/useGlobal";
+import useGlobal from "../../../hooks/FoodOrder";
 
 export default function FoodCard({ item }) {
 
@@ -19,7 +19,7 @@ export default function FoodCard({ item }) {
         console.log("Food Cart:", foodCart);
     };
 
-    console.log(item?.price);
+
     return (
         <div onClick={() => { handleNavigate() }} className="flex border border-[#3A3A3A] rounded-[24px] overflow-hidden bg-[#161616] items-center">
 

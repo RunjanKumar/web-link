@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import { GlobalContext } from '../context/GlobalContext';
+import { FoodOrderContext } from '../context/FoodOrderDef';
 
-export default function useGlobal() {
-    const context = useContext(GlobalContext);
+export default function useFoodOrder() {
+    const context = useContext(FoodOrderContext);
     if (!context) {
         throw new Error('useGlobal must be used within a GlobalProvider');
     }

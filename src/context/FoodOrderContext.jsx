@@ -1,8 +1,7 @@
-import { createContext, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { FoodOrderContext } from './FoodOrderDef';
 
-export const GlobalContext = createContext(null);
-
-export function GlobalProvider({ children }) {
+export function FoodOrderProvider({ children }) {
     // Food Cart State
     const [foodCart, setFoodCart] = useState([]);
 
@@ -65,8 +64,8 @@ export function GlobalProvider({ children }) {
     };
 
     return (
-        <GlobalContext.Provider value={value}>
+        <FoodOrderContext.Provider value={value}>
             {children}
-        </GlobalContext.Provider>
+        </FoodOrderContext.Provider>
     );
 }

@@ -1,11 +1,7 @@
 
-
 import FoodCard from "./foodcard";
-import useFoodViewModel from "../../../viewModel/foodViewModel";
 
 export default function FoodList({ searchText, foodItemData, selectedCategory }) {
-  console.log('FoodList received selectedCategory:', selectedCategory);
-  console.log('FoodList received foodItemData:', foodItemData);
 
   // Get foods from selected category or all foods
   const getFoods = () => {

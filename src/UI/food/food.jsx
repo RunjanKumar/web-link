@@ -7,17 +7,32 @@ import OfferSlider from "./components/offerSlider";
 import SearchBar from "./components/searchbar";
 import useFoodViewModel from "../../viewModel/foodViewModel";
 
+/**
+ * ══════════════════════════════════════════════════════════════
+ * FOOD ORDER PAGE
+ * ══════════════════════════════════════════════════════════════
+ *
+ * The main Food Order screen — thin UI layer that delegates
+ * all business logic to the FoodViewModel (MVVM pattern).
+ *
+ * Responsibilities:
+ *   - Compose child components (Header, SearchBar, OfferSlider, etc.)
+ *   - Pass ViewModel data down as props
+ *   - Manage only pure UI state (search focus)
+ */
+
 export default function FoodOrder() {
-    const { foodItemData } = useFoodViewModel();
+    const { foodItemData, couponData, isLoading, error } = useFoodViewModel();
+
+    // ── Pure UI state (not business logic) ──
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(null);
-    
+
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
     };
-    
-    console.log('FoodOrder received foodItemData:', foodItemData);
+
     return (
         <div className="min-h-screen bg-[#111111] text-white px-5 py-6">
 
@@ -35,7 +50,9 @@ export default function FoodOrder() {
             {/* Normal UI */}
             {!isSearchFocused ? (
                 <>
-                    <OfferSlider />
+                    {/* Special Offers — driven by couponData */}
+                    <OfferSlider couponData={couponData} />
+
                     <CategoryTabs categories={foodItemData} onCategorySelect={handleCategorySelect} />
                     <FoodList searchText={searchText} foodItemData={foodItemData} selectedCategory={selectedCategory} />
                 </>
@@ -46,7 +63,7 @@ export default function FoodOrder() {
                         Search Results
                     </h2>
 
-                    {/* <FoodList searchText={searchText} foodItemData={foodItemData} /> */}
+                    <FoodList searchText={searchText} foodItemData={foodItemData} selectedCategory={null} />
                 </div>
             )}
         </div>

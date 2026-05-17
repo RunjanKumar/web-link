@@ -37,8 +37,9 @@ export default function useFoodViewModel() {
         });
 
         const foods = response?.data?.data || [];
-
+        // console.log("response?.data", response?.data);
         setFoodItemData(foods);
+        setCouponData(response?.data?.couponData);
 
         // if (foods.length > 0) {
         //     setSelectedCategory(foods[0]);
@@ -65,6 +66,7 @@ export default function useFoodViewModel() {
         error,
         selectCategory,
         foodItemData,
+        couponData,
         refetch: fetchFoodCategories,
     };
 }

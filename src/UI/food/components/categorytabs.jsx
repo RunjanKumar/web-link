@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import useFoodViewModel from '../../../viewModel/foodViewModel';
 
 export default function CategoryTabs({ categories, onCategorySelect }) {
-//   const { categories } = useFoodViewModel();
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const handleCategoryClick = (index, category) => {
