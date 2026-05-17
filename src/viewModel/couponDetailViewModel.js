@@ -111,6 +111,7 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
             calories: food.calories || 0,
             imageURL: food.imageURL || food.image || null,
             isAvailable: food.isAvailable !== false,
+            type: food.type || null,  // 1 = veg, 2 = non-veg
         }));
     }, [couponDetail]);
 

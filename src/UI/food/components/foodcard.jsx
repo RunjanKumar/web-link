@@ -1,70 +1,73 @@
 import { useNavigate } from "react-router-dom";
-import useGlobal from "../../../hooks/FoodOrder";
+import AddButton from "./AddButton";
+import VegIndicator from "./VegIndicator";
+
+/**
+ * ══════════════════════════════════════════════════════════════
+ * FOOD CARD COMPONENT
+ * ══════════════════════════════════════════════════════════════
+ *
+ * A single food item card in the food list.
+ * Shows veg/non-veg indicator, real data, and shared AddButton.
+ */
 
 export default function FoodCard({ item }) {
-
     const navigate = useNavigate();
-    const { addToFoodCart,foodCart } = useGlobal();
 
     const handleNavigate = () => {
-        navigate("/food-details", {
-            state: item,
-        });
+        navigate("/food-details", { state: item });
     };
-
-    const handleAddToCart = (e) => {
-        e.stopPropagation();
-        addToFoodCart(item);
-        console.log("Added to cart:", item);
-        console.log("Food Cart:", foodCart);
-    };
-
 
     return (
-        <div onClick={() => { handleNavigate() }} className="flex border border-[#3A3A3A] rounded-[24px] overflow-hidden bg-[#161616] items-center">
-
-            {/* Left Content - 75% */}
-            <div className="w-[75%] px-4 py-4 flex flex-col justify-between">
-
+        <div
+            onClick={handleNavigate}
+            className="flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer"
+        >
+            {/* Left Content */}
+            <div className="flex-1 px-4 py-4 flex flex-col justify-between min-w-0">
                 <div>
-                    <h2 className="text-white text-[18px] font-semibold leading-[22px]">
-                        {item.title}
-                    </h2>
+                    {/* Veg/Non-veg + Title */}
+                    <div className="flex items-center gap-2">
+                        <VegIndicator type={item.type} size={16} />
+                        <h2 className="text-white text-[17px] font-semibold leading-[22px] truncate">
+                            {item.title}
+                        </h2>
+                    </div>
 
-                    <p className="text-[#8F8F8F] text-[14px] leading-[20px] mt-2 line-clamp-2">
-                        A classic favorite, our chicken burger
-                        features a juicy, grilled or crispy...
+                    {/* Description */}
+                    <p className="text-[#8F8F8F] text-[13px] leading-[19px] mt-[6px] line-clamp-2">
+                        {item.description || 'A classic favorite, our chicken burger features a juicy, grilled or... read more'}
                     </p>
 
-                    <p className="text-[#A0A0A0] text-[15px] mt-2">
-                        200 Kcal
-                    </p>
+                    {/* Calories */}
+                    {item.calories > 0 && (
+                        <p className="text-[#707070] text-[13px] mt-[6px]">
+                            {item.calories} Kcal
+                        </p>
+                    )}
                 </div>
 
-                {/* Bottom */}
-                <div className="flex items-center justify-between">
-
-                    <h3 className="text-[#E2B124] text-[20px] font-semibold">
+                {/* Price + Add Button */}
+                <div className="flex items-center justify-between mt-3">
+                    <h3 className="text-[#E2B124] text-[18px] font-bold">
                         ₹ {item.price}
                     </h3>
 
-                    <button 
-                        onClick={handleAddToCart}
-                        className="border border-[#E2B124] text-[#E2B124] rounded-[14px] px-4 py-[6px] text-[15px] font-medium hover:bg-[#E2B124] hover:text-[#161616] transition"
-                    >
-                        Add
-                    </button>
+                    <AddButton item={item} />
                 </div>
             </div>
 
-            {/* Right Image - 25% */}
-            <div className="w-[35%] h-full">
-
-                <img
-                    src={item?.imageURL}
-                    alt=""
-                    className="w-[142px] h-[131px]"
-                />
+            {/* Right Image */}
+            <div className="w-[130px] shrink-0">
+                {item.imageURL ? (
+                    <img
+                        src={item.imageURL}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full bg-[#2A2A2A] min-h-[130px]" />
+                )}
             </div>
         </div>
     );

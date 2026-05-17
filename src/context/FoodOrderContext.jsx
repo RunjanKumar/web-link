@@ -53,6 +53,12 @@ export function FoodOrderProvider({ children }) {
         return foodCart.reduce((count, item) => count + item.quantity, 0);
     }, [foodCart]);
 
+    // Get quantity of a specific item in cart (by id)
+    const getItemQuantity = useCallback((itemId) => {
+        const cartItem = foodCart.find((item) => item.id === itemId);
+        return cartItem ? cartItem.quantity : 0;
+    }, [foodCart]);
+
     const value = {
         foodCart,
         addToFoodCart,
@@ -61,6 +67,7 @@ export function FoodOrderProvider({ children }) {
         clearFoodCart,
         getFoodCartTotal,
         getFoodCartCount,
+        getItemQuantity,
     };
 
     return (

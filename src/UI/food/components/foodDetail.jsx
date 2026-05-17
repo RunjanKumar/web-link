@@ -1,169 +1,156 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import useGlobal from "../../../hooks/FoodOrder";
+import VegIndicator from "./VegIndicator";
 
-const addons = [
-  {
-    id: 1,
-    name: "Pepper Julienned",
-    price: 50,
-    image:
-      "https://images.unsplash.com/photo-1540420773420-3366772f4999",
-  },
-  {
-    id: 2,
-    name: "Baby Spinach",
-    price: 50,
-    image:
-      "https://images.unsplash.com/photo-1576045057995-568f588f82fb",
-  },
-];
+/**
+ * ══════════════════════════════════════════════════════════════
+ * FOOD DETAILS PAGE
+ * ══════════════════════════════════════════════════════════════
+ *
+ * Shows full details for a food item — uses real data from
+ * navigation state. The bottom bar has a working counter
+ * synced with the global FoodOrderContext.
+ */
 
 export default function FoodDetails() {
+    const navigate = useNavigate();
+    const { state } = useLocation();
+    const { addToFoodCart, updateFoodCartQuantity, getItemQuantity } = useGlobal();
 
-  const navigate = useNavigate();
-  const { state } = useLocation();
+    // Get current quantity from global cart
+    const quantity = getItemQuantity(state?.id);
 
-  return (
-    <div className="min-h-screen bg-[#111111] text-white pb-[120px]">
+    const handleAdd = () => {
+        addToFoodCart(state);
+    };
 
-      {/* Top Image */}
-      <div className="relative">
+    const handleIncrement = () => {
+        updateFoodCartQuantity(state?.id, quantity + 1);
+    };
 
-        <img
-          src={state?.image}
-          alt=""
-          className="w-full h-[360px] object-cover"
-        />
+    const handleDecrement = () => {
+        updateFoodCartQuantity(state?.id, quantity - 1);
+    };
 
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-6 left-5"
-        >
-          <ArrowLeft size={30} />
-        </button>
-      </div>
+    // Calculate total price for the bottom bar
+    const itemPrice = state?.priceAfterDiscount ?? state?.price ?? 0;
+    const totalPrice = itemPrice * (quantity || 1);
 
-      {/* Content */}
-      <div className="px-5 pt-6">
+    return (
+        <div className="min-h-screen bg-[#111111] text-white pb-[120px]">
 
-        {/* Title */}
-        <div className="flex items-center justify-between">
+            {/* Top Image */}
+            <div className="relative">
+                <img
+                    src={state?.imageURL || state?.image}
+                    alt={state?.title}
+                    className="w-full h-[360px] object-cover"
+                />
 
-          <h1 className="text-[36px] font-semibold leading-[42px]">
-            {state?.title}
-          </h1>
+                <button
+                    onClick={() => navigate(-1)}
+                    className="absolute top-6 left-5 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center"
+                >
+                    <ArrowLeft size={24} />
+                </button>
+            </div>
 
-          <div className="w-[48px] h-[48px] rounded-[16px] border border-red-500 flex items-center justify-center">
-            <div className="w-[18px] h-[18px] bg-red-500 rounded-full" />
-          </div>
-        </div>
+            {/* Content */}
+            <div className="px-5 pt-6">
 
-        {/* Description */}
-        <div className="mt-10">
+                {/* Title + Veg/Non-veg indicator */}
+                <div className="flex items-start justify-between gap-3">
+                    <h1 className="text-[36px] font-semibold leading-[42px]">
+                        {state?.title}
+                    </h1>
 
-          <h2 className="text-[20px] font-semibold text-[#CFCFCF]">
-            Description
-          </h2>
-
-          <p className="text-[#9E9E9E] text-[17px] leading-[32px] mt-4">
-            A classic favorite, our chicken burger features a juicy,
-            grilled or breaded chicken patty served on a soft bun,
-            accompanied by crisp lettuce, ripe tomatoes, sliced
-            onions, and your choice of condiments.
-          </p>
-        </div>
-
-        {/* Ingredients */}
-        <div className="mt-10">
-
-          <h2 className="text-[20px] font-semibold text-[#CFCFCF]">
-            Ingredients
-          </h2>
-
-          <p className="text-[#9E9E9E] text-[17px] leading-[32px] mt-4">
-            20g Lorem ipsum, 8g Dolor sit, 12g Amet,
-            5g Consectetur, 4g Adipiscing
-          </p>
-        </div>
-
-        {/* Addons */}
-        <div className="mt-10">
-
-          <h2 className="text-[20px] font-semibold text-[#CFCFCF] mb-6">
-            Choice of Add On
-          </h2>
-
-          <div className="flex flex-col gap-6">
-
-            {addons.map((item, index) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between"
-              >
-
-                {/* Left */}
-                <div className="flex items-center gap-4">
-
-                  <img
-                    src={item.image}
-                    alt=""
-                    className="w-[60px] h-[60px] rounded-full object-cover"
-                  />
-
-                  <p className="text-[18px]">
-                    {item.name}
-                  </p>
+                    <VegIndicator type={state?.type} size={28} />
                 </div>
 
-                {/* Right */}
-                <div className="flex items-center gap-4">
+                {/* Price */}
+                <div className="flex items-center gap-3 mt-4">
+                    <span className="text-[#E2B124] text-[24px] font-bold">
+                        ₹ {Math.round(itemPrice)}
+                    </span>
 
-                  <p className="text-[18px]">
-                    + ₹50
-                  </p>
-
-                  <div
-                    className={`w-[36px] h-[36px] rounded-full border-2 ${
-                      index === 0
-                        ? "border-yellow-400"
-                        : "border-gray-500"
-                    } flex items-center justify-center`}
-                  >
-                    {index === 0 && (
-                      <div className="w-[20px] h-[20px] bg-yellow-400 rounded-full" />
+                    {state?.priceAfterDiscount && state.priceAfterDiscount < state.price && (
+                        <span className="text-[#6B6B6B] text-[18px] line-through">
+                            ₹{Math.round(state.price)}
+                        </span>
                     )}
-                  </div>
+
+                    {state?.calories > 0 && (
+                        <span className="text-[#A0A0A0] text-[16px] ml-auto">
+                            {state.calories} Kcal
+                        </span>
+                    )}
                 </div>
-              </div>
-            ))}
-          </div>
+
+                {/* Description */}
+                <div className="mt-10">
+                    <h2 className="text-[20px] font-semibold text-[#CFCFCF]">
+                        Description
+                    </h2>
+
+                    <p className="text-[#9E9E9E] text-[17px] leading-[32px] mt-4">
+                        {state?.description || 'A classic favorite, our chicken burger features a juicy, grilled or breaded chicken patty served on a soft bun, accompanied by crisp lettuce, ripe tomatoes, sliced onions, and your choice of condiments.'}
+                    </p>
+                </div>
+
+                {/* Ingredients (show if available) */}
+                {state?.ingredients && (
+                    <div className="mt-10">
+                        <h2 className="text-[20px] font-semibold text-[#CFCFCF]">
+                            Ingredients
+                        </h2>
+
+                        <p className="text-[#9E9E9E] text-[17px] leading-[32px] mt-4">
+                            {state.ingredients}
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom Bar — working counter + add */}
+            <div className="fixed bottom-0 left-0 w-full bg-[#2B2B2B] px-5 py-5 flex items-center gap-4 z-50">
+
+                {/* Counter */}
+                <div className="w-[120px] h-[60px] rounded-[22px] border border-[#5A5A5A] flex items-center justify-around">
+                    <button
+                        onClick={handleDecrement}
+                        className="text-yellow-400 text-[28px] w-10 h-full flex items-center justify-center"
+                    >
+                        −
+                    </button>
+
+                    <p className="text-[28px]">
+                        {quantity || 1}
+                    </p>
+
+                    <button
+                        onClick={quantity > 0 ? handleIncrement : handleAdd}
+                        className="text-yellow-400 text-[28px] w-10 h-full flex items-center justify-center"
+                    >
+                        +
+                    </button>
+                </div>
+
+                {/* Add Button */}
+                <button
+                    onClick={quantity === 0 ? handleAdd : undefined}
+                    className={`flex-1 h-[60px] rounded-[22px] text-[22px] font-semibold transition ${
+                        quantity > 0
+                            ? 'bg-yellow-400 text-black'
+                            : 'bg-yellow-400 text-black active:scale-95'
+                    }`}
+                >
+                    {quantity > 0
+                        ? `${quantity} item${quantity > 1 ? 's' : ''} - ₹ ${Math.round(totalPrice)}`
+                        : `Add items - ₹ ${Math.round(itemPrice)}`
+                    }
+                </button>
+            </div>
         </div>
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 w-full bg-[#2B2B2B] px-5 py-5 flex items-center gap-4">
-
-        {/* Counter */}
-        <div className="w-[120px] h-[60px] rounded-[22px] border border-[#5A5A5A] flex items-center justify-around">
-
-          <button className="text-yellow-400 text-[28px]">
-            -
-          </button>
-
-          <p className="text-[28px]">
-            1
-          </p>
-
-          <button className="text-yellow-400 text-[28px]">
-            +
-          </button>
-        </div>
-
-        {/* Add Button */}
-        <button className="flex-1 h-[60px] bg-yellow-400 rounded-[22px] text-black text-[22px] font-semibold">
-          Add items - ₹ 300
-        </button>
-      </div>
-    </div>
-  );
+    );
 }
