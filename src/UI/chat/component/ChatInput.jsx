@@ -29,6 +29,8 @@ export default function ChatInput({
 
     const hasText = inputText.trim().length > 0;
 
+    console.log('🖥️ [ChatInput] Render. hasText:', hasText, '| sending:', isSending, '| connected:', isConnected);
+
     return (
         <div className="mt-3">
             <div className={`bg-[#1a1a1a] rounded-full px-5 py-3 flex items-center gap-3

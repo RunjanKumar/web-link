@@ -46,7 +46,7 @@ export default function ReserveTable() {
 
     const facility = location.state?.facility || {};
 
-    console.log('🎫 [ReserveTable] Page loaded with facility:', facility.name || facility._id);
+    console.log('🖥️ [ReserveTable PAGE] Loaded. Facility:', facility.name || facility._id, '| Has image:', !!facility.image);
 
     // ── LEARNING: All logic comes from the ViewModel ──
     // The component just renders UI and calls ViewModel actions
@@ -61,6 +61,8 @@ export default function ReserveTable() {
         submitReservation,
         isSubmitting,
     } = useReserveViewModel(facility);
+
+    console.log('🖥️ [ReserveTable PAGE] Render. dateTime:', dateTime || '(empty)', '| people:', numberOfPeople || '(empty)', '| submitting:', isSubmitting);
 
     // ── Backend field names (from types[] item) ──
     const image = facility.image;

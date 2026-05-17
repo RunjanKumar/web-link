@@ -24,28 +24,32 @@ export default function useFacilityDetailViewModel() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // ── Extract raw data from navigation state ──
+    // ── STEP-1: Extract raw data from navigation state ──
     const facility = location.state?.facility || {};
     const categoryName = location.state?.categoryName || '';
 
-    console.log('🔍 [FacilityDetailVM] Received facility:', JSON.stringify(facility, null, 2));
-    console.log('🔍 [FacilityDetailVM] Category:', categoryName);
+    console.log('🔍 STEP-1 [FacilityDetailVM] Page loaded. Facility received from navigation state:', {
+        name: facility.name,
+        _id: facility._id,
+        category: categoryName,
+        hasImage: !!facility.image,
+        hasTimings: !!(facility.startTime && facility.endTime),
+    });
 
-    // ── Formatted display values ──
+    // ── STEP-2: Format display values ──
+    // LEARNING: Raw data like "09:00" → formatted to "9:00 AM" for the user
     const timingsText = (facility.startTime && facility.endTime)
         ? `${formatTime12Hour(facility.startTime)} – ${formatTime12Hour(facility.endTime)}`
         : '';
 
     const daysText = formatDays(facility.days);
-
     const pricingText = facility.pricing > 0 ? `₹ ${facility.pricing}` : '';
-
     const capacityText = facility.capacity > 0 ? `${facility.capacity} people` : '';
 
-    // ── Info sections array ──
-    // LEARNING: By building this array in the ViewModel,
-    // the UI can just .map() over it — no conditional logic needed in the view.
-    // InfoSection component auto-hides when value is empty.
+    console.log('🔍 STEP-2 [FacilityDetailVM] Formatted values:', { timingsText, daysText, pricingText, capacityText });
+
+    // ── STEP-3: Build info sections array ──
+    // LEARNING: By building this array in the ViewModel, the UI just .map()s over it
     const infoSections = [
         { label: 'Type', value: facility.type || '' },
         { label: 'Cuisine', value: facility.cuisine || '' },
@@ -59,14 +63,16 @@ export default function useFacilityDetailViewModel() {
         { label: 'Area', value: facility.area || '' },
     ];
 
+    console.log('🔍 STEP-3 [FacilityDetailVM] Info sections built:', infoSections.filter(s => s.value).length, 'visible sections');
+
     // ── Navigation handlers ──
     const goBack = useCallback(() => {
-        console.log('🔍 [FacilityDetailVM] Going back');
+        console.log('🔍 [FacilityDetailVM] goBack() → navigate(-1)');
         navigate(-1);
     }, [navigate]);
 
     const handleBookNow = useCallback(() => {
-        console.log('🔍 [FacilityDetailVM] Navigating to reserve page for:', facility.name);
+        console.log('🔍 [FacilityDetailVM] handleBookNow() → Navigating to /facilities/reserve with facility:', facility.name);
         navigate('/facilities/reserve', {
             state: { facility }
         });
@@ -74,12 +80,9 @@ export default function useFacilityDetailViewModel() {
 
     // ── Return ──
     return {
-        // Display data
         facility,
         categoryName,
         infoSections,
-
-        // Actions
         goBack,
         handleBookNow,
     };

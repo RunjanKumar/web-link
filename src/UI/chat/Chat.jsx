@@ -50,6 +50,8 @@ export default function Chat() {
         retryMessage,
     } = useChatViewModel();
 
+    console.log('🖥️ [Chat PAGE] Render. messages:', messages.length, '| loading:', isLoading, '| sending:', isSending, '| connected:', isConnected);
+
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
             <div className="pt-12 px-5 pb-6 flex flex-col flex-1 min-h-0">

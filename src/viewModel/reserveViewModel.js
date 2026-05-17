@@ -35,11 +35,13 @@ export default function useReserveViewModel(facility) {
     // People options for the dropdown
     const peopleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20];
 
+    console.log('📝 [ReserveVM] Hook initialized for facility:', facility?.name || 'unknown');
+
     // ══════════════════════════════════════════════════════════
     // SELECT NUMBER OF PEOPLE
     // ══════════════════════════════════════════════════════════
     const selectPeople = useCallback((num) => {
-        console.log('📝 [ReserveVM] People selected:', num);
+        console.log('📝 [ReserveVM] selectPeople() →', num);
         setNumberOfPeople(num);
         setShowPeoplePicker(false);
     }, []);
@@ -53,30 +55,24 @@ export default function useReserveViewModel(facility) {
 
     // ══════════════════════════════════════════════════════════
     // SUBMIT RESERVATION
-    //
-    // LEARNING: This is the main action. It:
-    //   1. Validates inputs
-    //   2. Builds the API payload
-    //   3. Calls the API service function
-    //   4. Handles success → navigate + toast
-    //   5. Handles error → toast.error
     // ══════════════════════════════════════════════════════════
     const submitReservation = useCallback(async () => {
-        console.log('📝 [ReserveVM] submitReservation() called');
+        console.log('📝 STEP-1 [ReserveVM] submitReservation() called. Current form state:', { dateTime, numberOfPeople });
 
-        // ── Step 1: Validate ──
+        // ── STEP-2: Validate ──
         if (!dateTime) {
-            console.log('⚠️ [ReserveVM] Validation failed: no dateTime');
+            console.log('🟡 STEP-2 [ReserveVM] Validation FAILED: no dateTime selected');
             toast.error('Please select date and time');
             return;
         }
         if (!numberOfPeople) {
-            console.log('⚠️ [ReserveVM] Validation failed: no numberOfPeople');
+            console.log('🟡 STEP-2 [ReserveVM] Validation FAILED: no numberOfPeople selected');
             toast.error('Please select number of people');
             return;
         }
+        console.log('📝 STEP-2 [ReserveVM] Validation PASSED ✓');
 
-        // ── Step 2: Build payload ──
+        // ── STEP-3: Build payload ──
         // LEARNING: facility is a types[] item from the backend.
         // It has _id (the type's ID), facilityId (parent category ID).
         const payload = {
@@ -86,30 +82,28 @@ export default function useReserveViewModel(facility) {
             numberOfGuests: Number(numberOfPeople),
         };
 
-        console.log('📝 [ReserveVM] Payload built:', JSON.stringify(payload, null, 2));
-        console.log(facility, '📝 [ReserveVM] Facility being reserved:', facility?.name);
+        console.log('📝 STEP-3 [ReserveVM] Payload built:', JSON.stringify(payload, null, 2));
 
-        // ── Step 3: Call API ──
+        // ── STEP-4: Call API ──
         setIsSubmitting(true);
         try {
-            console.log('📝 [ReserveVM] Calling submitFacilityReservation()...');
+            console.log('📝 STEP-4 [ReserveVM] Calling submitFacilityReservation()...');
             const response = await submitFacilityReservation(payload);
-            console.log('✅ [ReserveVM] Reservation SUCCESS:', response);
+            console.log('🟢 STEP-5 [ReserveVM] Reservation SUCCESS! Server response:', response);
 
-            // ── Step 4: Success → navigate ──
+            // ── STEP-6: Navigate on success ──
             toast.success('Your reservation has been successfully submitted!');
+            console.log('📝 STEP-6 [ReserveVM] Navigating to /facilities/upcoming-events');
             navigate('/facilities/upcoming-events', {
                 state: { showToast: false },
             });
-
         } catch (err) {
-            // ── Step 5: Error → toast ──
-            console.error('❌ [ReserveVM] Reservation FAILED:', err);
+            console.error('🔴 STEP-5 [ReserveVM] Reservation FAILED:', err.message);
             const message = getApiErrorMessage(err, 'Failed to submit reservation.');
             toast.error(message);
         } finally {
             setIsSubmitting(false);
-            console.log('📝 [ReserveVM] submitReservation() — Done');
+            console.log('📝 [ReserveVM] submitReservation() — Complete');
         }
     }, [dateTime, numberOfPeople, facility, navigate]);
 
@@ -117,19 +111,14 @@ export default function useReserveViewModel(facility) {
     // RETURN — everything the ReserveTable UI needs
     // ══════════════════════════════════════════════════════════
     return {
-        // Form state
         dateTime,
         setDateTime,
         numberOfPeople,
         showPeoplePicker,
         peopleOptions,
-
-        // Actions
         selectPeople,
         togglePeoplePicker,
         submitReservation,
-
-        // Loading state
         isSubmitting,
     };
 }

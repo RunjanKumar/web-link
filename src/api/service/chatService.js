@@ -28,6 +28,14 @@ import { ENDPOINTS } from '../endpoint';
  * @returns {Promise<Object>} { data: { data: [...], totalCount } }
  */
 export async function fetchConversationMessages(params = {}) {
+    console.log('🔵 STEP [ChatService → fetchConversationMessages] Called with params:', params);
+
     const response = await apiClient.get(ENDPOINTS.CONVERSATION_LIST, { params });
+
+    console.log('🟢 STEP [ChatService → fetchConversationMessages] Got response. Message count:',
+        Array.isArray(response.data?.data?.data) ? response.data.data.data.length : 'unknown shape',
+        '| totalCount:', response.data?.data?.totalCount || 'N/A'
+    );
+
     return response.data;
 }

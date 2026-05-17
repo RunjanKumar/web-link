@@ -20,31 +20,37 @@ import { ENDPOINTS } from '../endpoint';
 //    Returns: list of hotel facilities (restaurants, spas, etc.)
 // ══════════════════════════════════════════════════════════════
 export async function getFacility() {
-    console.log('📡 [FacilityService] getFacility() called');
-    console.log('📡 [FacilityService] Endpoint:', ENDPOINTS.FACILITIES);
+    // STEP-1: Log that the service layer was called
+    console.log('🔵 STEP [FacilityService → getFacility] Called. About to hit endpoint:', ENDPOINTS.FACILITIES);
 
     const response = await apiClient.get(ENDPOINTS.FACILITIES);
 
-    console.log('✅ [FacilityService] getFacility() raw response:', response.data);
+    // STEP-2: Log what the backend actually returned (helps debug shape mismatches)
+    console.log('🟢 STEP [FacilityService → getFacility] Backend responded. Status:', response.status);
+    console.log('🟢 STEP [FacilityService → getFacility] response.data shape:', {
+        hasData: !!response.data,
+        topLevelKeys: response.data ? Object.keys(response.data) : [],
+    });
+
     return response.data;
 }
 
 // ══════════════════════════════════════════════════════════════
 // 2. SUBMIT A FACILITY RESERVATION (BOOKING)
 //    POST /v1/hotelFacility/book
-//    Payload: { hotelFacilityId, dateTime, numberOfPeople, ... }
+//    Payload: { facilityId, facilityTypeId, bookingDate, numberOfGuests }
 // ══════════════════════════════════════════════════════════════
 export async function submitFacilityReservation(payload) {
-    console.log('📡 [FacilityService] submitFacilityReservation() called');
-    console.log('📡 [FacilityService] Endpoint:', ENDPOINTS.FACILITIES_RESERVE);
-    console.log('📡 [FacilityService] Payload being sent:', JSON.stringify(payload, null, 2));
+    // STEP-1: Log the exact payload being sent (useful if booking fails)
+    console.log('🔵 STEP [FacilityService → submitFacilityReservation] Called with payload:', JSON.stringify(payload, null, 2));
 
     const response = await apiClient.post(
         ENDPOINTS.FACILITIES_RESERVE,
         payload
     );
 
-    console.log('✅ [FacilityService] submitFacilityReservation() response:', response.data);
+    // STEP-2: Log the server's confirmation
+    console.log('🟢 STEP [FacilityService → submitFacilityReservation] Success! Response:', response.data);
     return response.data;
 }
 
@@ -54,11 +60,10 @@ export async function submitFacilityReservation(payload) {
 //    Returns: list of the customer's facility bookings
 // ══════════════════════════════════════════════════════════════
 export async function getFacilityReservations() {
-    console.log('📡 [FacilityService] getFacilityReservations() called');
-    console.log('📡 [FacilityService] Endpoint:', ENDPOINTS.FACILITIES_RESERVATIONS);
+    console.log('🔵 STEP [FacilityService → getFacilityReservations] Called. Endpoint:', ENDPOINTS.FACILITIES_RESERVATIONS);
 
     const response = await apiClient.get(ENDPOINTS.FACILITIES_RESERVATIONS);
 
-    console.log('✅ [FacilityService] getFacilityReservations() raw response:', response.data);
+    console.log('🟢 STEP [FacilityService → getFacilityReservations] Got response. Item count:', Array.isArray(response.data?.data) ? response.data.data.length : 'unknown shape');
     return response.data;
 }

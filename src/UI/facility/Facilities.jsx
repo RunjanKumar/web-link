@@ -38,6 +38,8 @@ export default function Facilities() {
         menuItems,
     } = useFacilityViewModel();
 
+    console.log('🖥️ [Facilities PAGE] Render. loading:', loading, '| error:', !!error, '| tabs:', facilityTypes.length, '| cards:', facilities.length);
+
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative">
             <div className="pt-14 px-5 pb-28 flex flex-col">

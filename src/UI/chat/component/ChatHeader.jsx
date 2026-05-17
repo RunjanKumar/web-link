@@ -4,6 +4,7 @@
 import BackButton from '../../../globalComponents/BackButton';
 
 export default function ChatHeader({ isConnected }) {
+    console.log('🖥️ [ChatHeader] Render. isConnected:', isConnected);
     return (
         <div className="flex items-center gap-3 mb-4">
             {/* Back button */}

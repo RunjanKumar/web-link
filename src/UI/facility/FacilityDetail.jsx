@@ -30,6 +30,8 @@ export default function FacilityDetail() {
         handleBookNow,
     } = useFacilityDetailViewModel();
 
+    console.log('🖥️ [FacilityDetail PAGE] Render. Facility:', facility.name, '| Info sections:', infoSections.filter(s => s.value).length);
+
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white relative flex flex-col">
 

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 /**
  * ══════════════════════════════════════════════════════════════
- * FACILITY VIEWMODEL
+ * FACILITY VIEWMODEL — "Brain" of the Facilities list page
  * ══════════════════════════════════════════════════════════════
  *
  * LEARNING: This is the "brain" of the Facilities page.
@@ -41,65 +41,62 @@ export default function useFacilityViewModel() {
     // FETCH FACILITIES FROM API
     // ══════════════════════════════════════════════════════════
     const fetchFacilities = useCallback(async () => {
-        console.log('🏨 [FacilityVM] fetchFacilities() — Starting API call...');
+        console.log('🏨 STEP-1 [FacilityVM] fetchFacilities() — Starting...');
         setLoading(true);
         setError(null);
 
         try {
+            // STEP-2: Call the API service (facilityService.js)
             const response = await getFacility();
-            console.log('🏨 [FacilityVM] Raw API response:', response);
+            console.log('🏨 STEP-2 [FacilityVM] API returned. Raw response keys:', Object.keys(response || {}));
 
-            // ──────────────────────────────────────────────────
-            // LEARNING: Extract the categories array
-            //
-            // Backend returns: { statusCode, message, data: [...] }
-            // Each element = one category (Dining, Spa, etc.)
-            // ──────────────────────────────────────────────────
+            // STEP-3: Extract the categories array
+            // LEARNING: Backend may nest data differently — try multiple paths
             const data = response?.data?.facilityData
                 || response?.data?.data
                 || response?.data
                 || [];
 
-            console.log('🏨 [FacilityVM] Categories extracted:', data.length);
+            console.log('🏨 STEP-3 [FacilityVM] Extracted categories:', data.length, 'categories');
 
-            // Log first category for shape reference
+            // STEP-4: Log first category shape (helps understand backend structure)
             if (data.length > 0) {
-                console.log('🏨 [FacilityVM] First category shape:', JSON.stringify({
+                console.log('🏨 STEP-4 [FacilityVM] First category sample:', {
                     _id: data[0]._id,
                     name: data[0].name,
-                    imageUrl: data[0].imageUrl,
                     typesCount: data[0].types?.length,
-                    firstType: data[0].types?.[0],
-                }, null, 2));
+                    firstTypeName: data[0].types?.[0]?.name,
+                });
             }
 
             setCategories(data);
 
-            // Set first tab as active by default
+            // STEP-5: Auto-select the first tab
             if (data.length > 0) {
-                console.log('🏨 [FacilityVM] Setting default active tab:', data[0]._id, '(', data[0].name, ')');
+                console.log('🏨 STEP-5 [FacilityVM] Auto-selecting first tab:', data[0].name);
                 setActiveType(data[0]._id);
             }
-
         } catch (err) {
-            console.error('❌ [FacilityVM] fetchFacilities() FAILED:', err);
+            console.error('🔴 [FacilityVM] fetchFacilities() FAILED:', err.message);
             const message = getApiErrorMessage(err, 'Failed to load facilities.');
             setError(message);
             toast.error(message);
         } finally {
             setLoading(false);
-            console.log('🏨 [FacilityVM] fetchFacilities() — Done');
+            console.log('🏨 STEP-6 [FacilityVM] fetchFacilities() — Complete');
         }
     }, []);
 
     // ── Auto-fetch on mount ──
     useEffect(() => {
-        console.log('🏨 [FacilityVM] Component mounted → fetching facilities...');
+        console.log('🏨 [FacilityVM] Component mounted → triggering fetchFacilities()');
         fetchFacilities();
     }, [fetchFacilities]);
 
     // ══════════════════════════════════════════════════════════
     // DERIVED STATE
+    // LEARNING: These are computed from categories — they update
+    // automatically when categories or activeType changes.
     // ══════════════════════════════════════════════════════════
 
     // Build tabs from categories — each tab = { id, label, imageUrl }
@@ -115,13 +112,13 @@ export default function useFacilityViewModel() {
     // The items to show = types[] inside the active category
     const facilities = activeCategory?.types || [];
 
-    console.log('🏨 [FacilityVM] Active tab:', activeCategory?.name, '→ Items count:', facilities.length);
+    console.log('🏨 [FacilityVM] Derived state → Active tab:', activeCategory?.name, '| Cards count:', facilities.length);
 
     // ══════════════════════════════════════════════════════════
     // HANDLE TAB CHANGE
     // ══════════════════════════════════════════════════════════
     const handleTypeChange = useCallback((typeId) => {
-        console.log('🏨 [FacilityVM] Tab changed to:', typeId);
+        console.log('🏨 [FacilityVM] Tab changed →', typeId);
         setActiveType(typeId);
     }, []);
 
@@ -129,7 +126,7 @@ export default function useFacilityViewModel() {
     // NAVIGATION HANDLERS
     // ══════════════════════════════════════════════════════════
     const handleFacilityClick = useCallback((facilityItem) => {
-        console.log('🏨 [FacilityVM] Facility clicked:', facilityItem.name);
+        console.log('🏨 [FacilityVM] Card clicked →', facilityItem.name, '| Navigating to /facilities/detail');
         // Pass both the types[] item AND the parent category info
         navigate('/facilities/detail', {
             state: {
