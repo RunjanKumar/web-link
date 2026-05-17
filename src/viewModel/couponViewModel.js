@@ -26,7 +26,7 @@ export default function useCouponViewModel(rawCouponData) {
             return [];
         }
 
-        console.log('[CouponVM] Transforming coupon data:', rawCouponData.length, 'coupons');
+        console.log('[CouponVM] Transforming coupon data:', rawCouponData, 'coupons');
 
         return rawCouponData.map((coupon, index) => {
             // Build the headline text from coupon fields
