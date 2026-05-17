@@ -9,9 +9,9 @@ export default function LightControl() {
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white relative">
       <div className="pt-12 px-5 pb-28 flex flex-col gap-6">
-
+        <BackButton/>
         {/* ── Back Button ── */}
-        <BackButton />
+       
 
         {/* ── Title ── */}
         <h1 className="text-[1.75rem] font-bold m-0 -mt-2">Lights Control</h1>

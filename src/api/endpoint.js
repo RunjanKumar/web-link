@@ -35,6 +35,7 @@ export const ENDPOINTS = {
     FEEDBACK: '/v1/feedback',
 
     // ── Food ──
+    FOOD_CATEGORY: '/v1/foodCategory',
     FOOD_MENU: '/v1/food/menu',
     FOOD_ORDER: '/v1/food/order',
 };
