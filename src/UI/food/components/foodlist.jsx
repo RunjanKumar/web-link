@@ -105,6 +105,7 @@ const FoodList = forwardRef(function FoodList(
                     type: food.type || null,
                     inGridients: food.inGridients || [],
                     choiceOfAddOn: food.choiceOfAddOn || [],
+                    choiceOfAddOnDetails: food.choiceOfAddOnDetails || [],
                     isAvailable: food.isAvailable !== false,
                     mealType: food.mealType || [],
                 }));
@@ -112,8 +113,8 @@ const FoodList = forwardRef(function FoodList(
                 console.log(`[FoodList] Category "${category.name}": ${foods.length} foods mapped`);
 
                 return {
-                    categoryId: category._id || category.id,
-                    categoryName: category.name || category.title || 'Category',
+                    categoryId: category._id,
+                    categoryName: category.name,
                     globalIndex: index,
                     foods,
                 };

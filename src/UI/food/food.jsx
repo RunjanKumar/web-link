@@ -37,7 +37,7 @@ export default function FoodOrder() {
 
     console.log('[FoodPage] STEP 8: FoodOrder rendered');
     console.log('[FoodPage] Data from ViewModel:');
-    console.log('  foodItemData:', foodItemData ? `${foodItemData.length} categories` : 'null (still loading)');
+    console.log(foodItemData, '  foodItemData:', foodItemData ? `${foodItemData.length} categories` : 'null (still loading)');
     console.log('  couponData:', couponData ? 'available' : 'null');
     console.log('  isLoading:', isLoading);
 

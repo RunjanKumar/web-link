@@ -39,7 +39,7 @@ export async function getFoodCategories(params = {}) {
         params: queryParams,
     });
 
-    console.log('[FoodService] STEP 2: Raw API response received');
+    console.log('[FoodService] STEP 2: Raw API response received', response.data);
     console.log('[FoodService] Response status:', response.status);
     console.log('[FoodService] Response structure: response.data =', Object.keys(response.data || {}));
     console.log('[FoodService] response.data.data keys:', Object.keys(response.data?.data || {}));

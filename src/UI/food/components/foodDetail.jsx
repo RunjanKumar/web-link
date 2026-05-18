@@ -50,7 +50,7 @@ export default function FoodDetails() {
     console.log('  imageURL:', state?.imageURL);
     console.log('  isAvailable:', state?.isAvailable);
     console.log('  inGridients:', state?.inGridients, '← array of strings');
-    console.log('  choiceOfAddOn:', state?.choiceOfAddOn);
+    console.log('  choiceOfAddOn:', state?.choiceOfAddOnDetails);
     if (state?.choiceOfAddOn?.length > 0) {
         const first = state.choiceOfAddOn[0];
         console.log('  ★ choiceOfAddOn[0] type:', typeof first);
@@ -120,9 +120,10 @@ export default function FoodDetails() {
 
     // Add-ons from backend (choiceOfAddOn)
     // LEARNING: These will only render if they're populated objects (not just ID strings)
-    const addOns = (state?.choiceOfAddOn || []).filter(
+    const addOns = (state?.choiceOfAddOnDetails || []).filter(
         (a) => typeof a === 'object' && a !== null
     );
+    console.log(state?.choiceOfAddOn, "addOns", addOns); 
 
     console.log('[FoodDetails] Renderable ingredients:', ingredients.length);
     console.log('[FoodDetails] Renderable add-ons (populated objects only):', addOns.length);
@@ -176,7 +177,7 @@ export default function FoodDetails() {
                             ₹{Math.round(state.price)}
                         </span>
                     )}
-
+                    
                     {state?.calories > 0 && (
                         <>
                             <span className="text-[#5A5A5A]">•</span>

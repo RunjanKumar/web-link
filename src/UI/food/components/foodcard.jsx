@@ -27,7 +27,7 @@ export default function FoodCard({ item }) {
     const isAvailable = item.isAvailable !== false;
 
     const handleNavigate = () => {
-        console.log('[FoodCard] Clicked:', item.title);
+        console.log(item, '[FoodCard] Clicked:', item.title);
         console.log('[FoodCard] Navigating to /food-details with state:', item);
         console.log('[FoodCard] ★ Data being passed to FoodDetails:');
         console.log('  id:', item.id);
