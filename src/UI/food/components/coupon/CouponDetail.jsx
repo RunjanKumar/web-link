@@ -1,40 +1,8 @@
-import { useLocation, useNavigate } from 'react-router-dom';
 import useCouponDetailViewModel from '../../../../viewModel/couponDetailViewModel';
 import CouponDetailHeader from './CouponDetailHeader';
 import CouponFoodCard from './CouponFoodCard';
 
-/**
- * ══════════════════════════════════════════════════════════════
- * COUPON DETAIL PAGE
- * ══════════════════════════════════════════════════════════════
- *
- * LEARNING: This page uses a DIFFERENT API than the food page!
- *
- * FOOD PAGE → GET /v1/foodCategory (all categories + foods)
- * THIS PAGE → GET /v1/coupon?couponId=<id> (specific coupon + discounted foods)
- *
- * DATA FLOW:
- *   1. User clicks CouponCard on food page
- *   2. navigate('/coupon-detail', { state: coupon })
- *   3. This page extracts couponId from navigation state
- *   4. CouponDetailViewModel calls GET /v1/coupon?couponId=<id>
- *   5. Backend returns coupon + applicableItemsData (foods with discount prices)
- *   6. ViewModel maps the data → UI renders
- */
-
 export default function CouponDetail() {
-    const navigate = useNavigate();
-    const { state } = useLocation();
-
-    console.log('[CouponDetail] Page opened');
-    console.log('[CouponDetail] Navigation state (from CouponCard click):', state);
-
-    const initialCoupon = state || {};
-    const couponId = initialCoupon.id || initialCoupon._id;
-
-    console.log('[CouponDetail] Extracted couponId:', couponId);
-    console.log('[CouponDetail] → ViewModel will call GET /v1/coupon?couponId=' + couponId);
-
     const {
         isLoading,
         error,
@@ -42,33 +10,23 @@ export default function CouponDetail() {
         offerName,
         discountInfo,
         foodItems,
-    } = useCouponDetailViewModel(couponId, initialCoupon);
-
-    console.log('[CouponDetail] ViewModel returned:');
-    console.log('  isLoading:', isLoading);
-    console.log('  error:', error);
-    console.log('  offerName:', offerName);
-    console.log('  foodItems count:', foodItems?.length);
-    console.log('  foodItems:', foodItems);
+        handleBack,
+    } = useCouponDetailViewModel();
 
     return (
         <div className="min-h-screen bg-[#111111] text-white pb-8">
-
-            {/* Hero Banner */}
             <CouponDetailHeader
                 heroImage={heroImage}
                 discountInfo={discountInfo}
-                onBack={() => navigate(-1)}
+                onBack={handleBack}
             />
 
-            {/* Offer Name */}
             <div className="px-5 mt-6">
                 <h1 className="text-[32px] font-bold leading-tight">
                     {offerName}
                 </h1>
             </div>
 
-            {/* Food Items List */}
             <div className="px-5 mt-6">
                 {isLoading ? (
                     <LoadingSkeleton />

@@ -1,22 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-
-/**
- * ══════════════════════════════════════════════════════════════
- * COUPON CARD COMPONENT
- * ══════════════════════════════════════════════════════════════
- *
- * A single coupon/offer card used inside the OfferSlider.
- * Shows the coupon image. On click, navigates to the
- * Coupon Detail page and passes the coupon data via state.
- */
+import useCouponCardViewModel from '../../../../viewModel/couponCardViewModel';
 
 export default function CouponCard({ coupon }) {
-    const navigate = useNavigate();
-    const { imageURL } = coupon;
-
-    const handleClick = () => {
-        navigate('/coupon-detail', { state: coupon });
-    };
+    const { imageURL, handleClick } = useCouponCardViewModel(coupon);
 
     return (
         <div

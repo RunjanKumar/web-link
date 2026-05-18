@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFoodCategories } from '../api/service/foodService';
 
 /**
@@ -23,12 +23,16 @@ import { getFoodCategories } from '../api/service/foodService';
  */
 
 export default function useFoodViewModel() {
-    const [categories, setCategories] = useState([]);
+    const categories = [];
     const [couponData, setCouponData] = useState(null);
     const [foodItemData, setFoodItemData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+    const foodListRef = useRef(null);
 
     console.log('[FoodVM] ViewModel initialized. isLoading:', isLoading);
 
@@ -89,6 +93,18 @@ export default function useFoodViewModel() {
         setSelectedCategory(category);
     }
 
+    const handleCategorySelect = useCallback((index) => {
+        console.log('[FoodPage] STEP: Category tab clicked â†’ index:', index);
+        console.log('[FoodPage] Calling foodListRef.scrollToCategory() to smooth-scroll to section');
+        setActiveCategoryIndex(index);
+        foodListRef.current?.scrollToCategory(index);
+    }, []);
+
+    const handleVisibleCategoryChange = useCallback((index) => {
+        console.log('[FoodPage] STEP: Scroll detected new visible category â†’ index:', index);
+        setActiveCategoryIndex(index);
+    }, []);
+
     // LEARNING: Everything returned here is what the UI can access.
     // The UI (food.jsx) destructures these values:
     //   const { foodItemData, couponData, isLoading, error } = useFoodViewModel();
@@ -100,6 +116,14 @@ export default function useFoodViewModel() {
         selectCategory,
         foodItemData,
         couponData,
+        isSearchFocused,
+        setIsSearchFocused,
+        searchText,
+        setSearchText,
+        activeCategoryIndex,
+        foodListRef,
+        handleCategorySelect,
+        handleVisibleCategoryChange,
         refetch: fetchFoodCategories,
     };
 }

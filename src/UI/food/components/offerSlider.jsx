@@ -1,67 +1,17 @@
-import { useRef, useCallback } from 'react';
-import useCouponViewModel from '../../../viewModel/couponViewModel';
+import useOfferSliderViewModel from '../../../viewModel/offerSliderViewModel';
 import CouponCard from './coupon/CouponCard';
 import CouponDots from './coupon/CouponDots';
-
-/**
- * ══════════════════════════════════════════════════════════════
- * OFFER SLIDER COMPONENT
- * ══════════════════════════════════════════════════════════════
- *
- * Renders the "Special Offers" horizontal slider using
- * real coupon data from the API (via CouponViewModel).
- *
- * Props:
- *   - couponData: raw coupon array from foodViewModel
- *
- * Architecture (MVVM):
- *   - UI: This component + CouponCard + CouponDots
- *   - ViewModel: useCouponViewModel (transforms data, manages slider state)
- */
 
 export default function OfferSlider({ couponData }) {
     const {
         coupons,
         activeIndex,
         totalCoupons,
-        goToIndex,
-    } = useCouponViewModel(couponData);
+        scrollRef,
+        handleScroll,
+        handleDotClick,
+    } = useOfferSliderViewModel(couponData);
 
-    const scrollRef = useRef(null);
-
-    /**
-     * Handles scroll snapping — updates the active dot
-     * based on the current scroll position.
-     */
-    const handleScroll = useCallback(() => {
-        const container = scrollRef.current;
-        if (!container) return;
-
-        const cardWidth = 320 + 20; // card width + gap
-        const scrollLeft = container.scrollLeft;
-        const newIndex = Math.round(scrollLeft / cardWidth);
-
-        if (newIndex !== activeIndex && newIndex >= 0 && newIndex < totalCoupons) {
-            goToIndex(newIndex);
-        }
-    }, [activeIndex, totalCoupons, goToIndex]);
-
-    /**
-     * When a dot is clicked, scroll to that coupon card.
-     */
-    const handleDotClick = useCallback((index) => {
-        goToIndex(index);
-        const container = scrollRef.current;
-        if (container) {
-            const cardWidth = 320 + 20;
-            container.scrollTo({
-                left: index * cardWidth,
-                behavior: 'smooth',
-            });
-        }
-    }, [goToIndex]);
-
-    // Don't render section if no coupons available
     if (!coupons || coupons.length === 0) {
         return null;
     }
@@ -72,7 +22,6 @@ export default function OfferSlider({ couponData }) {
                 Special Offers
             </h2>
 
-            {/* Horizontal scrollable coupon cards */}
             <div
                 ref={scrollRef}
                 onScroll={handleScroll}
@@ -90,7 +39,6 @@ export default function OfferSlider({ couponData }) {
                 ))}
             </div>
 
-            {/* Dot indicators */}
             <CouponDots
                 activeIndex={activeIndex}
                 totalCoupons={totalCoupons}

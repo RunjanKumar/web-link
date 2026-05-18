@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getCouponById } from '../api/service/couponService';
 
 /**
@@ -19,21 +20,25 @@ import { getCouponById } from '../api/service/couponService';
  */
 
 export default function useCouponDetailViewModel(couponId, initialCoupon = null) {
+    const navigate = useNavigate();
+    const { state } = useLocation();
+    const routeCoupon = useMemo(() => initialCoupon || state || {}, [initialCoupon, state]);
+    const resolvedCouponId = couponId || routeCoupon.id || routeCoupon._id;
     const [couponDetail, setCouponDetail] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     console.log('[CouponDetailVM] ViewModel initialized');
-    console.log('[CouponDetailVM] couponId:', couponId);
-    console.log('[CouponDetailVM] initialCoupon (from nav state):', initialCoupon);
+    console.log('[CouponDetailVM] couponId:', resolvedCouponId);
+    console.log('[CouponDetailVM] initialCoupon (from nav state):', routeCoupon);
 
     // Fetch full coupon detail from API on mount
     useEffect(() => {
-        if (couponId) {
+        if (resolvedCouponId) {
             console.log('[CouponDetailVM] useEffect → fetching coupon detail...');
-            fetchCouponDetail(couponId);
+            fetchCouponDetail(resolvedCouponId);
         }
-    }, [couponId]);
+    }, [resolvedCouponId]);
 
     async function fetchCouponDetail(id) {
         try {
@@ -60,14 +65,14 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
         }
     }
 
-    const heroImage = couponDetail?.image || initialCoupon?.imageURL || initialCoupon?.image || null;
-    const offerName = couponDetail?.name || couponDetail?.title || initialCoupon?.title || 'Offer';
-    const description = couponDetail?.description || initialCoupon?.description || '';
+    const heroImage = couponDetail?.image || routeCoupon?.imageURL || routeCoupon?.image || null;
+    const offerName = couponDetail?.name || couponDetail?.title || routeCoupon?.title || 'Offer';
+    const description = couponDetail?.description || routeCoupon?.description || '';
 
     const discountInfo = useMemo(() => {
         const detail = couponDetail || {};
-        const value = detail.discountValue || initialCoupon?.discountValue || 0;
-        const type = detail.discountType ?? initialCoupon?.discountType;
+        const value = detail.discountValue || routeCoupon?.discountValue || 0;
+        const type = detail.discountType ?? routeCoupon?.discountType;
 
         if (type === 1 || type === 'percentage') {
             return { label: `UPTO ${value}% CASHBACK`, value, type: 'percentage' };
@@ -76,7 +81,7 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
             return { label: `FLAT ₹${value} OFF`, value, type: 'amount' };
         }
         return { label: `${value}% OFF`, value, type: 'unknown' };
-    }, [couponDetail, initialCoupon]);
+    }, [couponDetail, routeCoupon]);
 
     /**
      * LEARNING: Map food items from the coupon response.
@@ -122,6 +127,7 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
         description,
         discountInfo,
         foodItems,
-        refetch: () => fetchCouponDetail(couponId),
+        handleBack: () => navigate(-1),
+        refetch: () => fetchCouponDetail(resolvedCouponId),
     };
 }

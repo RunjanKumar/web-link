@@ -1,137 +1,26 @@
-import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
-import useGlobal from "../../../hooks/FoodOrder";
+import useFoodDetailViewModel from "../../../viewModel/foodDetailViewModel";
 import VegIndicator from "./VegIndicator";
 
-/**
- * ══════════════════════════════════════════════════════════════
- * FOOD DETAILS PAGE (Figma-accurate)
- * ══════════════════════════════════════════════════════════════
- *
- * LEARNING: This page does NOT call any API!
- * It receives ALL data from navigation state (passed by FoodCard click).
- *
- * DATA SOURCE: useLocation().state
- *   → Comes from FoodCard: navigate("/food-details", { state: item })
- *   → The `item` was mapped in FoodList from the foodCategory API response
- *
- * API USED (indirectly):
- *   GET /v1/foodCategory?hasFoods=true
- *   Called by: foodService.js → foodViewModel.js → FoodList → FoodCard → here
- *
- * AVAILABLE FIELDS (from state):
- *   id, title, description, price, calories, type,
- *   imageURL, inGridients[], choiceOfAddOn[], isAvailable,
- *   priceAfterDiscount (only from coupon flow)
- */
-
 export default function FoodDetails() {
-    const navigate = useNavigate();
-    const { state } = useLocation();
-    const { addToFoodCart, updateFoodCartQuantity, getItemQuantity } = useGlobal();
-
-    // ── DEBUG: Log ALL data received via navigation state ──
-    console.log('╔══════════════════════════════════════════════════════╗');
-    console.log('║ [FoodDetails] PAGE OPENED                           ║');
-    console.log('╠══════════════════════════════════════════════════════╣');
-    console.log('║ API: NONE (data from navigation state)              ║');
-    console.log('║ Source: FoodCard → navigate("/food-details", state)  ║');
-    console.log('╚══════════════════════════════════════════════════════╝');
-    console.log('[FoodDetails] Full state object:', state);
-    console.log('[FoodDetails] Field-by-field breakdown:');
-    console.log('  id:', state?.id);
-    console.log('  title:', state?.title);
-    console.log('  price:', state?.price, '← used for display');
-    console.log('  priceAfterDiscount:', state?.priceAfterDiscount, '← only set from coupon flow');
-    console.log('  calories:', state?.calories, '← mapped from backend kcal field');
-    console.log('  type:', state?.type, '(1=veg 🟢, 2=nonveg 🔴)');
-    console.log('  description:', state?.description);
-    console.log('  imageURL:', state?.imageURL);
-    console.log('  isAvailable:', state?.isAvailable);
-    console.log('  inGridients:', state?.inGridients, '← array of strings');
-    console.log('  choiceOfAddOn:', state?.choiceOfAddOnDetails);
-    if (state?.choiceOfAddOn?.length > 0) {
-        const first = state.choiceOfAddOn[0];
-        console.log('  ★ choiceOfAddOn[0] type:', typeof first);
-        if (typeof first === 'string') {
-            console.log('  ⚠️ ADD-ONS ARE ObjectID STRINGS — backend needs .populate("choiceOfAddOn")');
-            console.log('  The food category API returns IDs only, not full objects.');
-        } else if (typeof first === 'object') {
-            console.log('  ✅ ADD-ONS ARE POPULATED OBJECTS with fields:', Object.keys(first));
-        }
-    } else {
-        console.log('  ℹ️ No choiceOfAddOn items for this food');
-    }
-
-    // Selected add-ons (track by id)
-    const [selectedAddOns, setSelectedAddOns] = useState(new Set());
-
-    // Get current quantity from global cart
-    const quantity = getItemQuantity(state?.id);
-    const isAvailable = state?.isAvailable !== false;
-
-    const handleAdd = () => {
-        if (!isAvailable) return;
-        console.log('[FoodDetails] Adding to cart:', state?.title);
-        addToFoodCart(state);
-    };
-
-    const handleIncrement = () => {
-        console.log('[FoodDetails] Increment:', state?.title, '→', quantity + 1);
-        updateFoodCartQuantity(state?.id, quantity + 1);
-    };
-
-    const handleDecrement = () => {
-        console.log('[FoodDetails] Decrement:', state?.title, '→', quantity - 1);
-        updateFoodCartQuantity(state?.id, quantity - 1);
-    };
-
-    const toggleAddOn = (addOnId) => {
-        console.log('[FoodDetails] Toggle add-on:', addOnId);
-        setSelectedAddOns((prev) => {
-            const next = new Set(prev);
-            if (next.has(addOnId)) {
-                next.delete(addOnId);
-            } else {
-                next.add(addOnId);
-            }
-            console.log('[FoodDetails] Selected add-ons:', [...next]);
-            return next;
-        });
-    };
-
-    // ── Price calculation ──
-    const itemPrice = state?.priceAfterDiscount ?? state?.price ?? 0;
-
-    // LEARNING: Add-on prices only work if choiceOfAddOn contains
-    // populated objects (with .price). If they're just ObjectID strings,
-    // this will correctly return 0.
-    const addOnTotal = (state?.choiceOfAddOn || [])
-        .filter((a) => selectedAddOns.has(a._id || a.id))
-        .reduce((sum, a) => sum + (a.price || 0), 0);
-    const totalPrice = (itemPrice + addOnTotal) * (quantity || 1);
-
-    console.log('[FoodDetails] Price calculation:');
-    console.log('  itemPrice:', itemPrice, '| addOnTotal:', addOnTotal, '| totalPrice:', totalPrice);
-
-    // Ingredients from backend (inGridients array)
-    const ingredients = state?.inGridients || [];
-
-    // Add-ons from backend (choiceOfAddOn)
-    // LEARNING: These will only render if they're populated objects (not just ID strings)
-    const addOns = (state?.choiceOfAddOnDetails || []).filter(
-        (a) => typeof a === 'object' && a !== null
-    );
-    console.log(state?.choiceOfAddOn, "addOns", addOns); 
-
-    console.log('[FoodDetails] Renderable ingredients:', ingredients.length);
-    console.log('[FoodDetails] Renderable add-ons (populated objects only):', addOns.length);
+    const {
+        state,
+        selectedAddOns,
+        quantity,
+        isAvailable,
+        itemPrice,
+        totalPrice,
+        ingredients,
+        addOns,
+        handleBack,
+        handleAdd,
+        handleIncrement,
+        handleDecrement,
+        toggleAddOn,
+    } = useFoodDetailViewModel();
 
     return (
         <div className={`min-h-screen bg-[#111111] text-white pb-[120px] ${!isAvailable ? 'relative' : ''}`}>
-
-            {/* Hero Image */}
             <div className="relative">
                 <img
                     src={state?.imageURL || state?.image}
@@ -142,7 +31,7 @@ export default function FoodDetails() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
 
                 <button
-                    onClick={() => navigate(-1)}
+                    onClick={handleBack}
                     className="absolute top-6 left-5 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center"
                 >
                     <ArrowLeft size={24} />
@@ -155,10 +44,7 @@ export default function FoodDetails() {
                 )}
             </div>
 
-            {/* Content */}
             <div className="px-5 pt-4">
-
-                {/* Title + Veg/Non-veg */}
                 <div className="flex items-start justify-between gap-3">
                     <h1 className="text-[32px] font-semibold leading-[38px]">
                         {state?.title}
@@ -166,7 +52,6 @@ export default function FoodDetails() {
                     <VegIndicator type={state?.type} size={28} />
                 </div>
 
-                {/* Price + Kcal row */}
                 <div className="flex items-center gap-3 mt-4">
                     <span className="text-[#E2B124] text-[22px] font-bold">
                         ₹ {Math.round(itemPrice)}
@@ -188,7 +73,6 @@ export default function FoodDetails() {
                     )}
                 </div>
 
-                {/* ── Description ── */}
                 <div className="mt-8">
                     <h2 className="text-[20px] font-semibold text-[#CFCFCF]">
                         Description
@@ -198,7 +82,6 @@ export default function FoodDetails() {
                     </p>
                 </div>
 
-                {/* ── Ingredients ── */}
                 {ingredients.length > 0 && (
                     <div className="mt-8">
                         <h2 className="text-[20px] font-semibold text-[#CFCFCF]">
@@ -210,7 +93,6 @@ export default function FoodDetails() {
                     </div>
                 )}
 
-                {/* ── Choice of Add On ── */}
                 {addOns.length > 0 && (
                     <div className="mt-8">
                         <h2 className="text-[20px] font-semibold text-[#CFCFCF] mb-5">
@@ -268,9 +150,7 @@ export default function FoodDetails() {
                 )}
             </div>
 
-            {/* ── Bottom Bar ── */}
             <div className="fixed bottom-0 left-0 w-full bg-[#2B2B2B] px-5 py-5 flex items-center gap-4 z-50">
-
                 <div className="w-[120px] h-[56px] rounded-[20px] border border-[#5A5A5A] flex items-center justify-around">
                     <button
                         onClick={handleDecrement}

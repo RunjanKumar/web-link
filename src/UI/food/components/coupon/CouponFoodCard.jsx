@@ -1,25 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import useCouponFoodCardViewModel from '../../../../viewModel/couponFoodCardViewModel';
 import AddButton from '../AddButton';
 import VegIndicator from '../VegIndicator';
 
-/**
- * ══════════════════════════════════════════════════════════════
- * COUPON FOOD CARD
- * ══════════════════════════════════════════════════════════════
- *
- * Food card for the Coupon Detail page — shows discounted price
- * with original crossed out + veg/non-veg + not-available state.
- */
-
 export default function CouponFoodCard({ item }) {
-    const navigate = useNavigate();
-    const isAvailable = item.isAvailable !== false;
-
-    const handleNavigate = () => {
-        navigate('/food-details', { state: item });
-    };
-
-    const hasDiscount = item.priceAfterDiscount < item.price;
+    const {
+        isAvailable,
+        hasDiscount,
+        handleNavigate,
+    } = useCouponFoodCardViewModel(item);
 
     return (
         <div
@@ -28,7 +16,6 @@ export default function CouponFoodCard({ item }) {
                 !isAvailable ? 'opacity-50 grayscale' : ''
             }`}
         >
-            {/* Left Content */}
             <div className="flex-1 px-4 py-4 flex flex-col justify-between min-w-0">
                 <div>
                     <div className="flex items-center gap-2">
@@ -49,7 +36,6 @@ export default function CouponFoodCard({ item }) {
                     )}
                 </div>
 
-                {/* Price + Add */}
                 <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-2">
                         <h3 className="text-[#E2B124] text-[18px] font-bold">
@@ -72,7 +58,6 @@ export default function CouponFoodCard({ item }) {
                 </div>
             </div>
 
-            {/* Right Image */}
             <div className="w-[130px] shrink-0 relative">
                 {item.imageURL ? (
                     <img
