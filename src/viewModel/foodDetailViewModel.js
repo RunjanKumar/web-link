@@ -7,11 +7,15 @@ export default function useFoodDetailViewModel() {
     const { state } = useLocation();
     const {
         addToFoodCart,
+        foodCart,
         updateFoodCartItem,
         updateFoodCartQuantity,
         getItemQuantity,
     } = useGlobal();
-    const [selectedAddOns, setSelectedAddOns] = useState(new Set());
+    const existingCartItem = foodCart.find((item) => item.id === state?.id);
+    const [selectedAddOns, setSelectedAddOns] = useState(() => (
+        new Set((existingCartItem?.selectedAddOns || []).map((addOn) => addOn._id || addOn.id))
+    ));
 
     const quantity = getItemQuantity(state?.id);
     const isAvailable = state?.isAvailable !== false;
@@ -22,7 +26,7 @@ export default function useFoodDetailViewModel() {
     );
 
     const selectedAddOnItems = useMemo(() => (
-        addOns.filter((addOn) => selectedAddOns.has(addOn._id || addOn.id))
+        addOns.filter((addOn) => selectedAddOns.has(addOn._id || addOn.id) && addOn.isAvailable !== false)
     ), [addOns, selectedAddOns]);
 
     const addOnTotal = selectedAddOnItems.reduce(
@@ -71,7 +75,10 @@ export default function useFoodDetailViewModel() {
         navigate('/cart');
     };
 
-    const toggleAddOn = (addOnId) => {
+    const toggleAddOn = (addOn) => {
+        if (addOn?.isAvailable === false) return;
+        const addOnId = addOn._id || addOn.id;
+
         setSelectedAddOns((prev) => {
             const next = new Set(prev);
             if (next.has(addOnId)) {

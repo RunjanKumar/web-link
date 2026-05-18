@@ -1,19 +1,37 @@
-import { ArrowLeft, Bike, Home, Minus, Phone, Plus, ReceiptText, X } from "lucide-react";
+import {
+    ArrowLeft,
+    ChevronDown,
+    ChevronUp,
+    Clock3,
+    Home,
+    Minus,
+    Phone,
+    Plus,
+    ReceiptText,
+    X,
+} from "lucide-react";
 import useCartViewModel from "../../../viewModel/cartViewModel";
 
 export default function Cart() {
     const {
         items,
-        total,
+        itemsTotal,
+        taxRate,
+        taxAmount,
+        payableAmount,
+        customerData,
+        roomNumber,
+        isBillExpanded,
         handleBack,
         handleBrowseFood,
         handleIncrement,
         handleDecrement,
         handleRemove,
+        toggleBillExpanded,
     } = useCartViewModel();
 
     return (
-        <div className="min-h-screen bg-[#1F1F1F] text-white pb-[104px]">
+        <div className="min-h-screen bg-[#111111] text-white pb-[118px]">
             <div className="px-5 pt-10">
                 <button
                     onClick={handleBack}
@@ -23,8 +41,10 @@ export default function Cart() {
                 </button>
 
                 <div className="mt-4">
-                    <h1 className="text-[30px] font-semibold leading-none">Cart</h1>
-                    <p className="text-[#A7A7A7] text-[14px] mt-2">Room 208</p>
+                    <h1 className="text-[40px] font-semibold leading-none">Cart</h1>
+                    <p className="text-[#A7A7A7] text-[22px] mt-7">
+                        Room No. {roomNumber || '208'}
+                    </p>
                 </div>
 
                 {items.length === 0 ? (
@@ -39,88 +59,77 @@ export default function Cart() {
                     </div>
                 ) : (
                     <>
-                        <div className="mt-8 flex flex-col gap-4">
+                        <div className="mt-5 flex flex-col gap-3">
                             {items.map((item) => (
-                                <div
+                                <CartFoodGroup
                                     key={item.id}
-                                    className="relative flex border border-[#5A5A5A] rounded-[14px] overflow-hidden bg-[#202020]"
-                                >
-                                    <img
-                                        src={item.imageURL || item.image}
-                                        alt={item.title}
-                                        className="w-[108px] h-[96px] object-cover bg-[#2A2A2A]"
-                                    />
-
-                                    <div className="flex-1 px-3 py-3 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <h2 className="text-[16px] text-[#F4F4F4] truncate">
-                                                    {item.title}
-                                                </h2>
-                                                {item.addOnLabel && (
-                                                    <p className="text-[#A7A7A7] text-[13px] mt-1 truncate">
-                                                        Add on - {item.addOnLabel}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => handleRemove(item)}
-                                                className="w-5 h-5 rounded-[6px] border border-red-500 text-red-500 flex items-center justify-center shrink-0"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-end justify-between mt-3">
-                                            <p className="text-[#E2B124] text-[18px] font-semibold">
-                                                ₹ {Math.round(item.lineTotal)}
-                                            </p>
-                                            <div className="h-8 rounded-full border border-[#5A5A5A] flex items-center overflow-hidden">
-                                                <button
-                                                    onClick={() => handleDecrement(item)}
-                                                    className="w-9 h-full text-yellow-400 flex items-center justify-center"
-                                                >
-                                                    <Minus size={16} />
-                                                </button>
-                                                <span className="w-8 text-center text-[15px]">
-                                                    {item.quantity}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleIncrement(item)}
-                                                    className="w-9 h-full text-yellow-400 flex items-center justify-center"
-                                                >
-                                                    <Plus size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                    item={item}
+                                    onIncrement={handleIncrement}
+                                    onDecrement={handleDecrement}
+                                    onRemove={handleRemove}
+                                />
                             ))}
                         </div>
 
                         <input
                             placeholder="Apply code"
-                            className="mt-9 w-full h-[56px] rounded-full border border-[#5A5A5A] bg-transparent px-6 text-[18px] outline-none placeholder:text-[#8D8D8D]"
+                            className="mt-8 w-full h-[80px] rounded-[12px] bg-[#202020] px-6 text-[22px] outline-none placeholder:text-[#8D8D8D]"
                         />
 
-                        <div className="mt-4 rounded-[14px] bg-[#282828] px-4 py-2">
-                            <InfoRow icon={<Bike size={16} />} label="Delivery in" value="20 mins" />
-                            <InfoRow icon={<Home size={16} />} label="Delivery at" value="Room No. 208" />
-                            <InfoRow icon={<Phone size={16} />} label="James Miller" value="+91 9898989898" />
-                            <InfoRow icon={<ReceiptText size={16} />} label="Total Bill" value={`₹ ${Math.round(total)}`} subLabel="Incl. Taxes and charges" />
+                        <div className="mt-10 rounded-[12px] bg-[#202020] px-6 py-8">
+                            <InfoRow icon={<Clock3 size={24} />} label="Delivery in" value="30 Minutes" />
+                            <InfoRow icon={<Home size={24} />} label="Delivery at" value={`Room No. ${roomNumber || '208'}`} />
+                            <InfoRow
+                                icon={<Phone size={24} />}
+                                label={customerData?.name || 'Guest'}
+                                value={customerData?.phone || customerData?.mobile || '+91 9898989898'}
+                            />
+
+                            <div className="py-7">
+                                <button
+                                    onClick={toggleBillExpanded}
+                                    className="w-full flex items-center gap-5 text-left"
+                                >
+                                    <div className="text-yellow-400 w-8 flex justify-center">
+                                        <ReceiptText size={24} />
+                                    </div>
+                                    <p className="flex-1 text-[#A7A7A7] text-[22px]">
+                                        Total Bill <span className="text-white font-semibold">₹ {payableAmount.toFixed(2)}</span>
+                                    </p>
+                                    <span className="text-white">
+                                        {isBillExpanded ? <ChevronUp size={28} /> : <ChevronDown size={28} />}
+                                    </span>
+                                </button>
+
+                                {isBillExpanded && (
+                                    <div className="mt-6 ml-14 rounded-[10px] bg-[#121212] px-5 py-5">
+                                        <BillLine label="Items Total" value={`₹ ${itemsTotal.toFixed(2)}`} />
+                                        <BillLine label={`Tax (${taxRate}%)`} value={`₹ ${taxAmount.toFixed(2)}`} />
+                                        <div className="h-px bg-[#3A3A3A] my-5" />
+                                        <BillLine
+                                            label="Payable Amount"
+                                            value={`₹ ${payableAmount.toFixed(2)}`}
+                                            strong
+                                        />
+                                    </div>
+                                )}
+
+                                <p className="ml-14 mt-4 text-[#A7A7A7] text-[20px]">
+                                    Incl. taxes and charges
+                                </p>
+                            </div>
                         </div>
                     </>
                 )}
             </div>
 
             {items.length > 0 && (
-                <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-3">
-                    <button className="w-[152px] h-[52px] rounded-[16px] border border-yellow-500/70 text-[12px] leading-tight">
-                        <span className="block text-[#A7A7A7]">PAY USING</span>
-                        <span className="font-semibold">GOOGLE Pay UPI</span>
+                <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-4">
+                    <button className="w-[238px] h-[84px] rounded-[18px] border border-yellow-500/70 text-[22px]">
+                        Apply Coupon
                     </button>
-                    <button className="flex-1 h-[52px] rounded-[16px] bg-yellow-400 text-black text-[18px] font-semibold">
-                        Place Order - ₹ {Math.round(total)}
+                    <button className="flex-1 h-[84px] rounded-[18px] bg-yellow-400 text-black text-[24px] font-semibold">
+                        Place Order - ₹ {payableAmount.toFixed(2)}
                     </button>
                 </div>
             )}
@@ -128,18 +137,117 @@ export default function Cart() {
     );
 }
 
-function InfoRow({ icon, label, value, subLabel }) {
+function CartFoodGroup({ item, onIncrement, onDecrement, onRemove }) {
     return (
-        <div className="flex items-center gap-5 border-b border-dashed border-[#3A3A3A] last:border-b-0 py-4">
-            <div className="text-yellow-400 w-5 flex justify-center">{icon}</div>
-            <div className="flex-1">
-                <p className="text-[#A7A7A7] text-[14px]">
-                    {label} <span className="text-white font-semibold">{value}</span>
+        <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
+            <CartFoodRow
+                item={item}
+                title={item.title}
+                imageURL={item.imageURL || item.image}
+                price={item.baseUnitPrice}
+                quantity={item.quantity}
+                onIncrement={() => onIncrement(item)}
+                onDecrement={() => onDecrement(item)}
+                onRemove={() => onRemove(item)}
+                showRemove
+            />
+
+            {item.addOns.map((addOn) => (
+                <CartFoodRow
+                    key={addOn.id}
+                    title={addOn.title}
+                    imageURL={addOn.imageURL}
+                    price={addOn.unitPrice}
+                    quantity={addOn.quantity}
+                    onIncrement={() => onIncrement(item)}
+                    onDecrement={() => onDecrement(item)}
+                    isAddOn
+                />
+            ))}
+        </div>
+    );
+}
+
+function CartFoodRow({
+    title,
+    imageURL,
+    price,
+    quantity,
+    isAddOn,
+    showRemove,
+    onIncrement,
+    onDecrement,
+    onRemove,
+}) {
+    return (
+        <div className={`flex items-center bg-[#202020] ${isAddOn ? 'border-t border-[#3A3A3A]' : ''}`}>
+            <img
+                src={imageURL}
+                alt={title}
+                className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"
+            />
+
+            <div className="flex-1 px-7 py-4 min-w-0">
+                <p className="text-[18px] text-[#F4F4F4] truncate">
+                    {isAddOn ? `Add on - ${title}` : title}
                 </p>
-                {subLabel && (
-                    <p className="text-[#8D8D8D] text-[13px] mt-1">{subLabel}</p>
-                )}
+                <p className="text-[#C99F2B] text-[28px] font-semibold mt-2">
+                    ₹{Math.round(price)} x {quantity}
+                </p>
             </div>
+
+            {showRemove && (
+                <button
+                    onClick={onRemove}
+                    className="mr-5 w-6 h-6 rounded-[6px] border border-red-500 text-red-500 flex items-center justify-center"
+                >
+                    <X size={14} />
+                </button>
+            )}
+
+            {onIncrement && onDecrement && (
+                <div className="mr-10 h-10 rounded-full border border-yellow-400 flex items-center overflow-hidden">
+                    <button
+                        onClick={onDecrement}
+                        className="w-12 h-full text-yellow-400 flex items-center justify-center"
+                    >
+                        <Minus size={22} />
+                    </button>
+                    <span className="w-12 text-center text-yellow-400 text-[22px] font-semibold">
+                        {quantity}
+                    </span>
+                    <button
+                        onClick={onIncrement}
+                        className="w-12 h-full text-yellow-400 flex items-center justify-center"
+                    >
+                        <Plus size={22} />
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function InfoRow({ icon, label, value }) {
+    return (
+        <div className="flex items-center gap-5 border-b border-dashed border-[#3A3A3A] py-7">
+            <div className="text-yellow-400 w-8 flex justify-center">{icon}</div>
+            <p className="text-[#A7A7A7] text-[22px]">
+                {label} <span className="text-white font-semibold">{value}</span>
+            </p>
+        </div>
+    );
+}
+
+function BillLine({ label, value, strong }) {
+    return (
+        <div className="flex items-center justify-between py-2">
+            <p className={`${strong ? 'text-white font-semibold' : 'text-[#A7A7A7]'} text-[22px]`}>
+                {label}
+            </p>
+            <p className={`${strong ? 'text-yellow-400 font-semibold' : 'text-white'} text-[22px]`}>
+                {value}
+            </p>
         </div>
     );
 }

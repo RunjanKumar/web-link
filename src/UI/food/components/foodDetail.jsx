@@ -104,12 +104,15 @@ export default function FoodDetails() {
                             {addOns.map((addOn) => {
                                 const addOnId = addOn._id || addOn.id;
                                 const isSelected = selectedAddOns.has(addOnId);
+                                const addOnAvailable = addOn.isAvailable !== false;
 
                                 return (
                                     <div
                                         key={addOnId}
-                                        onClick={() => toggleAddOn(addOnId)}
-                                        className="flex items-center justify-between cursor-pointer"
+                                        onClick={() => toggleAddOn(addOn)}
+                                        className={`flex items-center justify-between ${
+                                            addOnAvailable ? 'cursor-pointer' : 'opacity-50 grayscale cursor-not-allowed'
+                                        }`}
                                     >
                                         <div className="flex items-center gap-4">
                                             {addOn.imageURL ? (
@@ -127,21 +130,29 @@ export default function FoodDetails() {
                                         </div>
 
                                         <div className="flex items-center gap-4">
-                                            <p className="text-[#9E9E9E] text-[16px]">
-                                                + ₹{addOn.price || 0}
-                                            </p>
+                                            {addOnAvailable ? (
+                                                <>
+                                                    <p className="text-[#9E9E9E] text-[16px]">
+                                                        + ₹{addOn.price || 0}
+                                                    </p>
 
-                                            <div
-                                                className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition ${
-                                                    isSelected
-                                                        ? 'border-yellow-400'
-                                                        : 'border-[#5A5A5A]'
-                                                }`}
-                                            >
-                                                {isSelected && (
-                                                    <div className="w-[14px] h-[14px] bg-yellow-400 rounded-full" />
-                                                )}
-                                            </div>
+                                                    <div
+                                                        className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition ${
+                                                            isSelected
+                                                                ? 'border-yellow-400'
+                                                                : 'border-[#5A5A5A]'
+                                                        }`}
+                                                    >
+                                                        {isSelected && (
+                                                            <div className="w-[14px] h-[14px] bg-yellow-400 rounded-full" />
+                                                        )}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <span className="text-[#FF4444] text-[13px] font-medium border border-[#FF4444]/30 rounded-[14px] px-3 py-[6px]">
+                                                    Unavailable
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 );
