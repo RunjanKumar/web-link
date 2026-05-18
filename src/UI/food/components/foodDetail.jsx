@@ -19,7 +19,7 @@ export default function FoodDetails() {
         handleAddItemsClick,
         toggleAddOn,
     } = useFoodDetailViewModel();
-
+    console.log("addOns", addOns);
     return (
         <div className={`min-h-screen bg-[#111111] text-white pb-[120px] ${!isAvailable ? 'relative' : ''}`}>
             <div className="relative">
@@ -104,7 +104,12 @@ export default function FoodDetails() {
                             {addOns.map((addOn) => {
                                 const addOnId = addOn._id || addOn.id;
                                 const isSelected = selectedAddOns.has(addOnId);
-                                const addOnAvailable = addOn.isAvailable !== false;
+                                const addOnAvailable = !(
+                                    addOn.isAvailable === false ||
+                                    addOn.available === false ||
+                                    addOn.status === false ||
+                                    (typeof addOn.status === 'string' && addOn.status.toLowerCase() === 'unavailable')
+                                );
 
                                 return (
                                     <div

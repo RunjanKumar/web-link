@@ -2,6 +2,14 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useGlobal from "../hooks/FoodOrder";
 
+function isFoodAvailable(food) {
+    if (!food) return false;
+    if (food.isAvailable === false || food.available === false) return false;
+    if (food.status === false) return false;
+    if (typeof food.status === 'string' && food.status.toLowerCase() === 'unavailable') return false;
+    return true;
+}
+
 export default function useFoodDetailViewModel() {
     const navigate = useNavigate();
     const { state } = useLocation();
@@ -18,7 +26,7 @@ export default function useFoodDetailViewModel() {
     ));
 
     const quantity = getItemQuantity(state?.id);
-    const isAvailable = state?.isAvailable !== false;
+    const isAvailable = isFoodAvailable(state);
     const itemPrice = state?.priceAfterDiscount ?? state?.price ?? 0;
     const ingredients = state?.inGridients || [];
     const addOns = (state?.choiceOfAddOnDetails || []).filter(
@@ -26,22 +34,33 @@ export default function useFoodDetailViewModel() {
     );
 
     const selectedAddOnItems = useMemo(() => (
-        addOns.filter((addOn) => selectedAddOns.has(addOn._id || addOn.id) && addOn.isAvailable !== false)
-    ), [addOns, selectedAddOns]);
+        addOns
+            .filter((addOn) => selectedAddOns.has(addOn._id || addOn.id) && isFoodAvailable(addOn))
+            .map((addOn) => {
+                const addOnId = addOn._id || addOn.id;
+                const existingAddOn = existingCartItem?.selectedAddOns?.find(
+                    (item) => (item._id || item.id) === addOnId
+                );
+
+                return {
+                    ...addOn,
+                    quantity: existingAddOn?.quantity || 1,
+                };
+            })
+    ), [addOns, existingCartItem?.selectedAddOns, selectedAddOns]);
 
     const addOnTotal = selectedAddOnItems.reduce(
-        (sum, addOn) => sum + (addOn.price || 0),
+        (sum, addOn) => sum + ((addOn.price || 0) * (addOn.quantity || 1)),
         0
     );
-    const cartUnitPrice = itemPrice + addOnTotal;
-    const totalPrice = cartUnitPrice * (quantity || 1);
+    const totalPrice = (itemPrice * (quantity || 1)) + addOnTotal;
 
     const cartItem = useMemo(() => ({
         ...state,
-        cartUnitPrice,
+        cartUnitPrice: itemPrice,
         selectedAddOns: selectedAddOnItems,
         addOnTotal,
-    }), [state, cartUnitPrice, selectedAddOnItems, addOnTotal]);
+    }), [state, itemPrice, selectedAddOnItems, addOnTotal]);
 
     const handleBack = () => navigate(-1);
 
@@ -76,7 +95,7 @@ export default function useFoodDetailViewModel() {
     };
 
     const toggleAddOn = (addOn) => {
-        if (addOn?.isAvailable === false) return;
+        if (!isFoodAvailable(addOn)) return;
         const addOnId = addOn._id || addOn.id;
 
         setSelectedAddOns((prev) => {

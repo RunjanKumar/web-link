@@ -1,6 +1,14 @@
 import { useState, useCallback } from 'react';
 import { FoodOrderContext } from './FoodOrderDef';
 
+function isFoodAvailable(food) {
+    if (!food) return false;
+    if (food.isAvailable === false || food.available === false) return false;
+    if (food.status === false) return false;
+    if (typeof food.status === 'string' && food.status.toLowerCase() === 'unavailable') return false;
+    return true;
+}
+
 /**
  * ══════════════════════════════════════════════════════════════
  * FOOD ORDER CONTEXT (Global Cart State)
@@ -36,6 +44,21 @@ export function FoodOrderProvider({ children }) {
     const getCartUnitPrice = useCallback((item) => (
         item.cartUnitPrice ?? item.priceAfterDiscount ?? item.price ?? 0
     ), []);
+
+    const getFoodItemTotal = useCallback((item) => {
+        const basePrice = item.priceAfterDiscount ?? item.price ?? 0;
+        const baseTotal = basePrice * item.quantity;
+        const addOnTotal = (item.selectedAddOns || []).reduce(
+            (total, addOn) => (
+                isFoodAvailable(addOn)
+                    ? total + ((addOn.price || 0) * (addOn.quantity || 1))
+                    : total
+            ),
+            0
+        );
+
+        return baseTotal + addOnTotal;
+    }, []);
 
     // ── ADD TO CART ──
     // If item already exists → increment quantity
@@ -96,10 +119,10 @@ export function FoodOrderProvider({ children }) {
 
     // ── GET TOTAL PRICE ──
     const getFoodCartTotal = useCallback(() => {
-        const total = foodCart.reduce((total, item) => total + (getCartUnitPrice(item) * item.quantity), 0);
+        const total = foodCart.reduce((total, item) => total + getFoodItemTotal(item), 0);
         console.log('[Cart] Total price:', total);
         return total;
-    }, [foodCart, getCartUnitPrice]);
+    }, [foodCart, getFoodItemTotal]);
 
     // ── GET TOTAL ITEMS COUNT ──
     const getFoodCartCount = useCallback(() => {
@@ -124,6 +147,7 @@ export function FoodOrderProvider({ children }) {
         getFoodCartTotal,
         getFoodCartCount,
         getCartUnitPrice,
+        getFoodItemTotal,
         getItemQuantity,
     };
 

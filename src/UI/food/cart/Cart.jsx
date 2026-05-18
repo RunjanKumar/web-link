@@ -26,6 +26,8 @@ export default function Cart() {
         handleBrowseFood,
         handleIncrement,
         handleDecrement,
+        handleAddOnIncrement,
+        handleAddOnDecrement,
         handleRemove,
         toggleBillExpanded,
     } = useCartViewModel();
@@ -66,6 +68,8 @@ export default function Cart() {
                                     item={item}
                                     onIncrement={handleIncrement}
                                     onDecrement={handleDecrement}
+                                    onAddOnIncrement={handleAddOnIncrement}
+                                    onAddOnDecrement={handleAddOnDecrement}
                                     onRemove={handleRemove}
                                 />
                             ))}
@@ -137,7 +141,14 @@ export default function Cart() {
     );
 }
 
-function CartFoodGroup({ item, onIncrement, onDecrement, onRemove }) {
+function CartFoodGroup({
+    item,
+    onIncrement,
+    onDecrement,
+    onAddOnIncrement,
+    onAddOnDecrement,
+    onRemove,
+}) {
     return (
         <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
             <CartFoodRow
@@ -159,8 +170,9 @@ function CartFoodGroup({ item, onIncrement, onDecrement, onRemove }) {
                     imageURL={addOn.imageURL}
                     price={addOn.unitPrice}
                     quantity={addOn.quantity}
-                    onIncrement={() => onIncrement(item)}
-                    onDecrement={() => onDecrement(item)}
+                    onIncrement={() => onAddOnIncrement(item, addOn)}
+                    onDecrement={() => onAddOnDecrement(item, addOn)}
+                    isAvailable={addOn.isAvailable}
                     isAddOn
                 />
             ))}
@@ -178,6 +190,7 @@ function CartFoodRow({
     onIncrement,
     onDecrement,
     onRemove,
+    isAvailable = true,
 }) {
     return (
         <div className={`flex items-center bg-[#202020] ${isAddOn ? 'border-t border-[#3A3A3A]' : ''}`}>
@@ -205,7 +218,11 @@ function CartFoodRow({
                 </button>
             )}
 
-            {onIncrement && onDecrement && (
+            {!isAvailable ? (
+                <span className="mr-10 text-[#FF4444] text-[16px] font-medium border border-[#FF4444]/30 rounded-[14px] px-3 py-[6px]">
+                    Unavailable
+                </span>
+            ) : onIncrement && onDecrement && (
                 <div className="mr-10 h-10 rounded-full border border-yellow-400 flex items-center overflow-hidden">
                     <button
                         onClick={onDecrement}

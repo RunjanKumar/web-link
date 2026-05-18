@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import useCustomerProfile from "../hooks/CustomerProfile";
 import useGlobal from "../hooks/FoodOrder";
 
+function isFoodAvailable(food) {
+    if (!food) return false;
+    if (food.isAvailable === false || food.available === false) return false;
+    if (food.status === false) return false;
+    if (typeof food.status === 'string' && food.status.toLowerCase() === 'unavailable') return false;
+    return true;
+}
+
 export default function useCartViewModel() {
     const navigate = useNavigate();
     const [isBillExpanded, setIsBillExpanded] = useState(true);
@@ -10,6 +18,7 @@ export default function useCartViewModel() {
         foodCart,
         getCartUnitPrice,
         getFoodCartTotal,
+        updateFoodCartItem,
         updateFoodCartQuantity,
         removeFromFoodCart,
     } = useGlobal();
@@ -36,8 +45,9 @@ export default function useCartViewModel() {
             title: addOn.name || addOn.title,
             imageURL: addOn.imageURL || addOn.image,
             unitPrice: addOn.price || 0,
-            lineTotal: (addOn.price || 0) * item.quantity,
-            quantity: item.quantity,
+            lineTotal: isFoodAvailable(addOn) ? (addOn.price || 0) * (addOn.quantity || 1) : 0,
+            quantity: addOn.quantity || 1,
+            isAvailable: isFoodAvailable(addOn),
         })),
     })), [foodCart, getCartUnitPrice]);
 
@@ -46,6 +56,26 @@ export default function useCartViewModel() {
     const handleIncrement = (item) => updateFoodCartQuantity(item.id, item.quantity + 1);
     const handleDecrement = (item) => updateFoodCartQuantity(item.id, item.quantity - 1);
     const handleRemove = (item) => removeFromFoodCart(item.id);
+    const handleAddOnIncrement = (item, addOn) => {
+        updateFoodCartItem(item.id, {
+            selectedAddOns: (item.selectedAddOns || []).map((currentAddOn) =>
+                (currentAddOn._id || currentAddOn.id) === addOn.id
+                    ? { ...currentAddOn, quantity: (currentAddOn.quantity || 1) + 1 }
+                    : currentAddOn
+            ),
+        });
+    };
+    const handleAddOnDecrement = (item, addOn) => {
+        updateFoodCartItem(item.id, {
+            selectedAddOns: (item.selectedAddOns || [])
+                .map((currentAddOn) =>
+                    (currentAddOn._id || currentAddOn.id) === addOn.id
+                        ? { ...currentAddOn, quantity: (currentAddOn.quantity || 1) - 1 }
+                        : currentAddOn
+                )
+                .filter((currentAddOn) => (currentAddOn.quantity || 0) > 0),
+        });
+    };
     const toggleBillExpanded = () => setIsBillExpanded((current) => !current);
 
     return {
@@ -62,6 +92,8 @@ export default function useCartViewModel() {
         handleBrowseFood,
         handleIncrement,
         handleDecrement,
+        handleAddOnIncrement,
+        handleAddOnDecrement,
         handleRemove,
         toggleBillExpanded,
     };
