@@ -8,11 +8,12 @@ import VegIndicator from '../VegIndicator';
  * ══════════════════════════════════════════════════════════════
  *
  * Food card for the Coupon Detail page — shows discounted price
- * with original price crossed out + veg/non-veg indicator.
+ * with original crossed out + veg/non-veg + not-available state.
  */
 
 export default function CouponFoodCard({ item }) {
     const navigate = useNavigate();
+    const isAvailable = item.isAvailable !== false;
 
     const handleNavigate = () => {
         navigate('/food-details', { state: item });
@@ -23,12 +24,13 @@ export default function CouponFoodCard({ item }) {
     return (
         <div
             onClick={handleNavigate}
-            className="flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer"
+            className={`relative flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer ${
+                !isAvailable ? 'opacity-50 grayscale' : ''
+            }`}
         >
             {/* Left Content */}
             <div className="flex-1 px-4 py-4 flex flex-col justify-between min-w-0">
                 <div>
-                    {/* Veg/Non-veg + Title */}
                     <div className="flex items-center gap-2">
                         <VegIndicator type={item.type} size={16} />
                         <h2 className="text-white text-[17px] font-semibold leading-[22px] truncate">
@@ -60,12 +62,18 @@ export default function CouponFoodCard({ item }) {
                         )}
                     </div>
 
-                    <AddButton item={item} />
+                    {isAvailable ? (
+                        <AddButton item={item} />
+                    ) : (
+                        <span className="text-[#FF4444] text-[13px] font-medium border border-[#FF4444]/30 rounded-[14px] px-3 py-[6px]">
+                            Unavailable
+                        </span>
+                    )}
                 </div>
             </div>
 
             {/* Right Image */}
-            <div className="w-[130px] shrink-0">
+            <div className="w-[130px] shrink-0 relative">
                 {item.imageURL ? (
                     <img
                         src={item.imageURL}
@@ -74,6 +82,10 @@ export default function CouponFoodCard({ item }) {
                     />
                 ) : (
                     <div className="w-full h-full bg-[#2A2A2A] min-h-[130px]" />
+                )}
+
+                {!isAvailable && (
+                    <div className="absolute inset-0 bg-black/50" />
                 )}
             </div>
         </div>

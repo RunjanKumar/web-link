@@ -2,14 +2,19 @@ import useGlobal from '../../../hooks/FoodOrder';
 
 /**
  * ══════════════════════════════════════════════════════════════
- * ADD BUTTON COMPONENT (Reusable)
+ * ADD BUTTON COMPONENT (Reusable — Shared Cart State)
  * ══════════════════════════════════════════════════════════════
  *
- * Shows "Add" when item is not in cart, or a quantity counter
- * (- count +) when it is. Used in FoodCard, CouponFoodCard, etc.
+ * LEARNING: This component reads from the global FoodOrderContext.
+ * Since it uses getItemQuantity(item.id), the same food item
+ * shows the SAME count everywhere it appears:
+ *   - FoodCard on the main food page
+ *   - CouponFoodCard on the coupon detail page
+ *   - Both show "2" if you added 2 from either place
  *
- * Since it reads from the shared FoodOrderContext, the count
- * stays in sync everywhere the same food item appears.
+ * This works because the FoodOrderContext is at the ROOT level
+ * (wraps the entire app in main.jsx), so ALL components share
+ * the same cart state.
  */
 
 export default function AddButton({ item }) {
@@ -18,17 +23,21 @@ export default function AddButton({ item }) {
     const quantity = getItemQuantity(item.id);
 
     const handleAdd = (e) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Prevent card click (navigation)
+        console.log('[AddButton] Adding to cart:', item.title, '(id:', item.id, ')');
         addToFoodCart(item);
     };
 
     const handleIncrement = (e) => {
         e.stopPropagation();
+        console.log('[AddButton] Incrementing:', item.title, '→', quantity + 1);
         updateFoodCartQuantity(item.id, quantity + 1);
     };
 
     const handleDecrement = (e) => {
         e.stopPropagation();
+        console.log('[AddButton] Decrementing:', item.title, '→', quantity - 1);
+        if (quantity - 1 === 0) console.log('[AddButton] Quantity will be 0 → removing from cart');
         updateFoodCartQuantity(item.id, quantity - 1);
     };
 

@@ -6,13 +6,16 @@ import { getCouponById } from '../api/service/couponService';
  * COUPON DETAIL VIEWMODEL
  * ══════════════════════════════════════════════════════════════
  *
- * The "brain" of the Coupon Detail page — fetches full coupon
- * data (with applicable food items + discounted prices) from
- * the API, and exposes presentation-ready data to the UI.
+ * LEARNING: Same MVVM pattern as FoodViewModel but for coupons.
  *
- * @param {string} couponId - The _id of the coupon to fetch.
- * @param {Object} initialCoupon - Initial coupon data passed via navigation state
- *                                  (from the slider's couponData) to show immediately.
+ * DATA FLOW:
+ *   User clicks CouponCard → navigate('/coupon-detail', { state: coupon })
+ *   → CouponDetail page opens
+ *   → This ViewModel fetches GET /v1/coupon?couponId=<id>
+ *   → Transforms data → UI renders food items with discounted prices
+ *
+ * @param {string} couponId — The _id of the coupon
+ * @param {Object} initialCoupon — Initial data from navigation state (for instant display)
  */
 
 export default function useCouponDetailViewModel(couponId, initialCoupon = null) {
@@ -20,70 +23,52 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    console.log('[CouponDetailVM] ViewModel initialized');
+    console.log('[CouponDetailVM] couponId:', couponId);
+    console.log('[CouponDetailVM] initialCoupon (from nav state):', initialCoupon);
+
     // Fetch full coupon detail from API on mount
     useEffect(() => {
         if (couponId) {
+            console.log('[CouponDetailVM] useEffect → fetching coupon detail...');
             fetchCouponDetail(couponId);
         }
     }, [couponId]);
 
-    /**
-     * Fetches coupon detail from GET /v1/coupon?couponId=<id>
-     */
     async function fetchCouponDetail(id) {
         try {
             setIsLoading(true);
             setError(null);
 
-            console.log('[CouponDetailVM] Fetching coupon detail for:', id);
+            console.log('[CouponDetailVM] Calling couponService.getCouponById:', id);
             const response = await getCouponById(id);
 
-            // Backend returns: { data: { couponData: [...], totalCount } }
             const couponData = response?.data?.couponData;
             const coupon = Array.isArray(couponData) ? couponData[0] : couponData;
 
-            console.log('[CouponDetailVM] Coupon detail received:', coupon);
+            console.log('[CouponDetailVM] Coupon detail received:');
+            console.log('  name:', coupon?.name);
+            console.log('  applicableItemsData:', coupon?.applicableItemsData?.length, 'items');
+            console.log('  Full coupon:', coupon);
+
             setCouponDetail(coupon);
         } catch (err) {
-            console.error('[CouponDetailVM] Error fetching coupon:', err);
+            console.error('[CouponDetailVM] ❌ Error:', err);
             setError(err?.response?.data?.message || 'Failed to load coupon details');
         } finally {
             setIsLoading(false);
         }
     }
 
-    /**
-     * The coupon's hero image URL — from API data or initial navigation state.
-     */
-    const heroImage = couponDetail?.image
-        || initialCoupon?.imageURL
-        || initialCoupon?.image
-        || null;
+    const heroImage = couponDetail?.image || initialCoupon?.imageURL || initialCoupon?.image || null;
+    const offerName = couponDetail?.name || couponDetail?.title || initialCoupon?.title || 'Offer';
+    const description = couponDetail?.description || initialCoupon?.description || '';
 
-    /**
-     * The coupon's offer name/title.
-     */
-    const offerName = couponDetail?.name
-        || couponDetail?.title
-        || initialCoupon?.title
-        || 'Offer';
-
-    /**
-     * The coupon's description.
-     */
-    const description = couponDetail?.description
-        || initialCoupon?.description
-        || '';
-
-    /**
-     * Discount info for display.
-     */
     const discountInfo = useMemo(() => {
         const detail = couponDetail || {};
         const value = detail.discountValue || initialCoupon?.discountValue || 0;
         const type = detail.discountType ?? initialCoupon?.discountType;
 
-        // discountType from backend: 1 = percentage, 2 = amount
         if (type === 1 || type === 'percentage') {
             return { label: `UPTO ${value}% CASHBACK`, value, type: 'percentage' };
         }
@@ -94,12 +79,23 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
     }, [couponDetail, initialCoupon]);
 
     /**
-     * Food items with discount pricing — comes from the backend's
-     * $lookup aggregation as `applicableItemsData`.
-     * Each food has: _id, name, price, priceAfterDiscount, discountAmount, imageURL, etc.
+     * LEARNING: Map food items from the coupon response.
+     * The backend aggregates food items with calculated discount prices:
+     *   - price: original price
+     *   - priceAfterDiscount: price after coupon discount
+     *   - discountAmount: how much discount was applied
      */
     const foodItems = useMemo(() => {
         const items = couponDetail?.applicableItemsData || [];
+
+        console.log('[CouponDetailVM] Mapping', items.length, 'food items');
+
+        if (items[0]) {
+            console.log('[CouponDetailVM] ★ First raw coupon food item:');
+            console.log('  All fields:', items[0]);
+            console.log('  choiceOfAddOn:', items[0].choiceOfAddOn);
+            console.log('  inGridients:', items[0].inGridients);
+        }
 
         return items.map((food) => ({
             id: food._id || food.id,
@@ -108,27 +104,24 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
             price: food.price || 0,
             priceAfterDiscount: food.priceAfterDiscount ?? food.price ?? 0,
             discountAmount: food.discountAmount || 0,
-            calories: food.calories || 0,
+            calories: food.kcal || food.calories || 0,
             imageURL: food.imageURL || food.image || null,
             isAvailable: food.isAvailable !== false,
-            type: food.type || null,  // 1 = veg, 2 = non-veg
+            type: food.type || null,
+            inGridients: food.inGridients || [],
+            choiceOfAddOn: food.choiceOfAddOn || [],
         }));
     }, [couponDetail]);
 
     return {
-        // State
         couponDetail,
         isLoading,
         error,
-
-        // Presentation-ready data
         heroImage,
         offerName,
         description,
         discountInfo,
         foodItems,
-
-        // Actions
         refetch: () => fetchCouponDetail(couponId),
     };
 }

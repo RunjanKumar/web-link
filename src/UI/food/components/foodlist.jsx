@@ -3,18 +3,23 @@ import FoodCard from './foodcard';
 
 /**
  * ══════════════════════════════════════════════════════════════
- * FOOD LIST COMPONENT (KFC-style)
+ * FOOD LIST COMPONENT (KFC-style scroll detection)
  * ══════════════════════════════════════════════════════════════
  *
- * ALL foods always rendered, grouped by category.
+ * LEARNING: This is the most complex component. It does 3 things:
  *
- * Scroll detection uses a scroll event listener (not IntersectionObserver)
- * which checks every section's position on each scroll frame.
- * This is how KFC/Zomato actually detect the active category —
- * it's 100% reliable in both scroll directions.
+ *   1. DATA MAPPING: Transforms raw API food data into card-ready objects
+ *   2. SCROLL-TO: Exposes scrollToCategory() via useImperativeHandle
+ *      so the parent can call it when a tab is clicked
+ *   3. SCROLL DETECTION: Uses a scroll event listener to detect which
+ *      category section is at the top and reports it to the parent
+ *
+ * IMPORTANT: Why scroll listener instead of IntersectionObserver?
+ *   IntersectionObserver only fires at threshold boundaries (miss events).
+ *   Scroll listener checks EVERY frame — 100% reliable in both directions.
  */
 
-// Height of the sticky tab bar (used as scroll offset)
+// Height of sticky tabs — used to offset scroll calculations
 const STICKY_OFFSET = 72;
 
 const FoodList = forwardRef(function FoodList(
@@ -26,9 +31,67 @@ const FoodList = forwardRef(function FoodList(
     const lastReported = useRef(-1);
     const rafId = useRef(null);
 
-    // Build sections from API data
+    /**
+     * LEARNING — STEP 10: DATA MAPPING
+     * Transform raw API data → UI-ready structure.
+     *
+     * Raw API structure (from GET /v1/foodCategory):
+     *   foodItemData = [
+     *     {
+     *       _id: "cat1",
+     *       name: "Indian Cuisine",
+     *       foodsInCategories: [
+     *         { _id: "food1", name: "Biryani", price: 349, kcal: 450, type: 1, ... },
+     *         { _id: "food2", name: "Butter Chicken", price: 550, kcal: 380, ... },
+     *       ]
+     *     },
+     *     { _id: "cat2", name: "Italian", foodsInCategories: [...] },
+     *   ]
+     *
+     * Mapped structure (what UI components receive):
+     *   sections = [
+     *     {
+     *       categoryId: "cat1",
+     *       categoryName: "Indian Cuisine",
+     *       globalIndex: 0,
+     *       foods: [
+     *         { id: "food1", title: "Biryani", price: 349, calories: 450, ... }
+     *       ]
+     *     }
+     *   ]
+     */
     const sections = useMemo(() => {
         if (!foodItemData || foodItemData.length === 0) return [];
+
+        console.log('┌──────────────────────────────────────────────────────────┐');
+        console.log('│ [FoodList] STEP 10: Mapping raw API data → UI structure  │');
+        console.log('└──────────────────────────────────────────────────────────┘');
+
+        // Log the FIRST raw food item to see ALL backend fields
+        if (foodItemData[0]?.foodsInCategories?.[0]) {
+            const raw = foodItemData[0].foodsInCategories[0];
+            console.log('[FoodList] ★ RAW first food item (ALL backend fields):');
+            console.log('  Backend field → UI field mapping:');
+            console.log(`  raw._id = "${raw._id}" → id`);
+            console.log(`  raw.name = "${raw.name}" → title`);
+            console.log(`  raw.price = ${raw.price} → price`);
+            console.log(`  raw.kcal = ${raw.kcal} → calories`);
+            console.log(`  raw.type = ${raw.type} → type (1=veg, 2=nonveg)`);
+            console.log(`  raw.description = "${raw.description}" → description`);
+            console.log(`  raw.imageURL = "${raw.imageURL}" → imageURL`);
+            console.log(`  raw.inGridients = [${(raw.inGridients || []).join(', ')}] → inGridients`);
+            console.log(`  raw.choiceOfAddOn = [${(raw.choiceOfAddOn || []).join(', ')}] → choiceOfAddOn`);
+            console.log(`    ↑ Are these ObjectIDs (strings) or populated objects?`);
+            console.log(`    Type of first item: ${typeof raw.choiceOfAddOn?.[0]}`);
+            if (raw.choiceOfAddOn?.[0] && typeof raw.choiceOfAddOn[0] === 'object') {
+                console.log('    ✅ POPULATED! Has:', Object.keys(raw.choiceOfAddOn[0]));
+            } else {
+                console.log('    ⚠️ NOT POPULATED — just ObjectID strings. Need backend .populate()');
+            }
+            console.log(`  raw.isAvailable = ${raw.isAvailable} → isAvailable`);
+            console.log(`  raw.mealType = [${(raw.mealType || []).join(', ')}] → mealType`);
+            console.log('  Full raw object:', raw);
+        }
 
         return foodItemData
             .map((category, index) => {
@@ -38,9 +101,15 @@ const FoodList = forwardRef(function FoodList(
                     description: food.description || '',
                     price: food.price || 0,
                     imageURL: food.imageURL || food.image || food.imageUrl || null,
-                    calories: food.calories || 0,
+                    calories: food.kcal || food.calories || 0,
                     type: food.type || null,
+                    inGridients: food.inGridients || [],
+                    choiceOfAddOn: food.choiceOfAddOn || [],
+                    isAvailable: food.isAvailable !== false,
+                    mealType: food.mealType || [],
                 }));
+
+                console.log(`[FoodList] Category "${category.name}": ${foods.length} foods mapped`);
 
                 return {
                     categoryId: category._id || category.id,
@@ -56,6 +125,7 @@ const FoodList = forwardRef(function FoodList(
     const displaySections = useMemo(() => {
         if (!searchText) return sections;
 
+        console.log('[FoodList] Filtering foods by search text:', searchText);
         return sections
             .map((section) => ({
                 ...section,
@@ -68,31 +138,41 @@ const FoodList = forwardRef(function FoodList(
             .filter((section) => section.foods.length > 0);
     }, [sections, searchText]);
 
-    // Expose scrollToCategory to parent
+    /**
+     * LEARNING — scrollToCategory:
+     * This is exposed to the parent via useImperativeHandle + forwardRef.
+     * When user clicks a tab, parent calls: foodListRef.current.scrollToCategory(2)
+     * → This scrolls the page to category index 2.
+     *
+     * We block the scroll detector for 900ms so it doesn't fight
+     * the programmatic scroll and cause flickering.
+     */
     useImperativeHandle(ref, () => ({
         scrollToCategory(globalIndex) {
+            console.log('[FoodList] scrollToCategory called for index:', globalIndex);
             const section = displaySections.find((s) => s.globalIndex === globalIndex);
             if (!section) return;
 
             const el = sectionRefs.current[section.categoryId];
             if (!el) return;
 
-            // Block scroll detection during programmatic scroll
             blockUntil.current = Date.now() + 900;
             lastReported.current = globalIndex;
 
             const top = el.getBoundingClientRect().top + window.scrollY - STICKY_OFFSET;
+            console.log('[FoodList] Scrolling to y:', top, '(offset:', STICKY_OFFSET, ')');
             window.scrollTo({ top, behavior: 'smooth' });
         },
     }), [displaySections]);
 
     /**
-     * Scroll handler — on every scroll frame, find which section's
-     * top edge is closest to (but at or above) the sticky offset line.
+     * LEARNING — Scroll detection:
+     * On every scroll frame, check each section's position.
+     * The LAST section whose top is at or above STICKY_OFFSET = the active one.
      *
-     * Logic: The "active" section is the LAST section whose top edge
-     * has scrolled past the sticky tabs. This works perfectly for
-     * both scroll up and scroll down.
+     * Why "last"? Because as you scroll down, multiple sections might
+     * be above the offset line. The lowest one (last in the loop)
+     * is the one currently visible at the top.
      */
     const detectActiveSection = useCallback(() => {
         if (Date.now() < blockUntil.current) return;
@@ -105,17 +185,11 @@ const FoodList = forwardRef(function FoodList(
             if (!el) continue;
 
             const rect = el.getBoundingClientRect();
-
-            // If the section's top is at or above the sticky offset,
-            // it means this section has scrolled into the "active" zone.
-            // We keep updating activeIndex — the LAST one that passes
-            // this check is the one currently at the top.
             if (rect.top <= STICKY_OFFSET + 20) {
                 activeIndex = section.globalIndex;
             }
         }
 
-        // Default to first section if nothing has scrolled past yet
         if (activeIndex === -1 && displaySections.length > 0) {
             activeIndex = displaySections[0].globalIndex;
         }
@@ -136,9 +210,7 @@ const FoodList = forwardRef(function FoodList(
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-
-        // Run once on mount to set initial state
-        detectActiveSection();
+        detectActiveSection(); // Initial check
 
         return () => {
             window.removeEventListener('scroll', handleScroll);

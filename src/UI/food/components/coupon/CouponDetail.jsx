@@ -8,28 +8,32 @@ import CouponFoodCard from './CouponFoodCard';
  * COUPON DETAIL PAGE
  * ══════════════════════════════════════════════════════════════
  *
- * Displays a full-screen coupon detail view when a user taps
- * on a coupon card from the OfferSlider.
+ * LEARNING: This page uses a DIFFERENT API than the food page!
  *
- * Architecture (MVVM):
- *   - UI: This page + CouponDetailHeader + CouponFoodCard
- *   - ViewModel: useCouponDetailViewModel
- *   - Service: couponService.getCouponById
+ * FOOD PAGE → GET /v1/foodCategory (all categories + foods)
+ * THIS PAGE → GET /v1/coupon?couponId=<id> (specific coupon + discounted foods)
  *
- * Data Flow:
- *   CouponCard click → navigate('/coupon-detail', { state: coupon })
- *   → This page extracts couponId from state
- *   → CouponDetailViewModel fetches GET /v1/coupon?couponId=<id>
- *   → Renders hero image, offer name, and food items with discounted prices
+ * DATA FLOW:
+ *   1. User clicks CouponCard on food page
+ *   2. navigate('/coupon-detail', { state: coupon })
+ *   3. This page extracts couponId from navigation state
+ *   4. CouponDetailViewModel calls GET /v1/coupon?couponId=<id>
+ *   5. Backend returns coupon + applicableItemsData (foods with discount prices)
+ *   6. ViewModel maps the data → UI renders
  */
 
 export default function CouponDetail() {
     const navigate = useNavigate();
     const { state } = useLocation();
 
-    // The coupon data passed from the slider (used for immediate display)
+    console.log('[CouponDetail] Page opened');
+    console.log('[CouponDetail] Navigation state (from CouponCard click):', state);
+
     const initialCoupon = state || {};
     const couponId = initialCoupon.id || initialCoupon._id;
+
+    console.log('[CouponDetail] Extracted couponId:', couponId);
+    console.log('[CouponDetail] → ViewModel will call GET /v1/coupon?couponId=' + couponId);
 
     const {
         isLoading,
@@ -39,12 +43,18 @@ export default function CouponDetail() {
         discountInfo,
         foodItems,
     } = useCouponDetailViewModel(couponId, initialCoupon);
-    console.log("foodItems",  foodItems);
+
+    console.log('[CouponDetail] ViewModel returned:');
+    console.log('  isLoading:', isLoading);
+    console.log('  error:', error);
+    console.log('  offerName:', offerName);
+    console.log('  foodItems count:', foodItems?.length);
+    console.log('  foodItems:', foodItems);
 
     return (
         <div className="min-h-screen bg-[#111111] text-white pb-8">
 
-            {/* Hero Banner — coupon image with back button & discount overlay */}
+            {/* Hero Banner */}
             <CouponDetailHeader
                 heroImage={heroImage}
                 discountInfo={discountInfo}
@@ -78,7 +88,6 @@ export default function CouponDetail() {
     );
 }
 
-// ── Loading skeleton ────────────────────────────────────────
 function LoadingSkeleton() {
     return (
         <div className="flex flex-col gap-5">
@@ -100,7 +109,6 @@ function LoadingSkeleton() {
     );
 }
 
-// ── Error state ─────────────────────────────────────────────
 function ErrorState({ message }) {
     return (
         <div className="text-center py-12">
@@ -109,7 +117,6 @@ function ErrorState({ message }) {
     );
 }
 
-// ── Empty state ─────────────────────────────────────────────
 function EmptyState() {
     return (
         <div className="text-center py-12">

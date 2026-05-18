@@ -7,21 +7,46 @@ import VegIndicator from "./VegIndicator";
  * FOOD CARD COMPONENT
  * ══════════════════════════════════════════════════════════════
  *
- * A single food item card in the food list.
- * Shows veg/non-veg indicator, real data, and shared AddButton.
+ * LEARNING: This is a THIN UI component.
+ *   - Receives `item` prop (already mapped from raw API data by FoodList)
+ *   - Renders the card UI
+ *   - On click → navigates to /food-details passing `item` via state
+ *   - AddButton handles cart logic (no cart logic here)
+ *
+ * ITEM FIELDS USED:
+ *   item.id, item.title, item.description, item.price,
+ *   item.calories, item.type, item.imageURL, item.isAvailable
+ *
+ * NAVIGATION:
+ *   Click → navigate("/food-details", { state: item })
+ *   FoodDetails page reads: const { state } = useLocation()
  */
 
 export default function FoodCard({ item }) {
     const navigate = useNavigate();
+    const isAvailable = item.isAvailable !== false;
 
     const handleNavigate = () => {
+        console.log('[FoodCard] Clicked:', item.title);
+        console.log('[FoodCard] Navigating to /food-details with state:', item);
+        console.log('[FoodCard] ★ Data being passed to FoodDetails:');
+        console.log('  id:', item.id);
+        console.log('  title:', item.title);
+        console.log('  price:', item.price);
+        console.log('  calories:', item.calories);
+        console.log('  type:', item.type);
+        console.log('  inGridients:', item.inGridients);
+        console.log('  choiceOfAddOn:', item.choiceOfAddOn, '(count:', item.choiceOfAddOn?.length, ')');
+        console.log('  isAvailable:', item.isAvailable);
         navigate("/food-details", { state: item });
     };
 
     return (
         <div
             onClick={handleNavigate}
-            className="flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer"
+            className={`relative flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer ${
+                !isAvailable ? 'opacity-50 grayscale' : ''
+            }`}
         >
             {/* Left Content */}
             <div className="flex-1 px-4 py-4 flex flex-col justify-between min-w-0">
@@ -53,12 +78,18 @@ export default function FoodCard({ item }) {
                         ₹ {item.price}
                     </h3>
 
-                    <AddButton item={item} />
+                    {isAvailable ? (
+                        <AddButton item={item} />
+                    ) : (
+                        <span className="text-[#FF4444] text-[13px] font-medium border border-[#FF4444]/30 rounded-[14px] px-3 py-[6px]">
+                            Unavailable
+                        </span>
+                    )}
                 </div>
             </div>
 
             {/* Right Image */}
-            <div className="w-[130px] shrink-0">
+            <div className="w-[130px] shrink-0 relative">
                 {item.imageURL ? (
                     <img
                         src={item.imageURL}
@@ -67,6 +98,11 @@ export default function FoodCard({ item }) {
                     />
                 ) : (
                     <div className="w-full h-full bg-[#2A2A2A] min-h-[130px]" />
+                )}
+
+                {/* Not available overlay on image */}
+                {!isAvailable && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center" />
                 )}
             </div>
         </div>

@@ -5,28 +5,38 @@ import { useRef, useEffect } from 'react';
  * CATEGORY TABS COMPONENT (KFC-style — sticky)
  * ══════════════════════════════════════════════════════════════
  *
- * Always visible at the top (sticky). Highlights the current
- * category based on scroll position. Tab click scrolls to
- * that food section.
+ * LEARNING: This component has TWO data sources:
+ *   1. categories[] — the list of food categories from API
+ *   2. activeIndex — which tab is highlighted (controlled by parent)
+ *
+ * activeIndex changes in TWO ways:
+ *   a. User clicks a tab → parent sets activeIndex + scrolls FoodList
+ *   b. User scrolls → FoodList detects visible section → parent sets activeIndex
+ *
+ * The tab strip auto-scrolls horizontally to keep the active tab centered.
  */
 
 export default function CategoryTabs({ categories, activeIndex = 0, onCategorySelect }) {
     const scrollRef = useRef(null);
     const tabRefs = useRef({});
 
-    // When activeIndex changes, scroll the TAB strip horizontally
-    // (NOT scrollIntoView which moves the whole page)
+    console.log('[CategoryTabs] STEP 9: Rendered with activeIndex:', activeIndex,
+        '| categories:', categories?.length || 0);
+
+    // LEARNING: When activeIndex changes, we scroll the tab strip HORIZONTALLY only.
+    // We use container.scrollTo() instead of element.scrollIntoView() because
+    // scrollIntoView() would also scroll the WHOLE PAGE vertically.
     useEffect(() => {
         const activeTab = tabRefs.current[activeIndex];
         const container = scrollRef.current;
         if (!activeTab || !container) return;
 
-        // Calculate the scroll position to center the active tab
         const tabLeft = activeTab.offsetLeft;
         const tabWidth = activeTab.offsetWidth;
         const containerWidth = container.offsetWidth;
         const scrollLeft = tabLeft - (containerWidth / 2) + (tabWidth / 2);
 
+        console.log('[CategoryTabs] Auto-scrolling tab strip to center tab:', activeIndex);
         container.scrollTo({
             left: scrollLeft,
             behavior: 'smooth',
@@ -34,6 +44,7 @@ export default function CategoryTabs({ categories, activeIndex = 0, onCategorySe
     }, [activeIndex]);
 
     const handleTabClick = (index) => {
+        console.log('[CategoryTabs] Tab clicked:', index, '→ name:', categories?.[index]?.name);
         if (onCategorySelect) {
             onCategorySelect(index);
         }
