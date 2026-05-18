@@ -33,6 +33,10 @@ export function FoodOrderProvider({ children }) {
     // Food Cart State — array of items with quantities
     const [foodCart, setFoodCart] = useState([]);
 
+    const getCartUnitPrice = useCallback((item) => (
+        item.cartUnitPrice ?? item.priceAfterDiscount ?? item.price ?? 0
+    ), []);
+
     // ── ADD TO CART ──
     // If item already exists → increment quantity
     // If new item → add with quantity 1
@@ -44,13 +48,22 @@ export function FoodOrderProvider({ children }) {
                 console.log('[Cart] Item exists, incrementing quantity:', existingItem.quantity, '→', existingItem.quantity + 1);
                 return prevCart.map((cartItem) =>
                     cartItem.id === item.id
-                        ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                        ? { ...cartItem, ...item, quantity: cartItem.quantity + 1 }
                         : cartItem
                 );
             }
             console.log('[Cart] New item, adding with quantity: 1');
             return [...prevCart, { ...item, quantity: 1 }];
         });
+    }, []);
+
+    const updateFoodCartItem = useCallback((itemId, itemUpdates) => {
+        console.log('[Cart] UPDATE item details:', itemId);
+        setFoodCart((prevCart) =>
+            prevCart.map((item) =>
+                item.id === itemId ? { ...item, ...itemUpdates } : item
+            )
+        );
     }, []);
 
     // ── REMOVE FROM CART ──
@@ -83,10 +96,10 @@ export function FoodOrderProvider({ children }) {
 
     // ── GET TOTAL PRICE ──
     const getFoodCartTotal = useCallback(() => {
-        const total = foodCart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        const total = foodCart.reduce((total, item) => total + (getCartUnitPrice(item) * item.quantity), 0);
         console.log('[Cart] Total price:', total);
         return total;
-    }, [foodCart]);
+    }, [foodCart, getCartUnitPrice]);
 
     // ── GET TOTAL ITEMS COUNT ──
     const getFoodCartCount = useCallback(() => {
@@ -106,9 +119,11 @@ export function FoodOrderProvider({ children }) {
         addToFoodCart,
         removeFromFoodCart,
         updateFoodCartQuantity,
+        updateFoodCartItem,
         clearFoodCart,
         getFoodCartTotal,
         getFoodCartCount,
+        getCartUnitPrice,
         getItemQuantity,
     };
 

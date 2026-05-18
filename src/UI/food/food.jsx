@@ -3,6 +3,7 @@ import FoodList from "./components/foodlist";
 import Header from "./components/header";
 import OfferSlider from "./components/offerSlider";
 import SearchBar from "./components/searchbar";
+import FoodCartButton from "./components/FoodCartButton";
 import useFoodViewModel from "../../viewModel/foodViewModel";
 
 export default function FoodOrder() {
@@ -27,7 +28,7 @@ export default function FoodOrder() {
     console.log('  isLoading:', isLoading);
 
     return (
-        <div className="min-h-screen bg-[#111111] text-white px-5 py-6">
+        <div className="min-h-screen bg-[#111111] text-white px-5 py-6 pb-[96px]">
             {!isSearchFocused && <Header />}
 
             <SearchBar
@@ -65,6 +66,8 @@ export default function FoodOrder() {
                     />
                 </div>
             )}
+
+            <FoodCartButton />
         </div>
     );
 }

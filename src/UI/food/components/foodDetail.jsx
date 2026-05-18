@@ -16,6 +16,7 @@ export default function FoodDetails() {
         handleAdd,
         handleIncrement,
         handleDecrement,
+        handleAddItemsClick,
         toggleAddOn,
     } = useFoodDetailViewModel();
 
@@ -62,7 +63,7 @@ export default function FoodDetails() {
                             ₹{Math.round(state.price)}
                         </span>
                     )}
-                    
+
                     {state?.calories > 0 && (
                         <>
                             <span className="text-[#5A5A5A]">•</span>
@@ -174,7 +175,7 @@ export default function FoodDetails() {
                 </div>
 
                 <button
-                    onClick={quantity === 0 ? handleAdd : undefined}
+                    onClick={handleAddItemsClick}
                     disabled={!isAvailable}
                     className={`flex-1 h-[56px] rounded-[20px] text-[20px] font-semibold transition ${
                         !isAvailable
@@ -184,9 +185,7 @@ export default function FoodDetails() {
                 >
                     {!isAvailable
                         ? 'Not Available'
-                        : quantity > 0
-                            ? `Add items - ₹ ${Math.round(totalPrice)}`
-                            : `Add items - ₹ ${Math.round(itemPrice)}`
+                        : `Add items - ₹ ${Math.round(totalPrice)}`
                     }
                 </button>
             </div>

@@ -25,6 +25,7 @@ import UpcomingEvents from './UI/facility/UpcomingEvents.jsx'
 import Food from './UI/food/food.jsx'
 import FoodDetails from './UI/food/components/foodDetail.jsx'
 import CouponDetail from './UI/food/components/coupon/CouponDetail.jsx'
+import Cart from './UI/food/cart/Cart.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -40,6 +41,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/food" element={<Food />} />
                 <Route path="/food-details" element={<FoodDetails />} />
                 <Route path="/coupon-detail" element={<CouponDetail />} />
+                <Route path="/cart" element={<Cart />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/lights" element={<LightControl />} />
                 <Route path="/ac" element={<AirConditioner />} />
