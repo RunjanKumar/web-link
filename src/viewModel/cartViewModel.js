@@ -5,7 +5,7 @@ import { getApiErrorMessage } from "../api/client";
 import { validateCoupon } from "../api/service/couponService";
 import useCustomerProfile from "../hooks/CustomerProfile";
 import useGlobal from "../hooks/FoodOrder";
-import { getEffectivePrice } from "../utils/discountHelper";
+import { getEffectivePrice, getLineTotal } from "../utils/discountHelper";
 import { DISCOUNT_TYPES } from "../utils/constant";
 
 export default function useCartViewModel() {
@@ -43,11 +43,15 @@ export default function useCartViewModel() {
             priceAfterDiscount: item.priceAfterDiscount,
             couponData: item.couponData,
         }),
-        baseLineTotal: getEffectivePrice({
-            price: item.price ?? 0,
-            priceAfterDiscount: item.priceAfterDiscount,
+        baseLineTotal: getLineTotal({
+            unitPrice: getEffectivePrice({
+                price: item.price ?? 0,
+                priceAfterDiscount: item.priceAfterDiscount,
+                couponData: item.couponData,
+            }),
+            quantity: item.quantity,
             couponData: item.couponData,
-        }) * item.quantity,
+        }),
     })), [foodCart, getCartUnitPrice]);
 
     const handleBack = () => navigate(-1);

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useGlobal from "../hooks/FoodOrder";
-import { getEffectivePrice } from "../utils/discountHelper";
+import { getEffectivePrice, getLineTotal } from "../utils/discountHelper";
 import { DISCOUNT_TYPES } from "../utils/constant";
 
 function isFoodAvailable(food) {
@@ -61,7 +61,12 @@ export default function useFoodDetailViewModel() {
         }, 0)
     ), [addOns, addOnQuantities]);
 
-    const totalPrice = (itemPrice * (quantity || 1)) + addOnTotal;
+    const mainFoodTotal = getLineTotal({
+        unitPrice: itemPrice,
+        quantity: quantity || 1,
+        couponData: state?.couponData,
+    });
+    const totalPrice = mainFoodTotal + addOnTotal;
 
     const handleBack = () => navigate(-1);
 

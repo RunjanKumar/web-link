@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { FoodOrderContext } from './FoodOrderDef';
-import { getEffectivePrice } from '../utils/discountHelper';
+import { getEffectivePrice, getLineTotal } from '../utils/discountHelper';
 import { DISCOUNT_TYPES } from '../utils/constant';
 
 function isFoodAvailable(food) {
@@ -42,12 +42,12 @@ export function FoodOrderProvider({ children }) {
     ), []);
 
     const getFoodItemTotal = useCallback((item) => {
-        const basePrice = getEffectivePrice({
+        const unitPrice = getEffectivePrice({
             price: item.price ?? 0,
             priceAfterDiscount: item.priceAfterDiscount,
             couponData: item.couponData,
         });
-        return basePrice * item.quantity;
+        return getLineTotal({ unitPrice, quantity: item.quantity, couponData: item.couponData });
     }, []);
 
     // ── ADD TO CART ──

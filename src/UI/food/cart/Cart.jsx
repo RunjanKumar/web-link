@@ -11,7 +11,8 @@ import {
     X,
 } from "lucide-react";
 import useCartViewModel from "../../../viewModel/cartViewModel";
-import { getDiscountDisplayInfo } from "../../../utils/discountHelper";
+import { getDiscountDisplayInfo, getLineTotal } from "../../../utils/discountHelper";
+import VegIndicator from "../components/VegIndicator";
 
 export default function Cart() {
     const {
@@ -84,10 +85,12 @@ export default function Cart() {
                                         originalPrice={discount.originalPrice}
                                         isBogo={discount.isBogo}
                                         quantity={item.quantity}
+                                        couponData={item.couponData}
                                         onIncrement={() => handleIncrement(item)}
                                         onDecrement={() => handleDecrement(item)}
                                         onRemove={() => handleRemove(item)}
                                         parentFoodTitle={item.isAddOn ? item.parentFoodTitle : null}
+                                        foodType={item.type}
                                     />
                                 );
                             })}
@@ -185,7 +188,11 @@ function CartFoodRow({
     onDecrement,
     onRemove,
     parentFoodTitle,
+    foodType,
+    couponData,
 }) {
+    const lineTotal = Math.round(getLineTotal({ unitPrice: price, quantity, couponData }));
+
     return (
         <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
             <div className="flex items-center bg-[#202020]">
@@ -203,9 +210,12 @@ function CartFoodRow({
                 </div>
 
                 <div className="flex-1 px-7 py-4 min-w-0">
-                    <p className="text-[18px] text-[#F4F4F4] truncate">
-                        {title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <VegIndicator type={foodType} size={14} />
+                        <p className="text-[18px] text-[#F4F4F4] truncate">
+                            {title}
+                        </p>
+                    </div>
                     {parentFoodTitle && (
                         <p className="text-[#707070] text-[12px] mt-[2px] truncate">
                             for {parentFoodTitle}
@@ -213,11 +223,16 @@ function CartFoodRow({
                     )}
                     <div className="flex items-center gap-2 mt-2">
                         <p className="text-[#C99F2B] text-[28px] font-semibold">
-                            ₹{Math.round(price)} x {quantity}
+                            ₹{lineTotal}
                         </p>
                         {originalPrice != null && (
                             <span className="text-[#6B6B6B] text-[16px] line-through">
                                 ₹{Math.round(originalPrice)}
+                            </span>
+                        )}
+                        {isBogo && (
+                            <span className="bg-[#E2B124]/15 text-[#E2B124] text-[11px] font-bold px-[6px] py-[2px] rounded-[6px] leading-[16px] tracking-wide">
+                                1+1 FREE
                             </span>
                         )}
                     </div>

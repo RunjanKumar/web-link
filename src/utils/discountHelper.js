@@ -80,3 +80,25 @@ export function getEffectivePrice({ price = 0, priceAfterDiscount, couponData })
 
     return price;
 }
+
+/**
+ * Returns line total for a cart item, applying BOGO pricing.
+ *
+ * BOGO: every 2nd item is free → you only pay for ceil(qty / 2).
+ *   qty 1 → pay 1 → ₹150
+ *   qty 2 → pay 1 → ₹150  (1 free)
+ *   qty 3 → pay 2 → ₹300
+ *   qty 4 → pay 2 → ₹300  (2 free)
+ *
+ * For non-BOGO items: normal price × quantity.
+ */
+export function getLineTotal({ unitPrice, quantity, couponData }) {
+    const discountType = couponData?.discountType ?? null;
+
+    if (discountType === DISCOUNT_TYPES.BOGO) {
+        const paidQty = Math.ceil(quantity / 2);
+        return unitPrice * paidQty;
+    }
+
+    return unitPrice * quantity;
+}
