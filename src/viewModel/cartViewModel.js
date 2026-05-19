@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "../api/client";
+import { validateCoupon } from "../api/service/couponService";
 import useCustomerProfile from "../hooks/CustomerProfile";
 import useGlobal from "../hooks/FoodOrder";
 
@@ -14,6 +17,9 @@ function isFoodAvailable(food) {
 export default function useCartViewModel() {
     const navigate = useNavigate();
     const [isBillExpanded, setIsBillExpanded] = useState(true);
+    const [couponCode, setCouponCode] = useState("");
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+    const [appliedCouponName, setAppliedCouponName] = useState("");
     const {
         foodCart,
         getCartUnitPrice,
@@ -56,6 +62,49 @@ export default function useCartViewModel() {
     const handleIncrement = (item) => updateFoodCartQuantity(item.id, item.quantity + 1);
     const handleDecrement = (item) => updateFoodCartQuantity(item.id, item.quantity - 1);
     const handleRemove = (item) => removeFromFoodCart(item.id);
+    const handleCouponCodeChange = (event) => {
+        setCouponCode(event.target.value);
+        setAppliedCouponName("");
+    };
+    const handleApplyCoupon = async () => {
+        const name = couponCode.trim();
+
+        if (!name) {
+            toast.error('Please enter a coupon code.');
+            return;
+        }
+
+        const foodItems = foodCart
+            .map((item) => ({
+                foodId: item.foodId || item._id || item.id,
+                quantity: Number(item.quantity) || 1,
+            }))
+            .filter((item) => Boolean(item.foodId));
+
+        if (foodItems.length === 0) {
+            toast.error('Please add food items before applying a coupon.');
+            return;
+        }
+
+        setIsApplyingCoupon(true);
+
+        try {
+            const response = await validateCoupon({ foodItems, name });
+
+            if (response?.success === false || response?.status === false) {
+                throw new Error(response?.message || 'Failed to apply coupon.');
+            }
+
+            setAppliedCouponName(name);
+            toast.success(response?.message || 'Coupon applied successfully.');
+        } catch (error) {
+            const message = getApiErrorMessage(error, 'Failed to apply coupon.');
+            setAppliedCouponName("");
+            toast.error(message);
+        } finally {
+            setIsApplyingCoupon(false);
+        }
+    };
     const handleAddOnIncrement = (item, addOn) => {
         updateFoodCartItem(item.id, {
             selectedAddOns: (item.selectedAddOns || []).map((currentAddOn) =>
@@ -85,6 +134,9 @@ export default function useCartViewModel() {
         taxAmount,
         payableAmount,
         itemCount,
+        couponCode,
+        isApplyingCoupon,
+        appliedCouponName,
         customerData,
         roomNumber,
         isBillExpanded,
@@ -95,6 +147,8 @@ export default function useCartViewModel() {
         handleAddOnIncrement,
         handleAddOnDecrement,
         handleRemove,
+        handleCouponCodeChange,
+        handleApplyCoupon,
         toggleBillExpanded,
     };
 }

@@ -41,4 +41,5 @@ export const ENDPOINTS = {
 
     // ── Coupon ──
     COUPON: '/v1/coupon',
+    COUPON_VALIDATE: '/v1/coupon/validate',
 };

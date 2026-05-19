@@ -50,3 +50,13 @@ export async function getCouponById(couponId) {
 
     return response.data;
 }
+
+export async function validateCoupon(payload) {
+    console.log('[CouponService] Calling POST /v1/coupon/validate');
+    console.log('[CouponService] Validate payload:', payload);
+
+    const response = await apiClient.post(ENDPOINTS.COUPON_VALIDATE, payload);
+
+    console.log('[CouponService] Validate response:', response.data);
+    return response.data;
+}

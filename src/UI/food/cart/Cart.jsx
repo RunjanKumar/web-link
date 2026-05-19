@@ -21,6 +21,9 @@ export default function Cart() {
         payableAmount,
         customerData,
         roomNumber,
+        couponCode,
+        isApplyingCoupon,
+        appliedCouponName,
         isBillExpanded,
         handleBack,
         handleBrowseFood,
@@ -29,6 +32,8 @@ export default function Cart() {
         handleAddOnIncrement,
         handleAddOnDecrement,
         handleRemove,
+        handleCouponCodeChange,
+        handleApplyCoupon,
         toggleBillExpanded,
     } = useCartViewModel();
 
@@ -76,9 +81,20 @@ export default function Cart() {
                         </div>
 
                         <input
+                            value={couponCode}
+                            onChange={handleCouponCodeChange}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') handleApplyCoupon();
+                            }}
                             placeholder="Apply code"
+                            disabled={isApplyingCoupon}
                             className="mt-8 w-full h-[80px] rounded-[12px] bg-[#202020] px-6 text-[22px] outline-none placeholder:text-[#8D8D8D]"
                         />
+                        {appliedCouponName && (
+                            <p className="mt-3 text-[18px] text-yellow-400">
+                                Coupon {appliedCouponName} applied
+                            </p>
+                        )}
 
                         <div className="mt-10 rounded-[12px] bg-[#202020] px-6 py-8">
                             <InfoRow icon={<Clock3 size={24} />} label="Delivery in" value="30 Minutes" />
@@ -129,8 +145,12 @@ export default function Cart() {
 
             {items.length > 0 && (
                 <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-4">
-                    <button className="w-[238px] h-[84px] rounded-[18px] border border-yellow-500/70 text-[22px]">
-                        Apply Coupon
+                    <button
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon}
+                        className="w-[238px] h-[84px] rounded-[18px] border border-yellow-500/70 text-[22px] disabled:opacity-60"
+                    >
+                        {isApplyingCoupon ? 'Applying...' : 'Apply Coupon'}
                     </button>
                     <button className="flex-1 h-[84px] rounded-[18px] bg-yellow-400 text-black text-[24px] font-semibold">
                         Place Order - ₹ {payableAmount.toFixed(2)}
