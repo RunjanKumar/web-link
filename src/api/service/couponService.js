@@ -51,6 +51,11 @@ export async function getCouponById(couponId) {
     return response.data;
 }
 
+/**
+ * Validate coupon against cart items.
+ * Payload: { foodItems: [{ foodId, quantity }], couponCode: "SAVE20" }
+ * Response: { data: { items: [...], summary: { totalDiscount, finalPayableAmount, ... } } }
+ */
 export async function validateCoupon(payload) {
     console.log('[CouponService] Calling POST /v1/coupon/validate');
     console.log('[CouponService] Validate payload:', payload);

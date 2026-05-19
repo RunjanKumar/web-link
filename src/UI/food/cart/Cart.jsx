@@ -24,6 +24,12 @@ export default function Cart() {
         customerData,
         roomNumber,
         couponCode,
+        couponDiscount,
+        percentageSavings,
+        bogoSavings,
+        flatCouponDiscount,
+        totalSavings,
+        couponResponse,
         isApplyingCoupon,
         appliedCouponName,
         isBillExpanded,
@@ -34,6 +40,7 @@ export default function Cart() {
         handleRemove,
         handleCouponCodeChange,
         handleApplyCoupon,
+        handleRemoveCoupon,
         toggleBillExpanded,
     } = useCartViewModel();
 
@@ -75,43 +82,71 @@ export default function Cart() {
                                     couponData: item.couponData,
                                 });
 
+                                // If coupon is applied, use backend coupon data for this item
+                                const ci = item.couponItemData;
+
                                 return (
                                     <CartFoodRow
                                         key={item.id}
                                         item={item}
-                                        title={item.isAddOn ? `Add on - ${item.title}` : item.title}
+                                        title={ci ? ci.name : (item.isAddOn ? `Add on - ${item.title}` : item.title)}
                                         imageURL={item.imageURL || item.image}
-                                        price={item.baseUnitPrice}
-                                        originalPrice={discount.originalPrice}
-                                        isBogo={discount.isBogo}
-                                        quantity={item.quantity}
-                                        couponData={item.couponData}
+                                        price={ci ? ci.finalPrice : item.baseUnitPrice}
+                                        originalPrice={ci
+                                            ? (ci.discountAmount > 0 ? ci.originalPrice : null)
+                                            : discount.originalPrice}
+                                        discountAmount={ci ? ci.discountAmount : 0}
+                                        appliedCouponType={ci ? ci.appliedCouponType : null}
+                                        isBogo={ci
+                                            ? ci.appliedCouponType === 'BOGO'
+                                            : discount.isBogo}
+                                        quantity={ci ? ci.quantity : item.quantity}
+                                        couponData={ci ? null : item.couponData}
                                         onIncrement={() => handleIncrement(item)}
                                         onDecrement={() => handleDecrement(item)}
                                         onRemove={() => handleRemove(item)}
                                         parentFoodTitle={item.isAddOn ? item.parentFoodTitle : null}
                                         foodType={item.type}
+                                        hasCouponApplied={!!ci}
                                     />
                                 );
                             })}
                         </div>
 
+                        {/* ── Coupon Input ── */}
                         <input
                             value={couponCode}
                             onChange={handleCouponCodeChange}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') handleApplyCoupon();
                             }}
-                            placeholder="Apply code"
-                            disabled={isApplyingCoupon}
-                            className="mt-8 w-full h-[80px] rounded-[12px] bg-[#202020] px-6 text-[22px] outline-none placeholder:text-[#8D8D8D]"
-                        />
-                        {appliedCouponName && (
-                            <p className="mt-3 text-[18px] text-yellow-400">
-                                Coupon {appliedCouponName} applied
-                            </p>
-                        )}
+                            placeholder="Apply flat coupon only"
 
+                            disabled={isApplyingCoupon}
+                            className="mt-8 w-full h-[80px] rounded-[12px] bg-[#202020] px-6 text-[22px] outline-none placeholder:text-[#8D8D8D] uppercase tracking-widest"
+                        />
+                        {appliedCouponName ? (
+                            <div className="mt-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[18px] text-yellow-400">
+                                        Coupon <span className="font-semibold">{appliedCouponName}</span> applied
+                                    </p>
+                                    {couponDiscount > 0 && (
+                                        <p className="text-green-400 text-[14px] mt-1">
+                                            You save ₹{couponDiscount}
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={handleRemoveCoupon}
+                                    className="text-[#FF4444] text-[14px] font-medium border border-[#FF4444]/30 rounded-[10px] px-3 py-[4px]"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ) : null}
+
+                        {/* ── Delivery & Bill Info ── */}
                         <div className="mt-10 rounded-[12px] bg-[#202020] px-6 py-8">
                             <InfoRow icon={<Clock3 size={24} />} label="Delivery in" value="30 Minutes" />
                             <InfoRow icon={<Home size={24} />} label="Delivery at" value={`Room No. ${roomNumber || '208'}`} />
@@ -140,6 +175,40 @@ export default function Cart() {
                                 {isBillExpanded && (
                                     <div className="mt-6 ml-14 rounded-[10px] bg-[#121212] px-5 py-5">
                                         <BillLine label="Items Total" value={`₹ ${itemsTotal.toFixed(2)}`} />
+
+                                        {/* ── Discount Breakdown ── */}
+                                        {(percentageSavings > 0 || bogoSavings > 0 || flatCouponDiscount > 0) && (
+                                            <div className="mt-2 mb-2">
+                                                {percentageSavings > 0 && (
+                                                    <BillLine
+                                                        label="Percentage Discount"
+                                                        value={`- ₹ ${percentageSavings.toFixed(2)}`}
+                                                        discount
+                                                    />
+                                                )}
+                                                {bogoSavings > 0 && (
+                                                    <BillLine
+                                                        label="BOGO Savings"
+                                                        value={`- ₹ ${bogoSavings.toFixed(2)}`}
+                                                        discount
+                                                    />
+                                                )}
+                                                {flatCouponDiscount > 0 && (
+                                                    <BillLine
+                                                        label={`Coupon (${appliedCouponName})`}
+                                                        value={`- ₹ ${flatCouponDiscount.toFixed(2)}`}
+                                                        discount
+                                                    />
+                                                )}
+                                                <div className="h-px bg-[#2A2A2A] my-3" />
+                                                <BillLine
+                                                    label="Total Savings"
+                                                    value={`- ₹ ${totalSavings.toFixed(2)}`}
+                                                    savings
+                                                />
+                                            </div>
+                                        )}
+
                                         <BillLine label={`Tax (${taxRate}%)`} value={`₹ ${taxAmount.toFixed(2)}`} />
                                         <div className="h-px bg-[#3A3A3A] my-5" />
                                         <BillLine
@@ -163,7 +232,7 @@ export default function Cart() {
                 <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-4">
                     <button
                         onClick={handleApplyCoupon}
-                        disabled={isApplyingCoupon}
+                        disabled={isApplyingCoupon || !couponCode.trim()}
                         className="w-[238px] h-[84px] rounded-[18px] border border-yellow-500/70 text-[22px] disabled:opacity-60"
                     >
                         {isApplyingCoupon ? 'Applying...' : 'Apply Coupon'}
@@ -182,6 +251,8 @@ function CartFoodRow({
     imageURL,
     price,
     originalPrice,
+    discountAmount,
+    appliedCouponType,
     isBogo,
     quantity,
     onIncrement,
@@ -190,8 +261,12 @@ function CartFoodRow({
     parentFoodTitle,
     foodType,
     couponData,
+    hasCouponApplied,
 }) {
-    const lineTotal = Math.round(getLineTotal({ unitPrice: price, quantity, couponData }));
+    // When coupon is applied, use backend finalPrice directly; otherwise calculate locally
+    const lineTotal = hasCouponApplied
+        ? Math.round(price)
+        : Math.round(getLineTotal({ unitPrice: price, quantity, couponData }));
 
     return (
         <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
@@ -233,6 +308,11 @@ function CartFoodRow({
                         {isBogo && (
                             <span className="bg-[#E2B124]/15 text-[#E2B124] text-[11px] font-bold px-[6px] py-[2px] rounded-[6px] leading-[16px] tracking-wide">
                                 1+1 FREE
+                            </span>
+                        )}
+                        {hasCouponApplied && discountAmount > 0 && !isBogo && (
+                            <span className="bg-green-500/15 text-green-400 text-[11px] font-bold px-[6px] py-[2px] rounded-[6px] leading-[16px]">
+                                -{appliedCouponType === 'PERCENTAGE' ? `₹${discountAmount}` : `₹${discountAmount}`}
                             </span>
                         )}
                     </div>
@@ -278,13 +358,23 @@ function InfoRow({ icon, label, value }) {
     );
 }
 
-function BillLine({ label, value, strong }) {
+function BillLine({ label, value, strong, discount, savings }) {
     return (
         <div className="flex items-center justify-between py-2">
-            <p className={`${strong ? 'text-white font-semibold' : 'text-[#A7A7A7]'} text-[22px]`}>
+            <p className={`${
+                strong ? 'text-white font-semibold' 
+                : savings ? 'text-green-400 font-semibold'
+                : discount ? 'text-green-400' 
+                : 'text-[#A7A7A7]'
+            } text-[22px]`}>
                 {label}
             </p>
-            <p className={`${strong ? 'text-yellow-400 font-semibold' : 'text-white'} text-[22px]`}>
+            <p className={`${
+                strong ? 'text-yellow-400 font-semibold' 
+                : savings ? 'text-green-400 font-semibold'
+                : discount ? 'text-green-400 font-medium' 
+                : 'text-white'
+            } text-[22px]`}>
                 {value}
             </p>
         </div>
