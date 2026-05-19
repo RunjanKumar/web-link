@@ -4,8 +4,6 @@ export default function useCategoryTabsViewModel({ categories, activeIndex, onCa
     const scrollRef = useRef(null);
     const tabRefs = useRef({});
 
-    console.log('[CategoryTabs] STEP 9: Rendered with activeIndex:', activeIndex,
-        '| categories:', categories?.length || 0);
 
     useEffect(() => {
         const activeTab = tabRefs.current[activeIndex];
@@ -17,7 +15,6 @@ export default function useCategoryTabsViewModel({ categories, activeIndex, onCa
         const containerWidth = container.offsetWidth;
         const scrollLeft = tabLeft - (containerWidth / 2) + (tabWidth / 2);
 
-        console.log('[CategoryTabs] Auto-scrolling tab strip to center tab:', activeIndex);
         container.scrollTo({
             left: scrollLeft,
             behavior: 'smooth',
@@ -25,7 +22,6 @@ export default function useCategoryTabsViewModel({ categories, activeIndex, onCa
     }, [activeIndex]);
 
     const handleTabClick = (index) => {
-        console.log('[CategoryTabs] Tab clicked:', index, 'â†’ name:', categories?.[index]?.name);
         if (onCategorySelect) {
             onCategorySelect(index);
         }

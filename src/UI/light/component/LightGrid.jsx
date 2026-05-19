@@ -93,7 +93,6 @@ export default function LightGrid({ lightsData, lights, toggleLight, fanLevels, 
 
             <div className="grid grid-cols-2 gap-4 mt-2">
                 {lightsData.map((device) => {
-                    console.log("🧱 Rendering device:", device);
                     const isOn = lights[device._id];
                     const isFan = device.type === 'FAN';
                     const isOffline = device.onlinestate === 0;

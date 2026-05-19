@@ -35,13 +35,11 @@ export default function useReserveViewModel(facility) {
     // People options for the dropdown
     const peopleOptions = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20];
 
-    console.log('📝 [ReserveVM] Hook initialized for facility:', facility?.name || 'unknown');
 
     // ══════════════════════════════════════════════════════════
     // SELECT NUMBER OF PEOPLE
     // ══════════════════════════════════════════════════════════
     const selectPeople = useCallback((num) => {
-        console.log('📝 [ReserveVM] selectPeople() →', num);
         setNumberOfPeople(num);
         setShowPeoplePicker(false);
     }, []);
@@ -57,20 +55,16 @@ export default function useReserveViewModel(facility) {
     // SUBMIT RESERVATION
     // ══════════════════════════════════════════════════════════
     const submitReservation = useCallback(async () => {
-        console.log('📝 STEP-1 [ReserveVM] submitReservation() called. Current form state:', { dateTime, numberOfPeople });
 
         // ── STEP-2: Validate ──
         if (!dateTime) {
-            console.log('🟡 STEP-2 [ReserveVM] Validation FAILED: no dateTime selected');
             toast.error('Please select date and time');
             return;
         }
         if (!numberOfPeople) {
-            console.log('🟡 STEP-2 [ReserveVM] Validation FAILED: no numberOfPeople selected');
             toast.error('Please select number of people');
             return;
         }
-        console.log('📝 STEP-2 [ReserveVM] Validation PASSED ✓');
 
         // ── STEP-3: Build payload ──
         // LEARNING: facility is a types[] item from the backend.
@@ -82,18 +76,14 @@ export default function useReserveViewModel(facility) {
             numberOfGuests: Number(numberOfPeople),
         };
 
-        console.log('📝 STEP-3 [ReserveVM] Payload built:', JSON.stringify(payload, null, 2));
 
         // ── STEP-4: Call API ──
         setIsSubmitting(true);
         try {
-            console.log('📝 STEP-4 [ReserveVM] Calling submitFacilityReservation()...');
             const response = await submitFacilityReservation(payload);
-            console.log('🟢 STEP-5 [ReserveVM] Reservation SUCCESS! Server response:', response);
 
             // ── STEP-6: Navigate on success ──
             toast.success('Your reservation has been successfully submitted!');
-            console.log('📝 STEP-6 [ReserveVM] Navigating to /facilities/upcoming-events');
             navigate('/facilities/upcoming-events', {
                 state: { showToast: false },
             });
@@ -103,7 +93,6 @@ export default function useReserveViewModel(facility) {
             toast.error(message);
         } finally {
             setIsSubmitting(false);
-            console.log('📝 [ReserveVM] submitReservation() — Complete');
         }
     }, [dateTime, numberOfPeople, facility, navigate]);
 

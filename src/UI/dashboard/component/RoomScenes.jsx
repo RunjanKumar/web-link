@@ -52,16 +52,12 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
 
     async function fetchScenes() {
       try {
-        console.log("🚀 [RoomScene] Fetching devices...");
         setIsLoading(true);
         const response = await getRoomDevices();
-        console.log("📦 [RoomScene] API response:", response);
         if (!cancelled && response?.data) {
-          console.log("📊 [RoomScene] Total devices:", response.data.length);
           const sceneDevices = response.data.filter(
             (device) => device.isSceneButton === true
           );
-          console.log("🎭 [RoomScene] Scene devices:", sceneDevices);
           setScenesData(sceneDevices);
 
           // Build initial toggle state from device status
@@ -71,7 +67,6 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
               const parsed = JSON.parse(device.status);
               initialToggles[device._id] = parsed?.state === 'ON';
             } catch (err) {
-              console.warn(`⚠️ Failed to parse status for ${device._id}`, err);
               initialToggles[device._id] = false;
             }
           });
@@ -103,7 +98,6 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
     const wasOn = sceneToggles[id];
     const newAction = wasOn ? 'TurnOff' : 'TurnOn';
 
-    console.log(`🔘 Toggling scene: ${device?.friendlyname} → ${newAction}`);
 
     // Optimistic UI update
     setSceneToggles((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -113,7 +107,6 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
         channelid: device?.channelid,
         action: newAction,
       });
-      console.log(`✅ Scene ${newAction} succeeded for ${device?.friendlyname}`);
 
       // If this was the Master Scene, notify parent so QuickActions stays in sync
       if (device?.isMasterScene) {

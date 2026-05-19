@@ -28,14 +28,10 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    console.log('[CouponDetailVM] ViewModel initialized');
-    console.log('[CouponDetailVM] couponId:', resolvedCouponId);
-    console.log('[CouponDetailVM] initialCoupon (from nav state):', routeCoupon);
 
     // Fetch full coupon detail from API on mount
     useEffect(() => {
         if (resolvedCouponId) {
-            console.log('[CouponDetailVM] useEffect → fetching coupon detail...');
             fetchCouponDetail(resolvedCouponId);
         }
     }, [resolvedCouponId]);
@@ -45,16 +41,11 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
             setIsLoading(true);
             setError(null);
 
-            console.log('[CouponDetailVM] Calling couponService.getCouponById:', id);
             const response = await getCouponById(id);
 
             const couponData = response?.data?.couponData;
             const coupon = Array.isArray(couponData) ? couponData[0] : couponData;
 
-            console.log('[CouponDetailVM] Coupon detail received:');
-            console.log('  name:', coupon?.name);
-            console.log('  applicableItemsData:', coupon?.applicableItemsData?.length, 'items');
-            console.log('  Full coupon:', coupon);
 
             setCouponDetail(coupon);
         } catch (err) {
@@ -96,13 +87,8 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
     const foodItems = useMemo(() => {
         const items = couponDetail?.applicableItemsData || [];
 
-        console.log('[CouponDetailVM] Mapping', items.length, 'food items');
 
         if (items[0]) {
-            console.log('[CouponDetailVM] ★ First raw coupon food item:');
-            console.log('  All fields:', items[0]);
-            console.log('  choiceOfAddOn:', items[0].choiceOfAddOn);
-            console.log('  inGridients:', items[0].inGridients);
         }
 
         return items.map((food) => ({

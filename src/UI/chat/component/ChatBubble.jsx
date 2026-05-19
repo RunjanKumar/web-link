@@ -16,7 +16,6 @@ export default function ChatBubble({ message, onRetry }) {
     const { text, timestamp, messageStatus, tempId, isOwn, isSending, isFailed } = message;
     const [isExpanded, setIsExpanded] = useState(false);
 
-    console.log('🖥️ [ChatBubble] Render. isOwn:', isOwn, '| status:', messageStatus, '| sending:', isSending, '| failed:', isFailed, '| text:', text.substring(0, 20));
 
     // ── Format timestamp ──
     const time = timestamp

@@ -16,32 +16,6 @@ export default function useFoodListViewModel({
     const sections = useMemo(() => {
         if (!foodItemData || foodItemData.length === 0) return [];
 
-        // console.log("foodItemData", foodItemData);
-
-        if (foodItemData[0]?.foodsInCategories?.[0]) {
-            const raw = foodItemData[0].foodsInCategories[0];
-            console.log('[FoodList] â˜… RAW first food item (ALL backend fields):');
-            console.log('  Backend field â†’ UI field mapping:');
-            console.log(`  raw._id = "${raw._id}" â†’ id`);
-            console.log(`  raw.name = "${raw.name}" â†’ title`);
-            console.log(`  raw.price = ${raw.price} â†’ price`);
-            console.log(`  raw.kcal = ${raw.kcal} â†’ calories`);
-            console.log(`  raw.type = ${raw.type} â†’ type (1=veg, 2=nonveg)`);
-            console.log(`  raw.description = "${raw.description}" â†’ description`);
-            console.log(`  raw.imageURL = "${raw.imageURL}" â†’ imageURL`);
-            console.log(`  raw.inGridients = [${(raw.inGridients || []).join(', ')}] â†’ inGridients`);
-            console.log(`  raw.choiceOfAddOn = [${(raw.choiceOfAddOn || []).join(', ')}] â†’ choiceOfAddOn`);
-            console.log(`    â†‘ Are these ObjectIDs (strings) or populated objects?`);
-            console.log(`    Type of first item: ${typeof raw.choiceOfAddOn?.[0]}`);
-            if (raw.choiceOfAddOn?.[0] && typeof raw.choiceOfAddOn[0] === 'object') {
-                console.log('    âœ… POPULATED! Has:', Object.keys(raw.choiceOfAddOn[0]));
-            } else {
-                console.log('    âš ï¸ NOT POPULATED â€” just ObjectID strings. Need backend .populate()');
-            }
-            console.log(`  raw.isAvailable = ${raw.isAvailable} â†’ isAvailable`);
-            console.log(`  raw.mealType = [${(raw.mealType || []).join(', ')}] â†’ mealType`);
-            console.log('  Full raw object:', raw);
-        }
 
         return foodItemData
             .map((category, index) => {
@@ -62,7 +36,6 @@ export default function useFoodListViewModel({
                     couponData: food.couponData,
                 }));
 
-                console.log(`[FoodList] Category "${category.name}": ${foods.length} foods mapped`);
 
                 return {
                     categoryId: category._id,
@@ -77,7 +50,6 @@ export default function useFoodListViewModel({
     const displaySections = useMemo(() => {
         if (!searchText) return sections;
 
-        console.log('[FoodList] Filtering foods by search text:', searchText);
         return sections
             .map((section) => ({
                 ...section,
@@ -92,7 +64,6 @@ export default function useFoodListViewModel({
 
     useImperativeHandle(ref, () => ({
         scrollToCategory(globalIndex) {
-            console.log('[FoodList] scrollToCategory called for index:', globalIndex);
             const section = displaySections.find((item) => item.globalIndex === globalIndex);
             if (!section) return;
 
@@ -103,7 +74,6 @@ export default function useFoodListViewModel({
             lastReported.current = globalIndex;
 
             const top = el.getBoundingClientRect().top + window.scrollY - STICKY_OFFSET;
-            console.log('[FoodList] Scrolling to y:', top, '(offset:', STICKY_OFFSET, ')');
             window.scrollTo({ top, behavior: 'smooth' });
         },
     }), [displaySections]);

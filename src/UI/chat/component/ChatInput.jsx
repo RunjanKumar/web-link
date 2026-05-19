@@ -29,7 +29,6 @@ export default function ChatInput({
 
     const hasText = inputText.trim().length > 0;
 
-    console.log('🖥️ [ChatInput] Render. hasText:', hasText, '| sending:', isSending, '| connected:', isConnected);
 
     return (
         <div className="mt-3">

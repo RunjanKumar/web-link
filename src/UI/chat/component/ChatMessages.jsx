@@ -51,7 +51,6 @@ export default function ChatMessages({
     const isAtBottomRef = useRef(true);
     const prevScrollHeightRef = useRef(0);
 
-    console.log('🖥️ [ChatMessages] Render. messages:', messages.length, '| hasMore:', hasMoreMessages, '| loadingMore:', isLoadingMore);
 
     // ── Check if user is at bottom ──
     const checkIfAtBottom = useCallback(() => {

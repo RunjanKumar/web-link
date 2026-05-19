@@ -54,27 +54,23 @@ export function FoodOrderProvider({ children }) {
     // BOGO items start at quantity 2, others at 1
     // If item already exists → increment by 2 for BOGO, 1 for others
     const addToFoodCart = useCallback((item) => {
-        console.log('[Cart] ADD:', item.title, '(id:', item.id, ')');
         const bogoItem = item?.couponData?.discountType === DISCOUNT_TYPES.BOGO;
         const step = bogoItem ? 2 : 1;
 
         setFoodCart((prevCart) => {
             const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
             if (existingItem) {
-                console.log('[Cart] Item exists, incrementing quantity:', existingItem.quantity, '→', existingItem.quantity + step);
                 return prevCart.map((cartItem) =>
                     cartItem.id === item.id
                         ? { ...cartItem, ...item, quantity: cartItem.quantity + step }
                         : cartItem
                 );
             }
-            console.log('[Cart] New item, adding with quantity:', step);
             return [...prevCart, { ...item, quantity: step }];
         });
     }, []);
 
     const updateFoodCartItem = useCallback((itemId, itemUpdates) => {
-        console.log('[Cart] UPDATE item details:', itemId);
         setFoodCart((prevCart) =>
             prevCart.map((item) =>
                 item.id === itemId ? { ...item, ...itemUpdates } : item
@@ -84,7 +80,6 @@ export function FoodOrderProvider({ children }) {
 
     // ── REMOVE FROM CART ──
     const removeFromFoodCart = useCallback((itemId) => {
-        console.log('[Cart] REMOVE item:', itemId);
         setFoodCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
     }, []);
 
@@ -92,10 +87,8 @@ export function FoodOrderProvider({ children }) {
     // If quantity ≤ 0 → remove the item entirely
     const updateFoodCartQuantity = useCallback((itemId, quantity) => {
         if (quantity <= 0) {
-            console.log('[Cart] UPDATE quantity to', quantity, '→ removing item:', itemId);
             removeFromFoodCart(itemId);
         } else {
-            console.log('[Cart] UPDATE quantity:', itemId, '→', quantity);
             setFoodCart((prevCart) =>
                 prevCart.map((item) =>
                     item.id === itemId ? { ...item, quantity } : item
@@ -106,14 +99,12 @@ export function FoodOrderProvider({ children }) {
 
     // ── CLEAR CART ──
     const clearFoodCart = useCallback(() => {
-        console.log('[Cart] CLEAR all items');
         setFoodCart([]);
     }, []);
 
     // ── GET TOTAL PRICE ──
     const getFoodCartTotal = useCallback(() => {
         const total = foodCart.reduce((total, item) => total + getFoodItemTotal(item), 0);
-        console.log('[Cart] Total price:', total);
         return total;
     }, [foodCart, getFoodItemTotal]);
 

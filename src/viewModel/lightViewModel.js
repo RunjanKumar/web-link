@@ -45,21 +45,14 @@ export default function useLightViewModel() {
             try {
                 setIsLoading(true);
                 setError(null);
-                console.log("🚀 [LightVM] Fetching devices...");
                 const response = await getRoomDevices();
-                console.group("📦 [LightVM] API Response");
-                console.log("📦 [LightVM] API response:", response);
 
                 if (!cancelled && response?.data) {
                     // Filter: only devices that are NOT scene buttons
-                    console.log("📊 Total devices:", response.data.length);
 
                     const nonSceneDevices = response.data.filter(
                         (device) => !device.isSceneButton
                     );
-                    console.log("💡 Non-scene devices:", nonSceneDevices);
-                    console.table(nonSceneDevices);
-                    console.groupEnd();
                     setLightsData(nonSceneDevices);
 
                     // Find the Master Scene device — we need its channelid
@@ -68,7 +61,6 @@ export default function useLightViewModel() {
                         (device) => device.isMasterScene === true
                     );
                     if (masterDevice) {
-                        console.log("🎯 Found Master Scene device:", masterDevice.channelid);
                         setMasterSceneDevice(masterDevice);
                     }
 
@@ -77,24 +69,19 @@ export default function useLightViewModel() {
                     const initialFanLevels = {};
                     nonSceneDevices.forEach((device) => {
                         try {
-                            console.log(`🔍 Parsing ${device.friendlyname}`, device.status);
                             const parsed = JSON.parse(device.status);
                             initialState[device._id] = parsed?.state === 'ON';
                             // Extract fan level if device is a FAN
                             if (device.type === 'FAN') {
                                 initialFanLevels[device._id] = parsed?.level ?? 0;
-                                console.log(`🌀 Fan level for ${device._id}:`, parsed?.level);
                             }
                         } catch (err) {
-                            console.warn(`⚠️ Parse failed for ${device._id}`, err);
                             initialState[device._id] = false;
                             if (device.type === 'FAN') {
                                 initialFanLevels[device._id] = 0;
                             }
                         }
                     });
-                    console.log("🎛️ Initial light state:", initialState);
-                    console.log("🌀 Initial fan levels:", initialFanLevels);
                     setLights(initialState);
                     setFanLevels(initialFanLevels);
 
@@ -104,7 +91,6 @@ export default function useLightViewModel() {
                         try {
                             const masterParsed = JSON.parse(masterDevice.status);
                             setMasterSwitch(masterParsed?.state === 'ON');
-                            console.log("💡 Master switch initial:", masterParsed?.state === 'ON');
                         } catch {
                             setMasterSwitch(false);
                         }
@@ -122,7 +108,6 @@ export default function useLightViewModel() {
                 }
             } finally {
                 if (!cancelled) {
-                    console.log("✅ [LightVM] Loading complete");
                     setIsLoading(false);
                 }
             }
@@ -130,7 +115,6 @@ export default function useLightViewModel() {
 
         fetchDevices();
         return () => {
-            console.log("🧹 [LightVM] Cleanup - cancelling request");
             cancelled = true;
         };
     }, []);
@@ -143,7 +127,6 @@ export default function useLightViewModel() {
         const wasOn = lights[id];
         const newAction = wasOn ? 'TurnOff' : 'TurnOn';
 
-        console.log(`💡 Toggle light: ${id} → ${newAction}`);
 
         // Optimistic UI update
         setLights((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -157,9 +140,7 @@ export default function useLightViewModel() {
             if (device?.type === 'FAN') {
                 payload.level = fanLevels[id] ?? 0;
             }
-            console.log("📡 execDevice payload:", payload);
             await execDevice(payload);
-            console.log(`✅ ${newAction} succeeded for ${id}`);
         } catch (err) {
             console.error(`❌ execDevice failed for ${id}:`, err);
             // ── Show backend error message in toast ──
@@ -179,14 +160,12 @@ export default function useLightViewModel() {
         const newState = !masterSwitch;
         const newAction = newState ? 'TurnOn' : 'TurnOff';
 
-        console.log("🔌 Master toggle:", newAction);
 
         // Optimistic UI update
         setMasterSwitch(newState);
         setLights((prev) => {
             const updated = {};
             for (const key in prev) updated[key] = newState;
-            console.log("💡 Updated all lights:", updated);
             return updated;
         });
 
@@ -196,7 +175,6 @@ export default function useLightViewModel() {
                 channelid: masterSceneDevice?.channelid,
                 action: newAction,
             });
-            console.log(`✅ Master ${newAction} complete`);
         } catch (err) {
             console.error(`❌ Master exec failed:`, err);
             const backendMsg = err?.response?.data?.msg;
@@ -238,7 +216,6 @@ export default function useLightViewModel() {
         const device = lightsData.find((d) => d._id === id);
         const prevLevel = fanLevels[id] ?? 0;
 
-        console.log(`🌀 Fan ${id} level changed to: ${level}`);
 
         // Step 1: Update UI immediately (optimistic update)
         // This makes the slider feel responsive without waiting for the API
@@ -256,13 +233,11 @@ export default function useLightViewModel() {
         // long enough to batch rapid slider movements into one API call
         fanDebounceTimers.current[id] = setTimeout(async () => {
             try {
-                console.log(`📡 [Debounced] Sending fan level ${level} for ${id}`);
                 await execDevice({
                     channelid: device?.channelid,
                     action: 'TurnOn',
                     level,
                 });
-                console.log(`✅ Fan level update succeeded for ${id}`);
             } catch (err) {
                 console.error(`❌ Fan level update failed for ${id}:`, err);
                 // ── Show backend error message in toast ──

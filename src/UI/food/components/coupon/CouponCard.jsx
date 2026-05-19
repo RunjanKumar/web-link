@@ -2,7 +2,6 @@ import useCouponCardViewModel from '../../../../viewModel/couponCardViewModel';
 
 export default function CouponCard({ coupon }) {
     const { imageURL, name, handleClick } = useCouponCardViewModel(coupon);
-    // console.log("name--------", name);
 
     return (
         <div

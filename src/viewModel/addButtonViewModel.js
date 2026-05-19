@@ -8,7 +8,6 @@ export default function useAddButtonViewModel(item) {
 
     const handleAdd = (event) => {
         event.stopPropagation();
-        console.log('[AddButton] Adding to cart:', item.title, '(id:', item.id, ')');
         addToFoodCart(item);
     };
 
@@ -16,7 +15,6 @@ export default function useAddButtonViewModel(item) {
     const handleIncrement = (event) => {
         event.stopPropagation();
         const step = isBogo ? 2 : 1;
-        console.log('[AddButton] Incrementing:', item.title, '→', quantity + step);
         updateFoodCartQuantity(item.id, quantity + step);
     };
 

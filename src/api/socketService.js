@@ -74,7 +74,6 @@ const socketService = {
      */
     emit(event, data, ack) {
         if (!socket?.connected) {
-            console.warn(`[SocketService] Cannot emit "${event}" — socket not connected`);
             return;
         }
         if (ack) {
@@ -91,7 +90,6 @@ const socketService = {
      */
     on(event, handler) {
         if (!socket) {
-            console.warn(`[SocketService] Cannot listen to "${event}" — socket not initialized`);
             return;
         }
         socket.on(event, handler);

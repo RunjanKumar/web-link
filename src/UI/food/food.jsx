@@ -21,11 +21,6 @@ export default function FoodOrder() {
         handleVisibleCategoryChange,
     } = useFoodViewModel();
 
-    console.log('[FoodPage] STEP 8: FoodOrder rendered');
-    console.log('[FoodPage] Data from ViewModel:');
-    console.log(foodItemData, '  foodItemData:', foodItemData ? `${foodItemData.length} categories` : 'null (still loading)');
-    console.log('  couponData:', couponData ? 'available' : 'null');
-    console.log('  isLoading:', isLoading);
 
     return (
         <div className="min-h-screen bg-[#111111] text-white px-5 py-6 pb-[96px]">

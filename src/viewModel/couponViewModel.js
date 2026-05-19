@@ -23,11 +23,9 @@ export default function useCouponViewModel(rawCouponData) {
      */
     const coupons = useMemo(() => {
         if (!rawCouponData || !Array.isArray(rawCouponData)) {
-            console.log('[CouponVM] No coupon data available');
             return [];
         }
 
-        console.log('[CouponVM] Transforming coupon data:', rawCouponData, 'coupons');
 
         return rawCouponData.map((coupon, index) => {
             // Build the headline text from coupon fields
@@ -101,7 +99,6 @@ export default function useCouponViewModel(rawCouponData) {
 
 // ── Helper: build human-readable discount text ──────────────
 function buildDiscountText(coupon) {
-      console.log("name--------+++++++++", coupon);
     const value = coupon.discountValue;
     const type = coupon.discountType;
 

@@ -34,11 +34,9 @@ export default function useFoodViewModel() {
     const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
     const foodListRef = useRef(null);
 
-    console.log('[FoodVM] ViewModel initialized. isLoading:', isLoading);
 
     // Fetch food categories on mount
     useEffect(() => {
-        console.log('[FoodVM] STEP 3: useEffect triggered → calling fetchFoodCategories()');
         fetchFoodCategories();
     }, []);
 
@@ -50,22 +48,16 @@ export default function useFoodViewModel() {
             setIsLoading(true);
             setError(null);
 
-            console.log('[FoodVM] STEP 4: Calling foodService.getFoodCategories()...');
 
             const response = await getFoodCategories({
                 hasFoods: false,
                 excludeCouponAppliedCategories: false,
             });
 
-            console.log('[FoodVM] STEP 5: API response received in ViewModel');
-            console.log('[FoodVM] Response structure: response.data =', response?.data);
 
             const foods = response?.data?.data || [];
             const coupons = response?.data?.couponData;
 
-            console.log('[FoodVM] STEP 6: Extracted data');
-            console.log(`  foodItemData: ${foods.length} categories`);
-            console.log(`  couponData: ${coupons ? (Array.isArray(coupons) ? coupons.length + ' coupons' : 'object') : 'none'}`);
 
             // LEARNING: These setState calls trigger a re-render.
             // The UI components (food.jsx) will receive the new data
@@ -73,7 +65,6 @@ export default function useFoodViewModel() {
             setFoodItemData(foods);
             setCouponData(coupons);
 
-            console.log('[FoodVM] STEP 7: State updated → UI will re-render with new data');
 
         } catch (err) {
             console.error('[FoodVM] ❌ ERROR fetching food categories:', err);
@@ -81,7 +72,6 @@ export default function useFoodViewModel() {
             setError(err?.response?.data?.message || 'Failed to load food categories');
         } finally {
             setIsLoading(false);
-            console.log('[FoodVM] Loading complete. isLoading set to false.');
         }
     }
 
@@ -89,19 +79,15 @@ export default function useFoodViewModel() {
      * Selects a category.
      */
     function selectCategory(category) {
-        console.log('[FoodVM] Category selected:', category?.name);
         setSelectedCategory(category);
     }
 
     const handleCategorySelect = useCallback((index) => {
-        console.log('[FoodPage] STEP: Category tab clicked â†’ index:', index);
-        console.log('[FoodPage] Calling foodListRef.scrollToCategory() to smooth-scroll to section');
         setActiveCategoryIndex(index);
         foodListRef.current?.scrollToCategory(index);
     }, []);
 
     const handleVisibleCategoryChange = useCallback((index) => {
-        console.log('[FoodPage] STEP: Scroll detected new visible category â†’ index:', index);
         setActiveCategoryIndex(index);
     }, []);
 

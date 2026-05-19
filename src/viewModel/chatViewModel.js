@@ -67,12 +67,6 @@ function normalizeMessage(raw, currentUserId) {
         isFailed: false,
     };
 
-    console.log('💬 [ChatVM] normalizeMessage():', {
-        rawId: raw._id,
-        isOwn: normalized.isOwn,
-        textPreview: normalized.text.substring(0, 30) + (normalized.text.length > 30 ? '...' : ''),
-        status: normalized.messageStatus,
-    });
 
     return normalized;
 }
@@ -96,7 +90,6 @@ export default function useChatViewModel() {
     const { socketService, isConnected, connectionStatus } = useSocket();
     const { userId } = useAuth();
 
-    console.log('💬 [ChatVM] Hook initialized. userId:', userId, '| connected:', isConnected, '| status:', connectionStatus);
 
     // ════════════════════════════════════════════════════════════
     // DEDUPLICATION HELPER
@@ -106,7 +99,6 @@ export default function useChatViewModel() {
     const addMessageIfNew = useCallback((msg) => {
         const key = msg.id || msg.tempId;
         if (messageIdsRef.current.has(key)) {
-            console.log('💬 [ChatVM] addMessageIfNew() → DUPLICATE skipped:', key);
             return false;
         }
         messageIdsRef.current.add(key);
@@ -121,10 +113,6 @@ export default function useChatViewModel() {
         const rawMessages = responseData?.data || responseData?.messages || [];
         const count = responseData?.totalCount || 0;
 
-        console.log('💬 [ChatVM] extractFromResponse():', {
-            rawMessagesCount: Array.isArray(rawMessages) ? rawMessages.length : 'not array',
-            totalCount: count,
-        });
 
         return {
             rawMessages: Array.isArray(rawMessages) ? rawMessages : [],
@@ -138,7 +126,6 @@ export default function useChatViewModel() {
     // ════════════════════════════════════════════════════════════
     const loadMessages = useCallback(async () => {
         try {
-            console.log('💬 STEP-1 [ChatVM] loadMessages() — Fetching initial messages via REST API...');
             setIsLoading(true);
 
             // STEP-2: Call chatService
@@ -148,14 +135,12 @@ export default function useChatViewModel() {
             });
 
             const { rawMessages, totalCount: total } = extractFromResponse(response);
-            console.log('💬 STEP-2 [ChatVM] Got', rawMessages.length, 'messages. Total on server:', total);
 
             // STEP-3: Backend returns newest-first, we reverse for chat display (oldest at top)
             const normalized = rawMessages
                 .map((raw) => normalizeMessage(raw, userId))
                 .reverse();
 
-            console.log('💬 STEP-3 [ChatVM] Normalized & reversed. Messages ready for display:', normalized.length);
 
             // Populate dedup set
             messageIdsRef.current.clear();
@@ -169,7 +154,6 @@ export default function useChatViewModel() {
             setHasMoreMessages(rawMessages.length < total);
             skipRef.current = rawMessages.length;
 
-            console.log('💬 STEP-4 [ChatVM] Initial load complete. hasMore:', rawMessages.length < total, '| skip:', rawMessages.length);
         } catch (err) {
             console.error('🔴 [ChatVM] loadMessages() FAILED:', err.message);
         } finally {
@@ -184,7 +168,6 @@ export default function useChatViewModel() {
         if (!hasMoreMessages || isLoadingMore) return;
 
         try {
-            console.log('💬 [ChatVM] loadMoreMessages() — skip:', skipRef.current, '| limit:', PAGE_SIZE);
             setIsLoadingMore(true);
 
             const response = await fetchConversationMessages({
@@ -194,7 +177,6 @@ export default function useChatViewModel() {
 
             const { rawMessages } = extractFromResponse(response);
             if (rawMessages.length === 0) {
-                console.log('💬 [ChatVM] loadMoreMessages() → No more messages. Setting hasMore=false');
                 setHasMoreMessages(false);
                 return;
             }
@@ -205,7 +187,6 @@ export default function useChatViewModel() {
 
             // Only add messages we haven't seen (dedup)
             const newMsgs = normalized.filter((m) => addMessageIfNew(m));
-            console.log('💬 [ChatVM] loadMoreMessages() → New unique messages:', newMsgs.length);
 
             if (newMsgs.length > 0) {
                 // Prepend older messages to the top
@@ -230,7 +211,6 @@ export default function useChatViewModel() {
         if (!trimmed) return;
 
         const tempId = generateTempId();
-        console.log('💬 STEP-1 [ChatVM] sendMessage() — Text:', trimmed.substring(0, 30), '| tempId:', tempId);
 
         // STEP-2: Create optimistic message (shown instantly)
         const optimisticMsg = {
@@ -252,11 +232,9 @@ export default function useChatViewModel() {
         setMessages((prev) => [...prev, optimisticMsg]);
         setInputText('');
         setIsSending(true);
-        console.log('💬 STEP-2 [ChatVM] Optimistic message added to UI');
 
         // STEP-3: If offline, queue the message
         if (!isConnected) {
-            console.log('🟡 STEP-3 [ChatVM] OFFLINE → Queuing message for later send');
             setMessages((prev) =>
                 prev.map((m) =>
                     m.tempId === tempId ? { ...m, isSending: false, isFailed: true } : m
@@ -268,7 +246,6 @@ export default function useChatViewModel() {
         }
 
         // STEP-4: Emit through socket
-        console.log('💬 STEP-3 [ChatVM] Emitting via socket:', CLIENT_EVENTS.SEND_MESSAGE);
         socketService.emit(CLIENT_EVENTS.SEND_MESSAGE, {
             message: trimmed,
             tempId,
@@ -294,7 +271,6 @@ export default function useChatViewModel() {
         const msg = messages.find((m) => m.tempId === tempId);
         if (!msg || !isConnected) return;
 
-        console.log('💬 [ChatVM] retryMessage() → Re-sending tempId:', tempId, '| text:', msg.text.substring(0, 20));
 
         setMessages((prev) =>
             prev.map((m) =>
@@ -315,7 +291,6 @@ export default function useChatViewModel() {
     // ════════════════════════════════════════════════════════════
     const markAsRead = useCallback((messageId) => {
         if (!isConnected) return;
-        console.log('💬 [ChatVM] markAsRead() → messageId:', messageId);
         socketService.emit(CLIENT_EVENTS.READ_MESSAGE, { messageId });
     }, [isConnected, socketService]);
 
@@ -325,16 +300,13 @@ export default function useChatViewModel() {
     // ════════════════════════════════════════════════════════════
     useEffect(() => {
         if (!isConnected) return;
-        console.log('💬 [ChatVM] Setting up socket listeners (connected=true)');
 
         // ── New message from server ──
         const onNewMessage = (data) => {
-            console.log('💬 [ChatVM] 🔔 Socket event:', SERVER_EVENTS.NEW_MESSAGE, '| data.tempId:', data.tempId, '| data._id:', data._id);
             const msg = normalizeMessage(data, userId);
 
             // Case 1: Server echoed back our tempId → replace optimistic message
             if (data.tempId && messageIdsRef.current.has(data.tempId)) {
-                console.log('💬 [ChatVM] Case 1: Replacing optimistic message with server-confirmed. tempId:', data.tempId);
                 messageIdsRef.current.add(msg.id);
                 setMessages((prev) =>
                     prev.map((m) =>
@@ -348,14 +320,12 @@ export default function useChatViewModel() {
 
             // Case 2: Our own message echoed back WITHOUT tempId
             if (msg.isOwn) {
-                console.log('💬 [ChatVM] Case 2: Own message echo (no tempId). Checking for optimistic match...');
                 setMessages((prev) => {
                     const optimisticIndex = prev.findIndex(
                         (m) => m.tempId && m.isOwn && m.text === msg.text && (m.isSending || !m.id || m.id === m.tempId)
                     );
 
                     if (optimisticIndex !== -1) {
-                        console.log('💬 [ChatVM] Case 2a: Found optimistic match at index:', optimisticIndex, '→ replacing');
                         messageIdsRef.current.add(msg.id);
                         const updated = [...prev];
                         updated[optimisticIndex] = {
@@ -367,11 +337,9 @@ export default function useChatViewModel() {
                     }
 
                     if (messageIdsRef.current.has(msg.id)) {
-                        console.log('💬 [ChatVM] Case 2b: Already have this message by real ID → skip');
                         return prev;
                     }
 
-                    console.log('💬 [ChatVM] Case 2c: New own message (maybe from another device) → appending');
                     messageIdsRef.current.add(msg.id);
                     return [...prev, msg];
                 });
@@ -380,7 +348,6 @@ export default function useChatViewModel() {
 
             // Case 3: New message from the other party
             if (addMessageIfNew(msg)) {
-                console.log('💬 [ChatVM] Case 3: New message from staff → appending. id:', msg.id);
                 setMessages((prev) => [...prev, msg]);
             }
         };
@@ -389,7 +356,6 @@ export default function useChatViewModel() {
         const onReadMessage = (data) => {
             const msgId = data?.messageId || data?._id;
             if (!msgId) return;
-            console.log('💬 [ChatVM] 🔔 Socket event:', SERVER_EVENTS.READ_MESSAGE, '→ marking as SEEN:', msgId);
 
             setMessages((prev) =>
                 prev.map((m) =>
@@ -406,7 +372,6 @@ export default function useChatViewModel() {
 
         // ── Cleanup listeners on unmount ──
         return () => {
-            console.log('💬 [ChatVM] Cleaning up socket listeners');
             socketService.off(SERVER_EVENTS.NEW_MESSAGE, onNewMessage);
             socketService.off(SERVER_EVENTS.READ_MESSAGE, onReadMessage);
         };
@@ -417,7 +382,6 @@ export default function useChatViewModel() {
     // ════════════════════════════════════════════════════════════
     useEffect(() => {
         if (isConnected && pendingMessages.length > 0) {
-            console.log('💬 [ChatVM] Reconnected! Flushing', pendingMessages.length, 'pending messages...');
             pendingMessages.forEach((pending) => {
                 socketService.emit(CLIENT_EVENTS.SEND_MESSAGE, {
                     message: pending.text,
@@ -440,7 +404,6 @@ export default function useChatViewModel() {
     // INITIAL LOAD
     // ════════════════════════════════════════════════════════════
     useEffect(() => {
-        console.log('💬 [ChatVM] Component mounted → triggering loadMessages()');
         loadMessages();
     }, [loadMessages]);
 

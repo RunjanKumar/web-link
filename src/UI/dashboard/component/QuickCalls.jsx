@@ -1,5 +1,4 @@
 export default function QuickCalls({ quickCallData, handleQuickCallClick, error }) { //in future show error 
-  console.log("quickCallData", quickCallData);
 
   const count = quickCallData?.length || 0;
 

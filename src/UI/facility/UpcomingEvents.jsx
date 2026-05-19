@@ -26,7 +26,6 @@ export default function UpcomingEvents() {
         refetch,
     } = useBookedFacilityViewModel();
 
-    console.log('🖥️ [UpcomingEvents PAGE] Render. loading:', loading, '| error:', !!error, '| pending:', pendingReservations.length, '| approved:', approvedReservations.length);
 
     // Show success toast after a successful booking navigation
     useEffect(() => {
