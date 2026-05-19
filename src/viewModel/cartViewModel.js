@@ -6,14 +6,7 @@ import { validateCoupon } from "../api/service/couponService";
 import useCustomerProfile from "../hooks/CustomerProfile";
 import useGlobal from "../hooks/FoodOrder";
 import { getEffectivePrice } from "../utils/discountHelper";
-
-function isFoodAvailable(food) {
-    if (!food) return false;
-    if (food.isAvailable === false || food.available === false) return false;
-    if (food.status === false) return false;
-    if (typeof food.status === 'string' && food.status.toLowerCase() === 'unavailable') return false;
-    return true;
-}
+import { DISCOUNT_TYPES } from "../utils/constant";
 
 export default function useCartViewModel() {
     const navigate = useNavigate();
@@ -25,7 +18,6 @@ export default function useCartViewModel() {
         foodCart,
         getCartUnitPrice,
         getFoodCartTotal,
-        updateFoodCartItem,
         updateFoodCartQuantity,
         removeFromFoodCart,
     } = useGlobal();
@@ -41,6 +33,7 @@ export default function useCartViewModel() {
     const payableAmount = itemsTotal + taxAmount;
     const itemCount = foodCart.reduce((count, item) => count + item.quantity, 0);
 
+    // Flat list — add-ons are independent cart items (isAddOn flag)
     const items = useMemo(() => foodCart.map((item) => ({
         ...item,
         unitPrice: getCartUnitPrice(item),
@@ -55,22 +48,22 @@ export default function useCartViewModel() {
             priceAfterDiscount: item.priceAfterDiscount,
             couponData: item.couponData,
         }) * item.quantity,
-        addOns: (item.selectedAddOns || []).map((addOn) => ({
-            id: addOn._id || addOn.id,
-            title: addOn.name || addOn.title,
-            imageURL: addOn.imageURL || addOn.image,
-            unitPrice: addOn.price || 0,
-            lineTotal: isFoodAvailable(addOn) ? (addOn.price || 0) * (addOn.quantity || 1) : 0,
-            quantity: addOn.quantity || 1,
-            isAvailable: isFoodAvailable(addOn),
-        })),
     })), [foodCart, getCartUnitPrice]);
 
     const handleBack = () => navigate(-1);
     const handleBrowseFood = () => navigate('/food');
-    const handleIncrement = (item) => updateFoodCartQuantity(item.id, item.quantity + 1);
-    const handleDecrement = (item) => updateFoodCartQuantity(item.id, item.quantity - 1);
+
+    // BOGO: increment by 2, decrement by 1
+    const handleIncrement = (item) => {
+        const isBogo = item.couponData?.discountType === DISCOUNT_TYPES.BOGO;
+        const step = isBogo ? 2 : 1;
+        updateFoodCartQuantity(item.id, item.quantity + step);
+    };
+    const handleDecrement = (item) => {
+        updateFoodCartQuantity(item.id, item.quantity - 1);
+    };
     const handleRemove = (item) => removeFromFoodCart(item.id);
+
     const handleCouponCodeChange = (event) => {
         setCouponCode(event.target.value);
         setAppliedCouponName("");
@@ -114,26 +107,6 @@ export default function useCartViewModel() {
             setIsApplyingCoupon(false);
         }
     };
-    const handleAddOnIncrement = (item, addOn) => {
-        updateFoodCartItem(item.id, {
-            selectedAddOns: (item.selectedAddOns || []).map((currentAddOn) =>
-                (currentAddOn._id || currentAddOn.id) === addOn.id
-                    ? { ...currentAddOn, quantity: (currentAddOn.quantity || 1) + 1 }
-                    : currentAddOn
-            ),
-        });
-    };
-    const handleAddOnDecrement = (item, addOn) => {
-        updateFoodCartItem(item.id, {
-            selectedAddOns: (item.selectedAddOns || [])
-                .map((currentAddOn) =>
-                    (currentAddOn._id || currentAddOn.id) === addOn.id
-                        ? { ...currentAddOn, quantity: (currentAddOn.quantity || 1) - 1 }
-                        : currentAddOn
-                )
-                .filter((currentAddOn) => (currentAddOn.quantity || 0) > 0),
-        });
-    };
     const toggleBillExpanded = () => setIsBillExpanded((current) => !current);
 
     return {
@@ -153,8 +126,6 @@ export default function useCartViewModel() {
         handleBrowseFood,
         handleIncrement,
         handleDecrement,
-        handleAddOnIncrement,
-        handleAddOnDecrement,
         handleRemove,
         handleCouponCodeChange,
         handleApplyCoupon,

@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useGlobal from "../hooks/FoodOrder";
 import { getEffectivePrice } from "../utils/discountHelper";
+import { DISCOUNT_TYPES } from "../utils/constant";
 
 function isFoodAvailable(food) {
     if (!food) return false;
@@ -17,61 +18,58 @@ export default function useFoodDetailViewModel() {
     const {
         addToFoodCart,
         foodCart,
-        updateFoodCartItem,
         updateFoodCartQuantity,
+        removeFromFoodCart,
         getItemQuantity,
     } = useGlobal();
-    const existingCartItem = foodCart.find((item) => item.id === state?.id);
-    const [selectedAddOns, setSelectedAddOns] = useState(() => (
-        new Set((existingCartItem?.selectedAddOns || []).map((addOn) => addOn._id || addOn.id))
-    ));
 
     const quantity = getItemQuantity(state?.id);
     const isAvailable = isFoodAvailable(state);
+    const isBogo = state?.couponData?.discountType === DISCOUNT_TYPES.BOGO;
+
     const itemPrice = getEffectivePrice({
         price: state?.price ?? 0,
         priceAfterDiscount: state?.priceAfterDiscount,
         couponData: state?.couponData,
     });
+
     const ingredients = state?.inGridients || [];
-    const addOns = (state?.choiceOfAddOnDetails || []).filter(
-        (addOn) => typeof addOn === 'object' && addOn !== null
-    );
 
-    const selectedAddOnItems = useMemo(() => (
-        addOns
-            .filter((addOn) => selectedAddOns.has(addOn._id || addOn.id) && isFoodAvailable(addOn))
-            .map((addOn) => {
-                const addOnId = addOn._id || addOn.id;
-                const existingAddOn = existingCartItem?.selectedAddOns?.find(
-                    (item) => (item._id || item.id) === addOnId
-                );
+    // Add-ons from the food item's choiceOfAddOnDetails
+    const addOns = useMemo(() => (
+        (state?.choiceOfAddOnDetails || []).filter(
+            (addOn) => typeof addOn === 'object' && addOn !== null
+        )
+    ), [state?.choiceOfAddOnDetails]);
 
-                return {
-                    ...addOn,
-                    quantity: existingAddOn?.quantity || 1,
-                };
-            })
-    ), [addOns, existingCartItem?.selectedAddOns, selectedAddOns]);
+    // For each add-on, check its quantity in the cart (independent items)
+    const addOnQuantities = useMemo(() => {
+        const map = {};
+        addOns.forEach((addOn) => {
+            const addOnId = addOn._id || addOn.id;
+            map[addOnId] = getItemQuantity(addOnId);
+        });
+        return map;
+    }, [addOns, getItemQuantity]);
 
-    const addOnTotal = selectedAddOnItems.reduce(
-        (sum, addOn) => sum + ((addOn.price || 0) * (addOn.quantity || 1)),
-        0
-    );
+    // Total price = main food + all add-ons in cart for this food
+    const addOnTotal = useMemo(() => (
+        addOns.reduce((sum, addOn) => {
+            const addOnId = addOn._id || addOn.id;
+            const qty = addOnQuantities[addOnId] || 0;
+            return sum + ((addOn.price || 0) * qty);
+        }, 0)
+    ), [addOns, addOnQuantities]);
+
     const totalPrice = (itemPrice * (quantity || 1)) + addOnTotal;
-
-    const cartItem = useMemo(() => ({
-        ...state,
-        cartUnitPrice: itemPrice,
-        selectedAddOns: selectedAddOnItems,
-        addOnTotal,
-    }), [state, itemPrice, selectedAddOnItems, addOnTotal]);
 
     const handleBack = () => navigate(-1);
 
+    // ── MAIN FOOD: Add / Increment / Decrement ──
+
     const handleAdd = () => {
         if (!isAvailable) return;
-        addToFoodCart(cartItem);
+        addToFoodCart({ ...state, cartUnitPrice: itemPrice });
     };
 
     const handleIncrement = () => {
@@ -79,8 +77,8 @@ export default function useFoodDetailViewModel() {
             handleAdd();
             return;
         }
-        updateFoodCartItem(state?.id, cartItem);
-        updateFoodCartQuantity(state?.id, quantity + 1);
+        const step = isBogo ? 2 : 1;
+        updateFoodCartQuantity(state?.id, quantity + step);
     };
 
     const handleDecrement = () => {
@@ -89,45 +87,63 @@ export default function useFoodDetailViewModel() {
 
     const handleAddItemsClick = () => {
         if (!isAvailable) return;
-
         if (quantity === 0) {
-            addToFoodCart(cartItem);
-        } else {
-            updateFoodCartItem(state?.id, cartItem);
+            addToFoodCart({ ...state, cartUnitPrice: itemPrice });
         }
-
         navigate('/cart');
     };
 
-    const toggleAddOn = (addOn) => {
+    // ── ADD-ON: Toggle / Increment / Decrement (independent cart items) ──
+
+    const handleAddOnAdd = (addOn) => {
         if (!isFoodAvailable(addOn)) return;
         const addOnId = addOn._id || addOn.id;
+        const addOnItem = {
+            id: addOnId,
+            title: addOn.name || addOn.title,
+            price: addOn.price || 0,
+            priceAfterDiscount: addOn.priceAfterDiscount,
+            couponData: addOn.couponData,
+            imageURL: addOn.imageURL || addOn.image,
+            type: addOn.type,
+            isAvailable: true,
+            isAddOn: true,
+            parentFoodTitle: state?.title,
+        };
+        addToFoodCart(addOnItem);
+    };
 
-        setSelectedAddOns((prev) => {
-            const next = new Set(prev);
-            if (next.has(addOnId)) {
-                next.delete(addOnId);
-            } else {
-                next.add(addOnId);
-            }
-            return next;
-        });
+    const handleAddOnIncrement = (addOn) => {
+        const addOnId = addOn._id || addOn.id;
+        const qty = addOnQuantities[addOnId] || 0;
+        const addOnIsBogo = addOn.couponData?.discountType === DISCOUNT_TYPES.BOGO;
+        const step = addOnIsBogo ? 2 : 1;
+        updateFoodCartQuantity(addOnId, qty + step);
+    };
+
+    const handleAddOnDecrement = (addOn) => {
+        const addOnId = addOn._id || addOn.id;
+        const qty = addOnQuantities[addOnId] || 0;
+        updateFoodCartQuantity(addOnId, qty - 1);
     };
 
     return {
         state,
-        selectedAddOns,
         quantity,
         isAvailable,
+        isBogo,
         itemPrice,
         totalPrice,
         ingredients,
         addOns,
+        addOnQuantities,
         handleBack,
         handleAdd,
         handleIncrement,
         handleDecrement,
         handleAddItemsClick,
-        toggleAddOn,
+        handleAddOnAdd,
+        handleAddOnIncrement,
+        handleAddOnDecrement,
     };
 }

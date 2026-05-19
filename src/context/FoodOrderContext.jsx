@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { FoodOrderContext } from './FoodOrderDef';
 import { getEffectivePrice } from '../utils/discountHelper';
+import { DISCOUNT_TYPES } from '../utils/constant';
 
 function isFoodAvailable(food) {
     if (!food) return false;
@@ -15,32 +16,22 @@ function isFoodAvailable(food) {
  * FOOD ORDER CONTEXT (Global Cart State)
  * ══════════════════════════════════════════════════════════════
  *
- * LEARNING: This is a React Context Provider that wraps the ENTIRE app.
- * It provides a shared "food cart" state that ANY component can access
- * via the useGlobal() hook (defined in hooks/FoodOrder.js).
- *
- * ARCHITECTURE:
- *   main.jsx
- *   └── FoodOrderProvider ← wraps everything (defined here)
- *       └── App, Food, FoodDetails, CouponDetail, etc.
- *           └── Any component can call useGlobal() to access cart
- *
  * CART DATA STRUCTURE:
  *   foodCart = [
  *     { id: "food1", title: "Biryani", price: 349, quantity: 2, ... },
- *     { id: "food2", title: "Pasta", price: 250, quantity: 1, ... },
+ *     { id: "addon1", title: "Aalu Paratha", price: 100, quantity: 1, isAddOn: true, ... },
  *   ]
  *
- * WHY CONTEXT? Because cart state needs to be shared across:
- *   - FoodCard (main food list)
- *   - CouponFoodCard (coupon detail page)
- *   - FoodDetails page (detail page bottom bar)
- *   - Future: Cart page, Checkout page, etc.
+ * Add-ons are independent cart items (isAddOn: true).
+ * BOGO items start at quantity 2, increment by 2, decrement by 1.
  */
 
 export function FoodOrderProvider({ children }) {
-    // Food Cart State — array of items with quantities
     const [foodCart, setFoodCart] = useState([]);
+
+    const isBogo = useCallback((item) => (
+        item?.couponData?.discountType === DISCOUNT_TYPES.BOGO
+    ), []);
 
     const getCartUnitPrice = useCallback((item) => (
         item.cartUnitPrice ?? getEffectivePrice({
@@ -56,36 +47,29 @@ export function FoodOrderProvider({ children }) {
             priceAfterDiscount: item.priceAfterDiscount,
             couponData: item.couponData,
         });
-        const baseTotal = basePrice * item.quantity;
-        const addOnTotal = (item.selectedAddOns || []).reduce(
-            (total, addOn) => (
-                isFoodAvailable(addOn)
-                    ? total + ((addOn.price || 0) * (addOn.quantity || 1))
-                    : total
-            ),
-            0
-        );
-
-        return baseTotal + addOnTotal;
+        return basePrice * item.quantity;
     }, []);
 
     // ── ADD TO CART ──
-    // If item already exists → increment quantity
-    // If new item → add with quantity 1
+    // BOGO items start at quantity 2, others at 1
+    // If item already exists → increment by 2 for BOGO, 1 for others
     const addToFoodCart = useCallback((item) => {
         console.log('[Cart] ADD:', item.title, '(id:', item.id, ')');
+        const bogoItem = item?.couponData?.discountType === DISCOUNT_TYPES.BOGO;
+        const step = bogoItem ? 2 : 1;
+
         setFoodCart((prevCart) => {
             const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
             if (existingItem) {
-                console.log('[Cart] Item exists, incrementing quantity:', existingItem.quantity, '→', existingItem.quantity + 1);
+                console.log('[Cart] Item exists, incrementing quantity:', existingItem.quantity, '→', existingItem.quantity + step);
                 return prevCart.map((cartItem) =>
                     cartItem.id === item.id
-                        ? { ...cartItem, ...item, quantity: cartItem.quantity + 1 }
+                        ? { ...cartItem, ...item, quantity: cartItem.quantity + step }
                         : cartItem
                 );
             }
-            console.log('[Cart] New item, adding with quantity: 1');
-            return [...prevCart, { ...item, quantity: 1 }];
+            console.log('[Cart] New item, adding with quantity:', step);
+            return [...prevCart, { ...item, quantity: step }];
         });
     }, []);
 
@@ -139,8 +123,6 @@ export function FoodOrderProvider({ children }) {
     }, [foodCart]);
 
     // ── GET QUANTITY OF SPECIFIC ITEM ──
-    // LEARNING: This is what makes AddButton work everywhere.
-    // AddButton calls getItemQuantity(item.id) and shows the count.
     const getItemQuantity = useCallback((itemId) => {
         const cartItem = foodCart.find((item) => item.id === itemId);
         return cartItem ? cartItem.quantity : 0;
@@ -158,6 +140,7 @@ export function FoodOrderProvider({ children }) {
         getCartUnitPrice,
         getFoodItemTotal,
         getItemQuantity,
+        isBogo,
     };
 
     return (

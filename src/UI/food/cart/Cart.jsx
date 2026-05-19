@@ -30,8 +30,6 @@ export default function Cart() {
         handleBrowseFood,
         handleIncrement,
         handleDecrement,
-        handleAddOnIncrement,
-        handleAddOnDecrement,
         handleRemove,
         handleCouponCodeChange,
         handleApplyCoupon,
@@ -67,18 +65,32 @@ export default function Cart() {
                     </div>
                 ) : (
                     <>
+                        {/* Flat list — each item (food or add-on) is independent */}
                         <div className="mt-5 flex flex-col gap-3">
-                            {items.map((item) => (
-                                <CartFoodGroup
-                                    key={item.id}
-                                    item={item}
-                                    onIncrement={handleIncrement}
-                                    onDecrement={handleDecrement}
-                                    onAddOnIncrement={handleAddOnIncrement}
-                                    onAddOnDecrement={handleAddOnDecrement}
-                                    onRemove={handleRemove}
-                                />
-                            ))}
+                            {items.map((item) => {
+                                const discount = getDiscountDisplayInfo({
+                                    price: item.price,
+                                    priceAfterDiscount: item.priceAfterDiscount,
+                                    couponData: item.couponData,
+                                });
+
+                                return (
+                                    <CartFoodRow
+                                        key={item.id}
+                                        item={item}
+                                        title={item.isAddOn ? `Add on - ${item.title}` : item.title}
+                                        imageURL={item.imageURL || item.image}
+                                        price={item.baseUnitPrice}
+                                        originalPrice={discount.originalPrice}
+                                        isBogo={discount.isBogo}
+                                        quantity={item.quantity}
+                                        onIncrement={() => handleIncrement(item)}
+                                        onDecrement={() => handleDecrement(item)}
+                                        onRemove={() => handleRemove(item)}
+                                        parentFoodTitle={item.isAddOn ? item.parentFoodTitle : null}
+                                    />
+                                );
+                            })}
                         </div>
 
                         <input
@@ -162,53 +174,6 @@ export default function Cart() {
     );
 }
 
-function CartFoodGroup({
-    item,
-    onIncrement,
-    onDecrement,
-    onAddOnIncrement,
-    onAddOnDecrement,
-    onRemove,
-}) {
-    const discount = getDiscountDisplayInfo({
-        price: item.price,
-        priceAfterDiscount: item.priceAfterDiscount,
-        couponData: item.couponData,
-    });
-
-    return (
-        <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
-            <CartFoodRow
-                item={item}
-                title={item.title}
-                imageURL={item.imageURL || item.image}
-                price={item.baseUnitPrice}
-                originalPrice={discount.originalPrice}
-                isBogo={discount.isBogo}
-                quantity={item.quantity}
-                onIncrement={() => onIncrement(item)}
-                onDecrement={() => onDecrement(item)}
-                onRemove={() => onRemove(item)}
-                showRemove
-            />
-
-            {item.addOns.map((addOn) => (
-                <CartFoodRow
-                    key={addOn.id}
-                    title={addOn.title}
-                    imageURL={addOn.imageURL}
-                    price={addOn.unitPrice}
-                    quantity={addOn.quantity}
-                    onIncrement={() => onAddOnIncrement(item, addOn)}
-                    onDecrement={() => onAddOnDecrement(item, addOn)}
-                    isAvailable={addOn.isAvailable}
-                    isAddOn
-                />
-            ))}
-        </div>
-    );
-}
-
 function CartFoodRow({
     title,
     imageURL,
@@ -216,60 +181,55 @@ function CartFoodRow({
     originalPrice,
     isBogo,
     quantity,
-    isAddOn,
-    showRemove,
     onIncrement,
     onDecrement,
     onRemove,
-    isAvailable = true,
+    parentFoodTitle,
 }) {
     return (
-        <div className={`flex items-center bg-[#202020] ${isAddOn ? 'border-t border-[#3A3A3A]' : ''}`}>
-            <div className="relative">
-                <img
-                    src={imageURL}
-                    alt={title}
-                    className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"
-                />
-                {/* BOGO badge on cart item image */}
-                {isBogo && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-[#E2B124] text-black text-[10px] font-bold text-center py-[2px]">
-                        1+1 FREE
-                    </div>
-                )}
-            </div>
-
-            <div className="flex-1 px-7 py-4 min-w-0">
-                <p className="text-[18px] text-[#F4F4F4] truncate">
-                    {isAddOn ? `Add on - ${title}` : title}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                    <p className="text-[#C99F2B] text-[28px] font-semibold">
-                        ₹{Math.round(price)} x {quantity}
-                    </p>
-                    {/* PERCENTAGE: show strikethrough original price */}
-                    {originalPrice != null && (
-                        <span className="text-[#6B6B6B] text-[16px] line-through">
-                            ₹{Math.round(originalPrice)}
-                        </span>
+        <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
+            <div className="flex items-center bg-[#202020]">
+                <div className="relative">
+                    <img
+                        src={imageURL}
+                        alt={title}
+                        className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"
+                    />
+                    {isBogo && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-[#E2B124] text-black text-[10px] font-bold text-center py-[2px]">
+                            1+1 FREE
+                        </div>
                     )}
                 </div>
-            </div>
 
-            {showRemove && (
+                <div className="flex-1 px-7 py-4 min-w-0">
+                    <p className="text-[18px] text-[#F4F4F4] truncate">
+                        {title}
+                    </p>
+                    {parentFoodTitle && (
+                        <p className="text-[#707070] text-[12px] mt-[2px] truncate">
+                            for {parentFoodTitle}
+                        </p>
+                    )}
+                    <div className="flex items-center gap-2 mt-2">
+                        <p className="text-[#C99F2B] text-[28px] font-semibold">
+                            ₹{Math.round(price)} x {quantity}
+                        </p>
+                        {originalPrice != null && (
+                            <span className="text-[#6B6B6B] text-[16px] line-through">
+                                ₹{Math.round(originalPrice)}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
                 <button
                     onClick={onRemove}
                     className="mr-5 w-6 h-6 rounded-[6px] border border-red-500 text-red-500 flex items-center justify-center"
                 >
                     <X size={14} />
                 </button>
-            )}
 
-            {!isAvailable ? (
-                <span className="mr-10 text-[#FF4444] text-[16px] font-medium border border-[#FF4444]/30 rounded-[14px] px-3 py-[6px]">
-                    Unavailable
-                </span>
-            ) : onIncrement && onDecrement && (
                 <div className="mr-10 h-10 rounded-full border border-yellow-400 flex items-center overflow-hidden">
                     <button
                         onClick={onDecrement}
@@ -287,7 +247,7 @@ function CartFoodRow({
                         <Plus size={22} />
                     </button>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

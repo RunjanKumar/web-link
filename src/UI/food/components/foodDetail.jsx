@@ -6,19 +6,22 @@ import VegIndicator from "./VegIndicator";
 export default function FoodDetails() {
     const {
         state,
-        selectedAddOns,
         quantity,
         isAvailable,
+        isBogo,
         itemPrice,
         totalPrice,
         ingredients,
         addOns,
+        addOnQuantities,
         handleBack,
         handleAdd,
         handleIncrement,
         handleDecrement,
         handleAddItemsClick,
-        toggleAddOn,
+        handleAddOnAdd,
+        handleAddOnIncrement,
+        handleAddOnDecrement,
     } = useFoodDetailViewModel();
 
     const discount = getDiscountDisplayInfo({
@@ -72,14 +75,12 @@ export default function FoodDetails() {
                         ₹ {Math.round(discount.displayPrice)}
                     </span>
 
-                    {/* PERCENTAGE: show strikethrough original price */}
                     {discount.originalPrice != null && (
                         <span className="text-[#6B6B6B] text-[16px] line-through">
                             ₹{Math.round(discount.originalPrice)}
                         </span>
                     )}
 
-                    {/* BOGO: show 1+1 FREE badge inline */}
                     {discount.isBogo && (
                         <span className="bg-[#E2B124]/15 text-[#E2B124] text-[13px] font-bold px-2 py-1 rounded-[8px]">
                             1+1 FREE
@@ -96,7 +97,6 @@ export default function FoodDetails() {
                     )}
                 </div>
 
-                {/* PERCENTAGE discount: show savings */}
                 {discount.hasDiscount && discount.originalPrice != null && (
                     <div className="mt-2">
                         <span className="text-green-400 text-[13px] font-medium">
@@ -125,71 +125,100 @@ export default function FoodDetails() {
                     </div>
                 )}
 
+                {/* ── Choice of Add On ── */}
                 {addOns.length > 0 && (
                     <div className="mt-8">
                         <h2 className="text-[20px] font-semibold text-[#CFCFCF] mb-5">
                             Choice of Add On
                         </h2>
 
-                        <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-4">
                             {addOns.map((addOn) => {
                                 const addOnId = addOn._id || addOn.id;
-                                const isSelected = selectedAddOns.has(addOnId);
-                                const addOnAvailable = !(
-                                    addOn.isAvailable === false ||
-                                    addOn.available === false ||
-                                    addOn.status === false ||
-                                    (typeof addOn.status === 'string' && addOn.status.toLowerCase() === 'unavailable')
-                                );
+                                const addOnQty = addOnQuantities[addOnId] || 0;
+                                const addOnAvailable = isFoodAvailable(addOn);
+
+                                // Show discount-aware pricing for add-on (like FoodCard)
+                                const addOnDiscount = getDiscountDisplayInfo({
+                                    price: addOn.price,
+                                    priceAfterDiscount: addOn.priceAfterDiscount,
+                                    couponData: addOn.couponData,
+                                });
 
                                 return (
                                     <div
                                         key={addOnId}
-                                        onClick={() => toggleAddOn(addOn)}
-                                        className={`flex items-center justify-between ${
-                                            addOnAvailable ? 'cursor-pointer' : 'opacity-50 grayscale cursor-not-allowed'
+                                        className={`flex items-center justify-between border border-[#3A3A3A] rounded-[16px] px-4 py-3 bg-[#1A1A1A] ${
+                                            !addOnAvailable ? 'opacity-50 grayscale' : ''
                                         }`}
                                     >
-                                        <div className="flex items-center gap-4">
+                                        {/* Left: image + name + price */}
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
                                             {addOn.imageURL ? (
                                                 <img
                                                     src={addOn.imageURL}
                                                     alt={addOn.name || addOn.title}
-                                                    className="w-[48px] h-[48px] rounded-full object-cover"
+                                                    className="w-[48px] h-[48px] rounded-[12px] object-cover shrink-0"
                                                 />
                                             ) : (
-                                                <div className="w-[48px] h-[48px] rounded-full bg-[#2A2A2A]" />
+                                                <div className="w-[48px] h-[48px] rounded-[12px] bg-[#2A2A2A] shrink-0" />
                                             )}
-                                            <p className="text-white text-[16px]">
-                                                {addOn.name || addOn.title}
-                                            </p>
+
+                                            <div className="min-w-0">
+                                                <p className="text-white text-[15px] font-medium truncate">
+                                                    {addOn.name || addOn.title}
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[#E2B124] text-[15px] font-bold">
+                                                        ₹{Math.round(addOnDiscount.displayPrice)}
+                                                    </span>
+                                                    {addOnDiscount.originalPrice != null && (
+                                                        <span className="text-[#6B6B6B] text-[12px] line-through">
+                                                            ₹{Math.round(addOnDiscount.originalPrice)}
+                                                        </span>
+                                                    )}
+                                                    {addOnDiscount.isBogo && (
+                                                        <span className="bg-[#E2B124]/15 text-[#E2B124] text-[10px] font-bold px-[5px] py-[1px] rounded-[5px]">
+                                                            1+1
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-4">
-                                            {addOnAvailable ? (
-                                                <>
-                                                    <p className="text-[#9E9E9E] text-[16px]">
-                                                        + ₹{addOn.price || 0}
-                                                    </p>
-
-                                                    <div
-                                                        className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition ${
-                                                            isSelected
-                                                                ? 'border-yellow-400'
-                                                                : 'border-[#5A5A5A]'
-                                                        }`}
-                                                    >
-                                                        {isSelected && (
-                                                            <div className="w-[14px] h-[14px] bg-yellow-400 rounded-full" />
-                                                        )}
-                                                    </div>
-                                                </>
+                                        {/* Right: Add button or quantity controls */}
+                                        {addOnAvailable ? (
+                                            addOnQty === 0 ? (
+                                                <button
+                                                    onClick={() => handleAddOnAdd(addOn)}
+                                                    className="border border-[#E2B124] text-[#E2B124] rounded-[12px] px-4 py-[6px] text-[14px] font-medium hover:bg-[#E2B124] hover:text-[#161616] transition shrink-0 ml-3"
+                                                >
+                                                    Add
+                                                </button>
                                             ) : (
-                                                <span className="text-[#FF4444] text-[13px] font-medium border border-[#FF4444]/30 rounded-[14px] px-3 py-[6px]">
-                                                    Unavailable
-                                                </span>
-                                            )}
-                                        </div>
+                                                <div className="flex items-center gap-1 border border-[#E2B124] rounded-[12px] overflow-hidden shrink-0 ml-3">
+                                                    <button
+                                                        onClick={() => handleAddOnDecrement(addOn)}
+                                                        className="w-[30px] h-[32px] flex items-center justify-center text-[#E2B124] text-[18px] font-bold hover:bg-[#E2B124]/10 transition"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="w-[24px] text-center text-[#E2B124] text-[14px] font-semibold">
+                                                        {addOnQty}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleAddOnIncrement(addOn)}
+                                                        className="w-[30px] h-[32px] flex items-center justify-center text-[#E2B124] text-[18px] font-bold hover:bg-[#E2B124]/10 transition"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            )
+                                        ) : (
+                                            <span className="text-[#FF4444] text-[12px] font-medium border border-[#FF4444]/30 rounded-[12px] px-3 py-[5px] shrink-0 ml-3">
+                                                Unavailable
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -198,6 +227,7 @@ export default function FoodDetails() {
                 )}
             </div>
 
+            {/* ── Bottom Bar: Main food controls ── */}
             <div className="fixed bottom-0 left-0 w-full bg-[#2B2B2B] px-5 py-5 flex items-center gap-4 z-50">
                 <div className="w-[120px] h-[56px] rounded-[20px] border border-[#5A5A5A] flex items-center justify-around">
                     <button
@@ -209,7 +239,7 @@ export default function FoodDetails() {
                     </button>
 
                     <p className="text-[22px] font-medium">
-                        {quantity || 1}
+                        {quantity || (isBogo ? 2 : 1)}
                     </p>
 
                     <button
@@ -238,4 +268,12 @@ export default function FoodDetails() {
             </div>
         </div>
     );
+}
+
+function isFoodAvailable(food) {
+    if (!food) return false;
+    if (food.isAvailable === false || food.available === false) return false;
+    if (food.status === false) return false;
+    if (typeof food.status === 'string' && food.status.toLowerCase() === 'unavailable') return false;
+    return true;
 }
