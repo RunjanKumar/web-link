@@ -11,6 +11,7 @@ import {
     X,
 } from "lucide-react";
 import useCartViewModel from "../../../viewModel/cartViewModel";
+import { getDiscountDisplayInfo } from "../../../utils/discountHelper";
 
 export default function Cart() {
     const {
@@ -169,6 +170,12 @@ function CartFoodGroup({
     onAddOnDecrement,
     onRemove,
 }) {
+    const discount = getDiscountDisplayInfo({
+        price: item.price,
+        priceAfterDiscount: item.priceAfterDiscount,
+        couponData: item.couponData,
+    });
+
     return (
         <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
             <CartFoodRow
@@ -176,6 +183,8 @@ function CartFoodGroup({
                 title={item.title}
                 imageURL={item.imageURL || item.image}
                 price={item.baseUnitPrice}
+                originalPrice={discount.originalPrice}
+                isBogo={discount.isBogo}
                 quantity={item.quantity}
                 onIncrement={() => onIncrement(item)}
                 onDecrement={() => onDecrement(item)}
@@ -204,6 +213,8 @@ function CartFoodRow({
     title,
     imageURL,
     price,
+    originalPrice,
+    isBogo,
     quantity,
     isAddOn,
     showRemove,
@@ -214,19 +225,35 @@ function CartFoodRow({
 }) {
     return (
         <div className={`flex items-center bg-[#202020] ${isAddOn ? 'border-t border-[#3A3A3A]' : ''}`}>
-            <img
-                src={imageURL}
-                alt={title}
-                className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"
-            />
+            <div className="relative">
+                <img
+                    src={imageURL}
+                    alt={title}
+                    className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"
+                />
+                {/* BOGO badge on cart item image */}
+                {isBogo && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-[#E2B124] text-black text-[10px] font-bold text-center py-[2px]">
+                        1+1 FREE
+                    </div>
+                )}
+            </div>
 
             <div className="flex-1 px-7 py-4 min-w-0">
                 <p className="text-[18px] text-[#F4F4F4] truncate">
                     {isAddOn ? `Add on - ${title}` : title}
                 </p>
-                <p className="text-[#C99F2B] text-[28px] font-semibold mt-2">
-                    ₹{Math.round(price)} x {quantity}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                    <p className="text-[#C99F2B] text-[28px] font-semibold">
+                        ₹{Math.round(price)} x {quantity}
+                    </p>
+                    {/* PERCENTAGE: show strikethrough original price */}
+                    {originalPrice != null && (
+                        <span className="text-[#6B6B6B] text-[16px] line-through">
+                            ₹{Math.round(originalPrice)}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {showRemove && (

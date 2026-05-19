@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { FoodOrderContext } from './FoodOrderDef';
+import { getEffectivePrice } from '../utils/discountHelper';
 
 function isFoodAvailable(food) {
     if (!food) return false;
@@ -42,11 +43,19 @@ export function FoodOrderProvider({ children }) {
     const [foodCart, setFoodCart] = useState([]);
 
     const getCartUnitPrice = useCallback((item) => (
-        item.cartUnitPrice ?? item.priceAfterDiscount ?? item.price ?? 0
+        item.cartUnitPrice ?? getEffectivePrice({
+            price: item.price ?? 0,
+            priceAfterDiscount: item.priceAfterDiscount,
+            couponData: item.couponData,
+        })
     ), []);
 
     const getFoodItemTotal = useCallback((item) => {
-        const basePrice = item.priceAfterDiscount ?? item.price ?? 0;
+        const basePrice = getEffectivePrice({
+            price: item.price ?? 0,
+            priceAfterDiscount: item.priceAfterDiscount,
+            couponData: item.couponData,
+        });
         const baseTotal = basePrice * item.quantity;
         const addOnTotal = (item.selectedAddOns || []).reduce(
             (total, addOn) => (

@@ -16,9 +16,7 @@ export default function useFoodListViewModel({
     const sections = useMemo(() => {
         if (!foodItemData || foodItemData.length === 0) return [];
 
-        console.log('â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”');
-        console.log('â”‚ [FoodList] STEP 10: Mapping raw API data â†’ UI structure  â”‚');
-        console.log('â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜');
+        // console.log("foodItemData", foodItemData);
 
         if (foodItemData[0]?.foodsInCategories?.[0]) {
             const raw = foodItemData[0].foodsInCategories[0];
@@ -52,6 +50,7 @@ export default function useFoodListViewModel({
                     title: food.name || food.title,
                     description: food.description || '',
                     price: food.price || 0,
+                    priceAfterDiscount: food.priceAfterDiscount || food.price,
                     imageURL: food.imageURL || food.image || food.imageUrl || null,
                     calories: food.kcal || food.calories || 0,
                     type: food.type || null,
@@ -60,6 +59,7 @@ export default function useFoodListViewModel({
                     choiceOfAddOnDetails: food.choiceOfAddOnDetails || [],
                     isAvailable: food.isAvailable !== false,
                     mealType: food.mealType || [],
+                    couponData: food.couponData,
                 }));
 
                 console.log(`[FoodList] Category "${category.name}": ${foods.length} foods mapped`);

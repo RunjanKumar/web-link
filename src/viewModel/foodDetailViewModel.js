@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useGlobal from "../hooks/FoodOrder";
+import { getEffectivePrice } from "../utils/discountHelper";
 
 function isFoodAvailable(food) {
     if (!food) return false;
@@ -27,7 +28,11 @@ export default function useFoodDetailViewModel() {
 
     const quantity = getItemQuantity(state?.id);
     const isAvailable = isFoodAvailable(state);
-    const itemPrice = state?.priceAfterDiscount ?? state?.price ?? 0;
+    const itemPrice = getEffectivePrice({
+        price: state?.price ?? 0,
+        priceAfterDiscount: state?.priceAfterDiscount,
+        couponData: state?.couponData,
+    });
     const ingredients = state?.inGridients || [];
     const addOns = (state?.choiceOfAddOnDetails || []).filter(
         (addOn) => typeof addOn === 'object' && addOn !== null

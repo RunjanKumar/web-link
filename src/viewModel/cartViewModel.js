@@ -5,6 +5,7 @@ import { getApiErrorMessage } from "../api/client";
 import { validateCoupon } from "../api/service/couponService";
 import useCustomerProfile from "../hooks/CustomerProfile";
 import useGlobal from "../hooks/FoodOrder";
+import { getEffectivePrice } from "../utils/discountHelper";
 
 function isFoodAvailable(food) {
     if (!food) return false;
@@ -44,8 +45,16 @@ export default function useCartViewModel() {
         ...item,
         unitPrice: getCartUnitPrice(item),
         lineTotal: getCartUnitPrice(item) * item.quantity,
-        baseUnitPrice: item.priceAfterDiscount ?? item.price ?? 0,
-        baseLineTotal: (item.priceAfterDiscount ?? item.price ?? 0) * item.quantity,
+        baseUnitPrice: getEffectivePrice({
+            price: item.price ?? 0,
+            priceAfterDiscount: item.priceAfterDiscount,
+            couponData: item.couponData,
+        }),
+        baseLineTotal: getEffectivePrice({
+            price: item.price ?? 0,
+            priceAfterDiscount: item.priceAfterDiscount,
+            couponData: item.couponData,
+        }) * item.quantity,
         addOns: (item.selectedAddOns || []).map((addOn) => ({
             id: addOn._id || addOn.id,
             title: addOn.name || addOn.title,

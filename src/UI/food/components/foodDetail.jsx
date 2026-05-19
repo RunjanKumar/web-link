@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import useFoodDetailViewModel from "../../../viewModel/foodDetailViewModel";
+import { getDiscountDisplayInfo } from "../../../utils/discountHelper";
 import VegIndicator from "./VegIndicator";
 
 export default function FoodDetails() {
@@ -19,7 +20,13 @@ export default function FoodDetails() {
         handleAddItemsClick,
         toggleAddOn,
     } = useFoodDetailViewModel();
-    console.log("addOns", addOns);
+
+    const discount = getDiscountDisplayInfo({
+        price: state?.price,
+        priceAfterDiscount: state?.priceAfterDiscount,
+        couponData: state?.couponData,
+    });
+
     return (
         <div className={`min-h-screen bg-[#111111] text-white pb-[120px] ${!isAvailable ? 'relative' : ''}`}>
             <div className="relative">
@@ -43,6 +50,13 @@ export default function FoodDetails() {
                         <span className="text-white text-[13px] font-semibold">Currently Unavailable</span>
                     </div>
                 )}
+
+                {/* BOGO badge on image */}
+                {discount.isBogo && isAvailable && (
+                    <div className="absolute top-6 right-5 bg-[#E2B124] text-black px-4 py-2 rounded-full flex items-center gap-2">
+                        <span className="text-[13px] font-bold">🎉 BUY 1 GET 1 FREE</span>
+                    </div>
+                )}
             </div>
 
             <div className="px-5 pt-4">
@@ -55,12 +69,20 @@ export default function FoodDetails() {
 
                 <div className="flex items-center gap-3 mt-4">
                     <span className="text-[#E2B124] text-[22px] font-bold">
-                        ₹ {Math.round(itemPrice)}
+                        ₹ {Math.round(discount.displayPrice)}
                     </span>
 
-                    {state?.priceAfterDiscount && state.priceAfterDiscount < state.price && (
+                    {/* PERCENTAGE: show strikethrough original price */}
+                    {discount.originalPrice != null && (
                         <span className="text-[#6B6B6B] text-[16px] line-through">
-                            ₹{Math.round(state.price)}
+                            ₹{Math.round(discount.originalPrice)}
+                        </span>
+                    )}
+
+                    {/* BOGO: show 1+1 FREE badge inline */}
+                    {discount.isBogo && (
+                        <span className="bg-[#E2B124]/15 text-[#E2B124] text-[13px] font-bold px-2 py-1 rounded-[8px]">
+                            1+1 FREE
                         </span>
                     )}
 
@@ -73,6 +95,15 @@ export default function FoodDetails() {
                         </>
                     )}
                 </div>
+
+                {/* PERCENTAGE discount: show savings */}
+                {discount.hasDiscount && discount.originalPrice != null && (
+                    <div className="mt-2">
+                        <span className="text-green-400 text-[13px] font-medium">
+                            You save ₹{Math.round(discount.originalPrice - discount.displayPrice)}
+                        </span>
+                    </div>
+                )}
 
                 <div className="mt-8">
                     <h2 className="text-[20px] font-semibold text-[#CFCFCF]">

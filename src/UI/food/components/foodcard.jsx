@@ -1,16 +1,22 @@
 import useFoodCardViewModel from "../../../viewModel/foodCardViewModel";
+import { getDiscountDisplayInfo } from "../../../utils/discountHelper";
 import AddButton from "./AddButton";
 import VegIndicator from "./VegIndicator";
 
 export default function FoodCard({ item }) {
     const { isAvailable, handleNavigate } = useFoodCardViewModel(item);
 
+    const discount = getDiscountDisplayInfo({
+        price: item.price,
+        priceAfterDiscount: item.priceAfterDiscount,
+        couponData: item.couponData,
+    });
+
     return (
         <div
             onClick={handleNavigate}
-            className={`relative flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer ${
-                !isAvailable ? 'opacity-50 grayscale' : ''
-            }`}
+            className={`relative flex border border-[#3A3A3A] rounded-[20px] overflow-hidden bg-[#161616] cursor-pointer ${!isAvailable ? 'opacity-50 grayscale' : ''
+                }`}
         >
             <div className="flex-1 px-4 py-4 flex flex-col justify-between min-w-0">
                 <div>
@@ -33,9 +39,25 @@ export default function FoodCard({ item }) {
                 </div>
 
                 <div className="flex items-center justify-between mt-3">
-                    <h3 className="text-[#E2B124] text-[18px] font-bold">
-                        ₹ {item.price}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-[#E2B124] text-[18px] font-bold">
+                            ₹ {Math.round(discount.displayPrice)}
+                        </h3>
+
+                        {/* PERCENTAGE: show strikethrough original price */}
+                        {discount.originalPrice != null && (
+                            <span className="text-[#6B6B6B] text-[13px] line-through">
+                                ₹{Math.round(discount.originalPrice)}
+                            </span>
+                        )}
+
+                        {/* BOGO: show 1+1 FREE badge */}
+                        {discount.isBogo && (
+                            <span className="bg-[#E2B124]/15 text-[#E2B124] text-[11px] font-bold px-[6px] py-[2px] rounded-[6px] leading-[16px] tracking-wide">
+                                1+1 FREE
+                            </span>
+                        )}
+                    </div>
 
                     {isAvailable ? (
                         <AddButton item={item} />
@@ -60,6 +82,13 @@ export default function FoodCard({ item }) {
 
                 {!isAvailable && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center" />
+                )}
+
+                {/* BOGO badge on image corner */}
+                {discount.isBogo && isAvailable && (
+                    <div className="absolute top-0 right-0 bg-[#E2B124] text-black text-[10px] font-bold px-[6px] py-[3px] rounded-bl-[10px]">
+                        BUY 1 GET 1
+                    </div>
                 )}
             </div>
         </div>

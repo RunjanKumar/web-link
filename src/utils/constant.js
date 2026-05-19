@@ -47,3 +47,10 @@ export const FACILITY_STATUS_COLORS = {
   [HOTEL_FACILITY_BOOKING_STATUS.DISAPPROVED]: '#ef4444', // red
   [HOTEL_FACILITY_BOOKING_STATUS.CANCELLED]: '#6b7280',  // gray
 };
+
+/* ── Discount Type Constants ── */
+export const DISCOUNT_TYPES = {
+  PERCENTAGE: 1,
+  AMOUNT: 2,
+  BOGO: 3,
+};
