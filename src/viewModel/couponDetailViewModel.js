@@ -80,6 +80,9 @@ export default function useCouponDetailViewModel(couponId, initialCoupon = null)
         if (type === 2 || type === 'amount') {
             return { label: `FLAT ₹${value} OFF`, value, type: 'amount' };
         }
+        if (type === 3 || type === 'bogo') {
+            return { label: `1 + 1 FREE`, value, type: 'amount' };
+        }
         return { label: `${value}% OFF`, value, type: 'unknown' };
     }, [couponDetail, routeCoupon]);
 

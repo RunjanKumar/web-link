@@ -1,7 +1,8 @@
 import useCouponCardViewModel from '../../../../viewModel/couponCardViewModel';
 
 export default function CouponCard({ coupon }) {
-    const { imageURL, handleClick } = useCouponCardViewModel(coupon);
+    const { imageURL, name, handleClick } = useCouponCardViewModel(coupon);
+    // console.log("name--------", name);
 
     return (
         <div
@@ -13,6 +14,7 @@ export default function CouponCard({ coupon }) {
                 alt="coupon"
                 className="w-full h-full object-cover"
             />
+            <div> {name}</div>
         </div>
     );
 }

@@ -6,8 +6,9 @@ export default function useCouponCardViewModel(coupon) {
     const handleClick = () => {
         navigate('/coupon-detail', { state: coupon });
     };
-
+      console.log("name--------", coupon);
     return {
+        name: coupon.title,
         imageURL: coupon.imageURL,
         handleClick,
     };

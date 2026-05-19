@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { DISCOUNT_TYPES } from '../utils/constant';
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -100,14 +101,19 @@ export default function useCouponViewModel(rawCouponData) {
 
 // ── Helper: build human-readable discount text ──────────────
 function buildDiscountText(coupon) {
-    const value = coupon.discountValue || coupon.discount || 0;
-    const type = coupon.discountType || 'percentage';
+      console.log("name--------+++++++++", coupon);
+    const value = coupon.discountValue;
+    const type = coupon.discountType;
 
-    if (type === 'percentage' || type === 'percent') {
+    if (type === DISCOUNT_TYPES.PERCENTAGE) {
         return `UPTO ${value}% CASHBACK`;
     }
-    if (type === 'flat' || type === 'fixed') {
+    if (type === DISCOUNT_TYPES.AMOUNT) {
         return `FLAT ₹${value} OFF`;
+    }
+
+    if (type === DISCOUNT_TYPES.BOGO) {
+        return `1 + 1 FREE`;
     }
     return coupon.title || coupon.name || `${value}% OFF`;
 }
