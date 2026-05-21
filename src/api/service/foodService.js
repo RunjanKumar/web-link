@@ -47,10 +47,43 @@ export async function getFoodMenu() {
 }
 
 /**
+ * Fetches food order history.
+ * GET /v1/foodOrder
+ */
+export async function getFoodOrders() {
+    const response = await apiClient.get(ENDPOINTS.FOOD_ORDER);
+    return response.data;
+}
+
+/**
  * Creates a new food order.
- * POST /v1/food/order
+ * POST /v1/foodOrder
  */
 export async function createFoodOrder(orderData) {
     const response = await apiClient.post(ENDPOINTS.FOOD_ORDER, orderData);
+    return response.data;
+}
+
+/**
+ * Initiates online payment for an existing food order.
+ * POST /v1/foodOrder/initiatePayment
+ *
+ * @param {{ foodOrderId: string }} data
+ * @returns {{ razorpayOrderId, amount, razorpayKey, currency }}
+ */
+export async function initiatePayment(data) {
+    const response = await apiClient.post(ENDPOINTS.INITIATE_PAYMENT, data);
+    return response.data;
+}
+
+/**
+ * Verifies Razorpay payment after customer completes checkout.
+ * POST /v1/foodOrder/verifyPayment
+ *
+ * @param {{ foodOrderId, razorpayOrderId, razorpayPaymentId, razorpaySignature }} data
+ * @returns {{ message: string }}
+ */
+export async function verifyPayment(data) {
+    const response = await apiClient.post(ENDPOINTS.VERIFY_PAYMENT, data);
     return response.data;
 }

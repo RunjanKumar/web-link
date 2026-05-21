@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "../api/client";
 import { validateCoupon } from "../api/service/couponService";
+import { createFoodOrder, initiatePayment, verifyPayment } from "../api/service/foodService";
 import useCustomerProfile from "../hooks/CustomerProfile";
 import useGlobal from "../hooks/FoodOrder";
 import { getEffectivePrice, getLineTotal } from "../utils/discountHelper";
@@ -10,21 +11,15 @@ import { DISCOUNT_TYPES } from "../utils/constant";
 
 /**
  * ══════════════════════════════════════════════════════════════
- * CART VIEWMODEL — Coupon Flow (v2)
+ * CART VIEWMODEL — Coupon + Razorpay Payment (v3)
  * ══════════════════════════════════════════════════════════════
  *
- * Frontend trusts backend for ALL coupon calculations.
- *
- * After applying a coupon via /v1/coupon/validate, the backend
- * returns per-item pricing (originalPrice, finalPrice,
- * discountAmount, appliedCouponType) and a summary block
- * (totalDiscount, finalPayableAmount). The frontend simply
- * displays these values without recalculating locally.
- *
- * Coupon input rules:
- *   - Max 5 characters
- *   - Uppercase only, no spaces
- *   - Apply button hits API only when text is present
+ * Flow:
+ *   1. User clicks "Place Order"  → bottom sheet opens
+ *   2. User picks payment method  → clicks "Confirm & place order"
+ *   3. COD  → create order → navigate to /order-history
+ *   4. Online → create order → initiate payment → Razorpay modal
+ *              → verify → navigate to /order-history
  */
 
 export default function useCartViewModel() {
@@ -37,12 +32,19 @@ export default function useCartViewModel() {
     // Full backend coupon response (items + summary)
     const [couponResponse, setCouponResponse] = useState(null);
 
+    // ── Order & Payment state ──
+    const [showPaymentSheet, setShowPaymentSheet] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState("online");
+    const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const [paymentProcessing, setPaymentProcessing] = useState(false);
+
     const {
         foodCart,
         getCartUnitPrice,
         getFoodCartTotal,
         updateFoodCartQuantity,
         removeFromFoodCart,
+        clearFoodCart,
     } = useGlobal();
     const {
         customerData,
@@ -59,15 +61,12 @@ export default function useCartViewModel() {
     const backendFinalAmount = summary?.finalPayableAmount;
 
     // Discount breakdown for bill display
-    // When coupon response exists → use backend values
-    // When no coupon response → compute from local cart items
     const percentageSavings = useMemo(() => {
         if (couponResponse?.items) {
             return couponResponse.items
                 .filter((ci) => ci.appliedCouponType === 'PERCENTAGE' && ci.discountAmount > 0)
                 .reduce((sum, ci) => sum + ci.discountAmount, 0);
         }
-        // Local: sum (price - priceAfterDiscount) * qty for PERCENTAGE items
         return foodCart
             .filter((item) => item.couponData?.discountType === DISCOUNT_TYPES.PERCENTAGE
                 && item.priceAfterDiscount != null
@@ -81,7 +80,6 @@ export default function useCartViewModel() {
                 .filter((ci) => ci.appliedCouponType === 'BOGO' && ci.discountAmount > 0)
                 .reduce((sum, ci) => sum + ci.discountAmount, 0);
         }
-        // Local: every 2nd item free → savings = price * floor(qty / 2)
         return foodCart
             .filter((item) => item.couponData?.discountType === DISCOUNT_TYPES.BOGO)
             .reduce((sum, item) => sum + (item.price ?? 0) * Math.floor(item.quantity / 2), 0);
@@ -89,7 +87,6 @@ export default function useCartViewModel() {
 
     const flatCouponDiscount = summary?.orderCouponDiscount || 0;
     
-    // Total discount includes local percentage/BOGO savings + flat coupon
     const totalSavings = couponResponse
         ? couponDiscount
         : percentageSavings + bogoSavings;
@@ -106,7 +103,6 @@ export default function useCartViewModel() {
 
     // Build items list — merge backend coupon data when available
     const items = useMemo(() => {
-        // Create a lookup map from backend coupon response by foodId
         const couponItemMap = {};
         if (couponResponse?.items) {
             for (const ci of couponResponse.items) {
@@ -136,7 +132,6 @@ export default function useCartViewModel() {
                     quantity: item.quantity,
                     couponData: item.couponData,
                 }),
-                // Backend coupon fields (only present when coupon is applied)
                 couponItemData: couponItem || null,
             };
         });
@@ -150,7 +145,6 @@ export default function useCartViewModel() {
         const isBogo = item.couponData?.discountType === DISCOUNT_TYPES.BOGO;
         const step = isBogo ? 2 : 1;
         updateFoodCartQuantity(item.id, item.quantity + step);
-        // Clear coupon response since cart changed
         if (couponResponse) {
             setCouponResponse(null);
             setAppliedCouponName("");
@@ -158,7 +152,6 @@ export default function useCartViewModel() {
     };
     const handleDecrement = (item) => {
         updateFoodCartQuantity(item.id, item.quantity - 1);
-        // Clear coupon response since cart changed
         if (couponResponse) {
             setCouponResponse(null);
             setAppliedCouponName("");
@@ -166,25 +159,16 @@ export default function useCartViewModel() {
     };
     const handleRemove = (item) => {
         removeFromFoodCart(item.id);
-        // Clear coupon response since cart changed
         if (couponResponse) {
             setCouponResponse(null);
             setAppliedCouponName("");
         }
     };
 
-    /**
-     * Coupon input handler:
-     * - Max 5 characters
-     * - Uppercase only
-     * - No spaces allowed
-     */
     const handleCouponCodeChange = (event) => {
         const raw = event.target.value;
-        // Remove spaces, convert to uppercase, limit to 5 chars
         const sanitized = raw.replace(/\s/g, '').toUpperCase();
         setCouponCode(sanitized);
-        // Reset applied coupon when user edits
         setAppliedCouponName("");
         setCouponResponse(null);
     };
@@ -196,11 +180,6 @@ export default function useCartViewModel() {
         toast.success('Coupon removed.');
     };
 
-    /**
-     * Validate coupon via /v1/coupon/validate.
-     * Sends { foodItems, couponCode } and stores full backend response.
-     * Frontend trusts backend finalPrice and finalPayableAmount.
-     */
     const handleApplyCoupon = async () => {
         const code = couponCode.trim();
 
@@ -256,6 +235,153 @@ export default function useCartViewModel() {
 
     const toggleBillExpanded = () => setIsBillExpanded((current) => !current);
 
+    // ══════════════════════════════════════════════════════════════
+    // PAYMENT SHEET & ORDER FLOW
+    // ══════════════════════════════════════════════════════════════
+
+    /** Open the payment method bottom sheet */
+    const handlePlaceOrderClick = useCallback(() => {
+        if (foodCart.length === 0) return;
+        setShowPaymentSheet(true);
+    }, [foodCart]);
+
+    /** Close the bottom sheet */
+    const handleCancelSheet = useCallback(() => {
+        setShowPaymentSheet(false);
+    }, []);
+
+    /**
+     * Opens the Razorpay checkout modal.
+     */
+    const openRazorpay = useCallback((paymentData, foodOrderId) => {
+        return new Promise((resolve) => {
+            const options = {
+                key: paymentData.razorpayKey,
+                amount: paymentData.amount,
+                currency: paymentData.currency,
+                order_id: paymentData.razorpayOrderId,
+                name: hotelData?.hotelName || 'Hotel Food Order',
+                description: `Order #${foodOrderId.slice(-6).toUpperCase()}`,
+                prefill: {
+                    name: customerData?.name || '',
+                    contact: customerData?.phone || customerData?.mobile || '',
+                    email: customerData?.email || '',
+                },
+
+                handler: async function (response) {
+                    try {
+                        setPaymentProcessing(true);
+                        await verifyPayment({
+                            foodOrderId,
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature,
+                        });
+                        toast.success('Payment verified successfully!');
+                        resolve(true);
+                    } catch (error) {
+                        const msg = getApiErrorMessage(error, 'Payment verification failed. Please contact support.');
+                        toast.error(msg);
+                        toast.info(`Your Order ID: ${foodOrderId}`, { duration: 10000 });
+                        resolve(false);
+                    } finally {
+                        setPaymentProcessing(false);
+                    }
+                },
+
+                modal: {
+                    ondismiss: function () {
+                        toast.info('Order placed as Cash on Delivery.', { duration: 5000 });
+                        resolve(false);
+                    },
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                toast.error('Payment failed: ' + (response.error?.description || 'Unknown error'));
+            });
+            rzp.open();
+        });
+    }, [customerData, hotelData]);
+
+    /**
+     * Confirm & Place Order — called from bottom sheet.
+     * Places order → if online, initiates Razorpay → navigates to order history.
+     */
+    const handleConfirmOrder = useCallback(async () => {
+        if (foodCart.length === 0 || isPlacingOrder || paymentProcessing) return;
+
+        setIsPlacingOrder(true);
+
+        try {
+            // Build order payload
+            const foodItems = foodCart.map((item) => ({
+                foodId: item.foodId || item._id || item.id,
+                quantity: Number(item.quantity) || 1,
+                price: getCartUnitPrice(item),
+            }));
+
+            const orderPayload = {
+                hotelId: hotelData?._id,
+                foodItems,
+                deliveryAddress: `Room ${roomNumber || 'N/A'}`,
+            };
+
+            if (appliedCouponName) {
+                orderPayload.couponCode = appliedCouponName;
+            }
+
+            // Create the order (always starts as COD)
+            const orderRes = await createFoodOrder(orderPayload);
+            const foodOrderId = orderRes?._id || orderRes?.data?._id;
+
+            if (!foodOrderId) {
+                throw new Error('Order created but no order ID received.');
+            }
+
+            // If COD → clear cart → go to order history
+            if (paymentMethod === 'cod') {
+                clearFoodCart();
+                setShowPaymentSheet(false);
+                toast.success('Order placed successfully!');
+                navigate('/order-history');
+                return;
+            }
+
+            // Online → Initiate Razorpay
+            setPaymentProcessing(true);
+
+            const paymentRes = await initiatePayment({ foodOrderId });
+            const paymentData = paymentRes?.data || paymentRes;
+
+            if (!paymentData?.razorpayOrderId || !paymentData?.razorpayKey) {
+                throw new Error('Failed to initiate payment. Please try again.');
+            }
+
+            setPaymentProcessing(false);
+            setShowPaymentSheet(false);
+
+            // Open Razorpay Modal
+            await openRazorpay(paymentData, foodOrderId);
+
+            // Whether payment succeeded or not, order exists — go to order history
+            clearFoodCart();
+            navigate('/order-history');
+
+        } catch (error) {
+            const message = getApiErrorMessage(error, 'Failed to place order. Please try again.');
+            toast.error(message);
+        } finally {
+            setIsPlacingOrder(false);
+            setPaymentProcessing(false);
+        }
+    }, [
+        foodCart, isPlacingOrder, paymentProcessing, paymentMethod,
+        hotelData, roomNumber, appliedCouponName,
+        getCartUnitPrice, clearFoodCart, openRazorpay, navigate,
+    ]);
+
     return {
         items,
         itemsTotal,
@@ -275,6 +401,16 @@ export default function useCartViewModel() {
         customerData,
         roomNumber,
         isBillExpanded,
+        // Payment sheet
+        showPaymentSheet,
+        paymentMethod,
+        setPaymentMethod,
+        isPlacingOrder,
+        paymentProcessing,
+        handlePlaceOrderClick,
+        handleConfirmOrder,
+        handleCancelSheet,
+        // Navigation & actions
         handleBack,
         handleBrowseFood,
         handleIncrement,

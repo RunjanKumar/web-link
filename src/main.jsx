@@ -27,8 +27,12 @@ import Food from './UI/food/food.jsx'
 import FoodDetails from './UI/food/components/foodDetail.jsx'
 import CouponDetail from './UI/food/components/coupon/CouponDetail.jsx'
 import Cart from './UI/food/cart/Cart.jsx'
+import OrderHistory from './UI/food/OrderHistory.jsx'
 
-
+// Main application bootstrap:
+// Wrap the app in shared providers, initialize routing, and render the root element.
+// This is the entry point that wires up auth, socket, food order, customer profile,
+// and service request state for the entire app.
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
@@ -44,6 +48,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/food-details" element={<FoodDetails />} />
                   <Route path="/coupon-detail" element={<CouponDetail />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/order-history" element={<OrderHistory />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/lights" element={<LightControl />} />
                   <Route path="/ac" element={<AirConditioner />} />

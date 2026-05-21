@@ -54,3 +54,12 @@ export const DISCOUNT_TYPES = {
   AMOUNT: 2,
   BOGO: 3,
 };
+
+/* ── Transaction / Payment Status Constants ── */
+export const TRANSACTION_STATUS = {
+  PENDING: 1,
+  SUCCESS: 2,
+  FAILED: 3,
+  CANCELLED: 4,
+  REFUNDED: 5,
+};

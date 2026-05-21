@@ -1,9 +1,14 @@
+import { useEffect, useState } from "react";
 import {
     ArrowLeft,
+    Banknote,
     ChevronDown,
     ChevronUp,
     Clock3,
+    CreditCard,
     Home,
+    Info,
+    Loader2,
     Minus,
     Phone,
     Plus,
@@ -33,6 +38,16 @@ export default function Cart() {
         isApplyingCoupon,
         appliedCouponName,
         isBillExpanded,
+        // Payment sheet
+        showPaymentSheet,
+        paymentMethod,
+        setPaymentMethod,
+        isPlacingOrder,
+        paymentProcessing,
+        handlePlaceOrderClick,
+        handleConfirmOrder,
+        handleCancelSheet,
+        // Navigation & actions
         handleBack,
         handleBrowseFood,
         handleIncrement,
@@ -44,8 +59,21 @@ export default function Cart() {
         toggleBillExpanded,
     } = useCartViewModel();
 
+    const isProcessing = isPlacingOrder || paymentProcessing;
+
     return (
         <div className="min-h-screen bg-[#111111] text-white pb-[118px]">
+            {/* Processing Overlay */}
+            {isProcessing && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex flex-col items-center justify-center gap-4">
+                    <Loader2 size={48} className="text-yellow-400 animate-spin" />
+                    <p className="text-white text-[20px] font-medium">
+                        {paymentProcessing ? 'Verifying payment…' : 'Placing your order…'}
+                    </p>
+                    <p className="text-[#A7A7A7] text-[14px]">Please don't close this page</p>
+                </div>
+            )}
+
             <div className="px-5 pt-10">
                 <button
                     onClick={handleBack}
@@ -73,7 +101,7 @@ export default function Cart() {
                     </div>
                 ) : (
                     <>
-                        {/* Flat list — each item (food or add-on) is independent */}
+                        {/* Cart Items */}
                         <div className="mt-5 flex flex-col gap-3">
                             {items.map((item) => {
                                 const discount = getDiscountDisplayInfo({
@@ -82,7 +110,6 @@ export default function Cart() {
                                     couponData: item.couponData,
                                 });
 
-                                // If coupon is applied, use backend coupon data for this item
                                 const ci = item.couponItemData;
 
                                 return (
@@ -121,7 +148,6 @@ export default function Cart() {
                                 if (event.key === 'Enter') handleApplyCoupon();
                             }}
                             placeholder="Apply flat coupon only"
-
                             disabled={isApplyingCoupon}
                             className="mt-8 w-full h-[80px] rounded-[12px] bg-[#202020] px-6 text-[22px] outline-none placeholder:text-[#8D8D8D] uppercase tracking-widest"
                         />
@@ -176,7 +202,6 @@ export default function Cart() {
                                     <div className="mt-6 ml-14 rounded-[10px] bg-[#121212] px-5 py-5">
                                         <BillLine label="Items Total" value={`₹ ${itemsTotal.toFixed(2)}`} />
 
-                                        {/* ── Discount Breakdown ── */}
                                         {(percentageSavings > 0 || bogoSavings > 0 || flatCouponDiscount > 0) && (
                                             <div className="mt-2 mb-2">
                                                 {percentageSavings > 0 && (
@@ -228,8 +253,9 @@ export default function Cart() {
                 )}
             </div>
 
+            {/* ── Bottom Bar ── */}
             {items.length > 0 && (
-                <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-4">
+                <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-4 z-10">
                     <button
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
@@ -237,14 +263,213 @@ export default function Cart() {
                     >
                         {isApplyingCoupon ? 'Applying...' : 'Apply Coupon'}
                     </button>
-                    <button className="flex-1 h-[84px] rounded-[18px] bg-yellow-400 text-black text-[24px] font-semibold">
+                    <button
+                        onClick={handlePlaceOrderClick}
+                        className="flex-1 h-[84px] rounded-[18px] bg-yellow-400 text-black text-[24px] font-semibold"
+                    >
                         Place Order - ₹ {payableAmount.toFixed(2)}
                     </button>
                 </div>
             )}
+
+            {/* ── Payment Method Bottom Sheet ── */}
+            {showPaymentSheet && (
+                <PaymentBottomSheet
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                    payableAmount={payableAmount}
+                    roomNumber={roomNumber}
+                    isPlacingOrder={isPlacingOrder}
+                    onConfirm={handleConfirmOrder}
+                    onCancel={handleCancelSheet}
+                />
+            )}
         </div>
     );
 }
+
+
+// ══════════════════════════════════════════════════════════════
+// PAYMENT BOTTOM SHEET
+// ══════════════════════════════════════════════════════════════
+
+function PaymentBottomSheet({
+    paymentMethod,
+    setPaymentMethod,
+    payableAmount,
+    roomNumber,
+    isPlacingOrder,
+    onConfirm,
+    onCancel,
+}) {
+    // Slide-up animation state
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        // Trigger animation after mount
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setIsVisible(true);
+            });
+        });
+    }, []);
+
+    const handleCancel = () => {
+        setIsVisible(false);
+        setTimeout(onCancel, 300);
+    };
+
+    return (
+        <div className="fixed inset-0 z-50">
+            {/* Backdrop */}
+            <div
+                className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+                onClick={handleCancel}
+            />
+
+            {/* Sheet */}
+            <div
+                className={`absolute bottom-0 left-0 right-0 bg-[#1A1A1A] rounded-t-[24px] transition-transform duration-300 ease-out ${
+                    isVisible ? 'translate-y-0' : 'translate-y-full'
+                }`}
+            >
+                {/* Handle bar */}
+                <div className="flex justify-center pt-3 pb-2">
+                    <div className="w-10 h-[5px] rounded-full bg-[#4A4A4A]" />
+                </div>
+
+                <div className="px-6 pb-8">
+                    {/* Title */}
+                    <h2 className="text-white text-[22px] font-bold mt-2">Choose payment method</h2>
+                    <p className="text-[#8D8D8D] text-[15px] mt-1">
+                        Total: ₹ {payableAmount.toFixed(2)} · Room {roomNumber || '101'}
+                    </p>
+
+                    {/* Options */}
+                    <div className="mt-6 flex flex-col gap-3">
+                        {/* Pay Online */}
+                        <button
+                            onClick={() => setPaymentMethod('online')}
+                            className={`w-full flex items-center gap-4 p-4 rounded-[16px] border-2 transition-all duration-200 ${
+                                paymentMethod === 'online'
+                                    ? 'border-yellow-400 bg-yellow-400/5'
+                                    : 'border-[#3A3A3A] bg-transparent'
+                            }`}
+                        >
+                            <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${
+                                paymentMethod === 'online'
+                                    ? 'bg-yellow-400/15'
+                                    : 'bg-[#2A2A2A]'
+                            }`}>
+                                <CreditCard size={22} className={
+                                    paymentMethod === 'online' ? 'text-yellow-400' : 'text-[#6B6B6B]'
+                                } />
+                            </div>
+                            <div className="flex-1 text-left">
+                                <p className={`text-[17px] font-semibold ${
+                                    paymentMethod === 'online' ? 'text-yellow-400' : 'text-white'
+                                }`}>
+                                    Pay online
+                                </p>
+                                <p className="text-[#8D8D8D] text-[13px] mt-[2px]">
+                                    UPI, card, net banking via Razorpay
+                                </p>
+                            </div>
+                            {/* Radio */}
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                paymentMethod === 'online'
+                                    ? 'border-yellow-400'
+                                    : 'border-[#4A4A4A]'
+                            }`}>
+                                {paymentMethod === 'online' && (
+                                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                                )}
+                            </div>
+                        </button>
+
+                        {/* Cash on Delivery */}
+                        <button
+                            onClick={() => setPaymentMethod('cod')}
+                            className={`w-full flex items-center gap-4 p-4 rounded-[16px] border-2 transition-all duration-200 ${
+                                paymentMethod === 'cod'
+                                    ? 'border-yellow-400 bg-yellow-400/5'
+                                    : 'border-[#3A3A3A] bg-transparent'
+                            }`}
+                        >
+                            <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center ${
+                                paymentMethod === 'cod'
+                                    ? 'bg-yellow-400/15'
+                                    : 'bg-[#2A2A2A]'
+                            }`}>
+                                <Banknote size={22} className={
+                                    paymentMethod === 'cod' ? 'text-yellow-400' : 'text-[#6B6B6B]'
+                                } />
+                            </div>
+                            <div className="flex-1 text-left">
+                                <p className={`text-[17px] font-semibold ${
+                                    paymentMethod === 'cod' ? 'text-yellow-400' : 'text-white'
+                                }`}>
+                                    Cash on delivery
+                                </p>
+                                <p className="text-[#8D8D8D] text-[13px] mt-[2px]">
+                                    Pay when order arrives at your room
+                                </p>
+                            </div>
+                            {/* Radio */}
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                paymentMethod === 'cod'
+                                    ? 'border-yellow-400'
+                                    : 'border-[#4A4A4A]'
+                            }`}>
+                                {paymentMethod === 'cod' && (
+                                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                                )}
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Info text */}
+                    <div className="mt-5 flex items-start gap-2">
+                        <Info size={16} className="text-[#6B6B6B] mt-[2px] shrink-0" />
+                        <p className="text-[#6B6B6B] text-[13px] leading-[18px]">
+                            You can switch to online payment anytime before delivery
+                        </p>
+                    </div>
+
+                    {/* Confirm button */}
+                    <button
+                        onClick={onConfirm}
+                        disabled={isPlacingOrder}
+                        className="mt-6 w-full h-[56px] rounded-[16px] bg-gradient-to-r from-[#C99F2B] to-[#E2B124] text-black text-[18px] font-bold flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.98] transition-transform"
+                    >
+                        {isPlacingOrder ? (
+                            <>
+                                <Loader2 size={22} className="animate-spin" />
+                                Placing order…
+                            </>
+                        ) : (
+                            'Confirm & place order'
+                        )}
+                    </button>
+
+                    {/* Cancel */}
+                    <button
+                        onClick={handleCancel}
+                        disabled={isPlacingOrder}
+                        className="mt-3 w-full text-center text-[#8D8D8D] text-[16px] py-2 disabled:opacity-40"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// SUB-COMPONENTS
+// ══════════════════════════════════════════════════════════════
 
 function CartFoodRow({
     title,
@@ -263,7 +488,6 @@ function CartFoodRow({
     couponData,
     hasCouponApplied,
 }) {
-    // When coupon is applied, use backend finalPrice directly; otherwise calculate locally
     const lineTotal = hasCouponApplied
         ? Math.round(price)
         : Math.round(getLineTotal({ unitPrice: price, quantity, couponData }));

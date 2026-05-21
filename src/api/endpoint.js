@@ -37,7 +37,9 @@ export const ENDPOINTS = {
     // ── Food ──
     FOOD_CATEGORY: '/v1/foodCategory',
     FOOD_MENU: '/v1/food/menu',
-    FOOD_ORDER: '/v1/food/order',
+    FOOD_ORDER: '/v1/foodOrder',
+    INITIATE_PAYMENT: '/v1/foodOrder/initiatePayment',
+    VERIFY_PAYMENT: '/v1/foodOrder/verifyPayment',
 
     // ── Coupon ──
     COUPON: '/v1/coupon',
