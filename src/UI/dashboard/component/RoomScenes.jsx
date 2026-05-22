@@ -51,6 +51,8 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
     let cancelled = false;
 
     async function fetchScenes() {
+      console.log('[Dashboard] Fetching room scene devices');
+
       try {
         setIsLoading(true);
         const response = await getRoomDevices();
@@ -58,6 +60,11 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
           const sceneDevices = response.data.filter(
             (device) => device.isSceneButton === true
           );
+          console.log('[Dashboard] Room scene devices loaded', {
+            totalDevices: response.data.length,
+            sceneCount: sceneDevices.length,
+            masterSceneFound: sceneDevices.some((d) => d.isMasterScene === true),
+          });
           setScenesData(sceneDevices);
 
           // Build initial toggle state from device status
@@ -67,6 +74,12 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
               const parsed = JSON.parse(device.status);
               initialToggles[device._id] = parsed?.state === 'ON';
             } catch (err) {
+              console.warn('[Dashboard] Could not parse scene status', {
+                id: device._id,
+                name: device.friendlyname,
+                status: device.status,
+                error: err,
+              });
               initialToggles[device._id] = false;
             }
           });
@@ -76,21 +89,41 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
           const masterDevice = sceneDevices.find((d) => d.isMasterScene === true);
           if (masterDevice) {
             setMasterSceneId(masterDevice._id);
+            console.log('[Dashboard] Master scene initialized', {
+              id: masterDevice._id,
+              isOn: initialToggles[masterDevice._id] ?? false,
+            });
             onMasterSceneChange?.(initialToggles[masterDevice._id] ?? false);
+          } else {
+            console.log('[Dashboard] Master scene device not found');
           }
         }
       } catch (err) {
-        console.error('Scene devices fetch error:', err);
+        console.error('[Dashboard] Scene devices fetch failed', {
+          message:
+            err?.response?.data?.message ||
+            err?.response?.data?.msg ||
+            err?.message ||
+            'Unknown scene devices fetch error',
+          status: err?.response?.status,
+          error: err,
+        });
         const backendMsg = err?.response?.data?.msg;
         if (backendMsg) toast.error(backendMsg);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          console.log('[Dashboard] Room scene devices fetch finished');
+          setIsLoading(false);
+        }
       }
     }
 
     fetchScenes();
-    return () => { cancelled = true; };
-  }, []);
+    return () => {
+      console.log('[Dashboard] Room scene cleanup');
+      cancelled = true;
+    };
+  }, [onMasterSceneChange]);
 
   // ── Toggle any scene — ONE API call with the scene's own channelid ──
   const toggleScene = async (id) => {
@@ -98,6 +131,14 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
     const wasOn = sceneToggles[id];
     const newAction = wasOn ? 'TurnOff' : 'TurnOn';
 
+    console.log('[Dashboard] Scene toggle requested', {
+      id,
+      name: device?.friendlyname,
+      channelid: device?.channelid,
+      wasOn,
+      action: newAction,
+      isMasterScene: Boolean(device?.isMasterScene),
+    });
 
     // Optimistic UI update
     setSceneToggles((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -108,16 +149,37 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
         action: newAction,
       });
 
+      console.log('[Dashboard] Scene command succeeded', {
+        id,
+        name: device?.friendlyname,
+        action: newAction,
+      });
+
       // If this was the Master Scene, notify parent so QuickActions stays in sync
       if (device?.isMasterScene) {
         onMasterSceneChange?.(!wasOn);
       }
     } catch (err) {
-      console.error(`❌ Scene exec failed for ${device?.friendlyname}:`, err);
+      console.error('[Dashboard] Scene command failed', {
+        id,
+        name: device?.friendlyname,
+        action: newAction,
+        message:
+          err?.response?.data?.message ||
+          err?.response?.data?.msg ||
+          err?.message ||
+          'Unknown scene command error',
+        status: err?.response?.status,
+        error: err,
+      });
       const backendMsg = err?.response?.data?.msg;
       if (backendMsg) toast.error(backendMsg);
       // Rollback on failure
       setSceneToggles((prev) => ({ ...prev, [id]: wasOn }));
+      console.log('[Dashboard] Scene toggle rolled back', {
+        id,
+        restoredValue: wasOn,
+      });
     }
   };
 
@@ -127,7 +189,12 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
   useImperativeHandle(ref, () => ({
     toggleMasterScene: () => {
       if (masterSceneId) {
+        console.log('[Dashboard] Imperative master scene toggle received', {
+          masterSceneId,
+        });
         toggleScene(masterSceneId);
+      } else {
+        console.log('[Dashboard] Imperative master scene toggle ignored; master scene is not ready');
       }
     },
   }));

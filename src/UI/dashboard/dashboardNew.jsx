@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import useDashboardViewModel from '../../viewModel/dashboardViewModel';
 import UserProfile from './component/UserProfile';
 import DoorControl from './component/DoorControl';
@@ -17,8 +17,39 @@ export default function DashboardNew() {
   const [masterSceneOn, setMasterSceneOn] = useState(false);
   const roomSceneRef = useRef(null);
 
+  useEffect(() => {
+    console.log("[Dashboard] Page mounted", {
+      path: window.location.pathname,
+    });
+
+    return () => {
+      console.log("[Dashboard] Page unmounted");
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("[Dashboard] Render state changed", {
+      isLoading,
+      hasProfile: Boolean(profileData),
+      quickCallCount: quickCallData?.length || 0,
+      profileError,
+      quickCallError,
+      masterSceneOn,
+    });
+  }, [
+    isLoading,
+    profileData,
+    quickCallData,
+    profileError,
+    quickCallError,
+    masterSceneOn,
+  ]);
+
   // Called by RoomScene whenever Master Scene state changes
   const handleMasterSceneChange = useCallback((isOn) => {
+    console.log("[Dashboard] Master scene state synced from RoomScene", {
+      isOn,
+    });
     setMasterSceneOn(isOn);
   }, []);
 
@@ -26,6 +57,9 @@ export default function DashboardNew() {
   // This triggers RoomScene's toggleMasterScene() which sends the API call
   // and then calls onMasterSceneChange to update the shared state.
   const handleToggleMaster = useCallback(() => {
+    console.log("[Dashboard] Master scene toggle requested from QuickActions", {
+      hasRoomSceneRef: Boolean(roomSceneRef.current),
+    });
     roomSceneRef.current?.toggleMasterScene();
   }, []);
 

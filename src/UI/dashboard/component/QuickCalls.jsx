@@ -1,6 +1,16 @@
+import { useEffect } from "react";
+
 export default function QuickCalls({ quickCallData, handleQuickCallClick, error }) { //in future show error 
 
   const count = quickCallData?.length || 0;
+
+  useEffect(() => {
+    if (error) {
+      console.warn("[Dashboard] Quick calls section received an error", {
+        error,
+      });
+    }
+  }, [error]);
 
   return (
     <div>

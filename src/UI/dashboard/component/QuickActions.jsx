@@ -30,12 +30,28 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
     { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400',route: '/food' },
   ];
 
+  const handleActionClick = (action) => {
+    console.log("[Dashboard] Quick action clicked", {
+      id: action.id,
+      title: action.title,
+      route: action.route,
+      hasSwitch: Boolean(action.hasSwitch),
+    });
+
+    if (action.route) {
+      console.log("[Dashboard] Navigating from quick action", {
+        route: action.route,
+      });
+      navigate(action.route);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-lg font-bold mb-3 m-0">Quick <span className="italic text-amber-500 font-semibold">Actions</span></h2>
       <div className="grid grid-cols-2 gap-3">
         {actionsData.map((a) => (
-          <div className={`bg-[#1a1a1a] rounded-2xl p-4 flex flex-col justify-between min-h-[140px] border border-[rgba(55,55,55,0.5)] relative overflow-hidden ${a.route ? 'cursor-pointer' : ''}`} key={a.id} onClick={() => a.route && navigate(a.route)}>
+          <div className={`bg-[#1a1a1a] rounded-2xl p-4 flex flex-col justify-between min-h-[140px] border border-[rgba(55,55,55,0.5)] relative overflow-hidden ${a.route ? 'cursor-pointer' : ''}`} key={a.id} onClick={() => handleActionClick(a)}>
             <div className={`absolute bottom-0 left-0 right-0 h-[3px] ${a.accent}`} />
             <div className="flex justify-between items-start">
               <ActionIcon type={a.icon} />
@@ -55,6 +71,10 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
                     onClick={(e) => {
                       // Stop propagation so clicking the toggle doesn't also navigate to /lights
                       e.stopPropagation();
+                      console.log("[Dashboard] Master scene switch clicked", {
+                        currentValue: masterSwitch,
+                        nextValue: !masterSwitch,
+                      });
                       onToggleMaster?.();
                     }}
                   >
