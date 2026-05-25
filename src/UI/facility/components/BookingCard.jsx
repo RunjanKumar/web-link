@@ -1,4 +1,4 @@
-import { CalendarIcon, PeopleIcon, LocationIcon, StatusIcon } from '../../../assets/icons';
+import { CalendarIcon, PeopleIcon, LocationIcon, StatusIcon, FacilityTypeIcon } from '../../../assets/icons';
 import EventInfoRow from './EventInfoRow';
 
 /**
@@ -12,6 +12,7 @@ export default function BookingCard({ booking }) {
         displayDate,
         displayGuests,
         displayName,
+        displayFacilityTypeName,
         displayStatusLabel,
         displayStatusColor,
     } = booking;
@@ -36,6 +37,13 @@ export default function BookingCard({ booking }) {
             <EventInfoRow
                 icon={<LocationIcon size={18} color="#facc15" />}
                 text={displayName}
+                textClassName="text-gray-300"
+            />
+
+            {/* Facility Type Name */}
+            <EventInfoRow
+                icon={<FacilityTypeIcon size={18} color="#facc15" />}
+                text={displayFacilityTypeName}
                 textClassName="text-gray-300"
             />
 

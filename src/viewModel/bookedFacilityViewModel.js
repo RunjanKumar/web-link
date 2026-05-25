@@ -22,15 +22,11 @@ import { formattedDate, formattedTime } from "../utils/commonFunction";
 
 /* ── Transform a raw reservation into display-ready data ── */
 function formatBookingForDisplay(booking) {
-    const name =
-        booking.name ||
-        booking.facilityName ||
-        booking.hotelFacilityId?.name ||
-        'Facility';
-
-    const dateTimeStr = booking.bookingDate || booking.dateTime || booking.requestedAt || booking.createdAt;
-    const guests = booking.numberOfGuests || booking.numberOfPeople || booking.guests || 0;
-    const status = booking.status || HOTEL_FACILITY_BOOKING_STATUS.PENDING;
+    // console.log(booking, "[BookedFacilityVM] Formatting booking for display");
+    const name = booking.facilityName;
+    const dateTimeStr = booking.bookingDate;
+    const guests = booking.numberOfGuests;
+    const status = booking.status;
 
     const formatted = {
         id: booking._id,
@@ -39,12 +35,11 @@ function formatBookingForDisplay(booking) {
             : '',
         displayGuests: guests ? `${guests} ${guests === 1 ? 'guest' : 'guests'}` : '',
         displayName: name,
+        displayFacilityTypeName: booking.facilityTypeName,
         displayStatusLabel: FACILITY_STATUS_LABELS[status] || 'Unknown',
         displayStatusColor: FACILITY_STATUS_COLORS[status] || '#6b7280',
         status,
     };
-
-
     return formatted;
 }
 
@@ -64,10 +59,6 @@ export default function useBookedFacilityViewModel() {
 
             // STEP-3: Extract array
             const data = response?.data || response || [];
-
-            // Log first item shape for learning
-            if (data.length > 0) {
-            }
 
             setReservations(data);
         } catch (err) {
