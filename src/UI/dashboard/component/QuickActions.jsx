@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 function ActionIcon({ type }) {
   const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
-  const colors = { bell: '#facc15', bulb: '#4ade80', snow: '#60a5fa', food: '#fb923c' };
+  const colors = { bell: '#facc15', bulb: '#4ade80', snow: '#60a5fa', food: '#fb923c', facilities: '#a78bfa' };
   const s = colors[type];
 
   switch (type) {
@@ -10,6 +10,7 @@ function ActionIcon({ type }) {
     case 'bulb': return <svg {...props} stroke={s}><path d="M9 18h6" /><path d="M10 22h4" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" /></svg>;
     case 'snow': return <svg {...props} stroke={s}><path d="M12 2v20" /><path d="m8 4 4-2 4 2" /><path d="m8 20 4 2 4-2" /><path d="M2 12h20" /><path d="m4 8-2 4 2 4" /><path d="m20 8 2 4-2 4" /></svg>;
     case 'food': return <svg {...props} stroke={s}><path d="M17 8c0-5-5-5-5-5s-5 0-5 5" /><path d="M3 14h18" /><path d="M3 14c0 3.5 2.5 6.5 6 7.5V23h6v-1.5c3.5-1 6-4 6-7.5" /></svg>;
+    case 'facilities': return <svg {...props} stroke={s}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
     default: return null;
   }
 }
@@ -26,7 +27,7 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
   const actionsData = [
     { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'bg-gradient-to-r from-amber-500 to-yellow-300', route: '/services' },
     { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true, route: '/lights' },
-    { id: 3, icon: 'snow', title: 'Air Conditioner', accent: 'bg-gradient-to-r from-blue-500 to-sky-400', route: '/ac' },
+    { id: 3, icon: 'facilities', title: 'Facilities', accent: 'bg-gradient-to-r from-blue-500 to-sky-400', route: '/facilities' },
     { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400',route: '/food' },
   ];
 
