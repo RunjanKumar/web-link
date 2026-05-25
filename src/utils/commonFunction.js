@@ -33,3 +33,21 @@ export const formatDays = (days) => {
   if (days.length === 7) return 'Open all days';
   return days.map((d) => DAY_NAMES[d]).join(', ');
 };
+
+export const latestFormattedTime = (date) => {
+  if (!date) return '';
+
+  const timePart = date.split('T')[1];
+
+  if (!timePart) return '';
+
+  let [hours, minutes] = timePart.split(':');
+
+  hours = Number(hours);
+
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12 || 12;
+
+  return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+};

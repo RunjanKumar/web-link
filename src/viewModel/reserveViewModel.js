@@ -72,7 +72,7 @@ export default function useReserveViewModel(facility) {
         const payload = {
             facilityId: facility?.facilityId,
             facilityTypeId: facility?._id,
-            bookingDate: new Date(dateTime).toISOString(),
+            bookingDate: dateTime,
             numberOfGuests: Number(numberOfPeople),
         };
 

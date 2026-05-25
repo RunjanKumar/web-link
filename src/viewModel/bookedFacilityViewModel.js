@@ -6,7 +6,7 @@ import {
     FACILITY_STATUS_LABELS,
     FACILITY_STATUS_COLORS,
 } from "../utils/constant";
-import { formattedDate, formattedTime } from "../utils/commonFunction";
+import { formattedDate, latestFormattedTime } from "../utils/commonFunction";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -31,7 +31,7 @@ function formatBookingForDisplay(booking) {
     const formatted = {
         id: booking._id,
         displayDate: dateTimeStr
-            ? `${formattedDate(dateTimeStr)} at ${formattedTime(dateTimeStr)}`
+            ? `${formattedDate(dateTimeStr)} at ${latestFormattedTime(dateTimeStr)}`
             : '',
         displayGuests: guests ? `${guests} ${guests === 1 ? 'guest' : 'guests'}` : '',
         displayName: name,
