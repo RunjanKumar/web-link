@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import useReserveViewModel from '../../viewModel/reserveViewModel';
 import OverlayBackButton from './components/OverlayBackButton';
+import AppImage from '../../globalComponents/AppImage';
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -73,7 +74,7 @@ export default function ReserveTable() {
             <div className="relative w-full h-[45vh] min-h-[280px] overflow-hidden">
                 <OverlayBackButton onClick={() => navigate(-1)} />
                 {image ? (
-                    <img
+                    <AppImage
                         src={image}
                         alt={name}
                         className="w-full h-full object-cover"

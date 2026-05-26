@@ -1,3 +1,4 @@
+import AppImage from '../../../../globalComponents/AppImage';
 import useCouponFoodCardViewModel from '../../../../viewModel/couponFoodCardViewModel';
 import AddButton from '../AddButton';
 import VegIndicator from '../VegIndicator';
@@ -60,7 +61,7 @@ export default function CouponFoodCard({ item }) {
 
             <div className="w-[130px] shrink-0 relative">
                 {item.imageURL ? (
-                    <img
+                    <AppImage
                         src={item.imageURL}
                         alt={item.title}
                         className="w-full h-full object-cover"

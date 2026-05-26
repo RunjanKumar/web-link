@@ -4,6 +4,7 @@ import BackButton from '../../globalComponents/BackButton';
 
 // TODO: Replace this placeholder image with the real receptionist illustration from Figma
 import banner from '../../assets'; // ⚠️ WRONG IMAGE — Replace with real receptionist illustration from Figma
+import AppImage from '../../globalComponents/AppImage';
 
 export default function Reception() {
     const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function Reception() {
                 {/* ── Illustration ── */}
                 <div className="flex-1 flex items-center justify-center my-6">
                     {/* TODO: Replace this image with real receptionist/chat illustration from Figma */}
-                    <img
+                    <AppImage
                         src={banner} // ⚠️ WRONG IMAGE — Replace with real illustration from Figma
                         alt="Contact Receptionist Illustration"
                         className="w-[280px] h-auto object-contain opacity-90"

@@ -1,3 +1,4 @@
+import AppImage from '../../../../globalComponents/AppImage';
 import useCouponCardViewModel from '../../../../viewModel/couponCardViewModel';
 
 export default function CouponCard({ coupon }) {
@@ -8,7 +9,7 @@ export default function CouponCard({ coupon }) {
             onClick={handleClick}
             className="w-[340px] h-[150px] rounded-[22px] overflow-hidden shrink-0 cursor-pointer active:scale-[0.97] transition-transform"
         >
-            <img
+            <AppImage
                 src={imageURL}
                 alt="coupon"
                 className="w-full h-full object-cover"

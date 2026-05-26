@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import AppImage from "../../../globalComponents/AppImage";
 
 export default function QuickCalls({ quickCallData, handleQuickCallClick, error }) { //in future show error 
 
@@ -43,7 +44,7 @@ export default function QuickCalls({ quickCallData, handleQuickCallClick, error 
           >
             {/* Icon image */}
             <div className="w-14 h-14 rounded-xl bg-[#252525] flex items-center justify-center mb-2 overflow-hidden">
-              <img
+              <AppImage
                 src={c.icon}
                 alt={c.name}
                 className="w-full h-full object-contain p-1"

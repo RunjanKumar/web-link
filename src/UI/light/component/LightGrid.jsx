@@ -1,5 +1,6 @@
 import lightOff from '../../../assets/images/light_off.png';
 import lightOn from '../../../assets/images/light_on.png';
+import AppImage from '../../../globalComponents/AppImage';
 
 // ── WiFi Offline Icon (crossed-out wifi) ──
 function WifiOfflineIcon() {
@@ -118,7 +119,7 @@ export default function LightGrid({ lightsData, lights, toggleLight, fanLevels, 
                                 {isFan ? (
                                     <FanIcon isOn={isOn} />
                                 ) : (
-                                    <img
+                                    <AppImage
                                         src={isOn ? lightOn : lightOff}
                                         alt={device.friendlyname}
                                         className={`w-[93px] h-[100px] object-contain transition-all duration-300 ${isOn ? 'opacity-100 drop-shadow-[0_0_12px_rgba(250,204,21,0.4)]' : 'opacity-60'

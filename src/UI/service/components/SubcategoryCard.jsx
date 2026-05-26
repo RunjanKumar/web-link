@@ -1,3 +1,5 @@
+import AppImage from "../../../globalComponents/AppImage";
+
 export default function SubcategoryCard({ item, onToggleRequest, requested, alreadyBooked, disabled }) {
     // Already booked (pending/in-progress) takes highest priority — non-toggleable
     const isLocked = alreadyBooked || disabled;
@@ -31,7 +33,7 @@ export default function SubcategoryCard({ item, onToggleRequest, requested, alre
         >
             {/* Icon */}
             <div className="w-14 h-14 min-w-[3.5rem] rounded-xl bg-[#1a1a1a] border border-gray-800 flex items-center justify-center">
-                <img src={item.icon}  alt={item.name} />
+                <AppImage src={item.icon}  alt={item.name} />
             </div>
 
             {/* Info */}

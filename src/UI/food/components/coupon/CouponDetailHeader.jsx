@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
+import AppImage from '../../../../globalComponents/AppImage';
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -15,7 +16,7 @@ export default function CouponDetailHeader({ heroImage, discountInfo, onBack }) 
         <div className="relative w-full h-[300px]">
             {/* Hero Image */}
             {heroImage ? (
-                <img
+                <AppImage
                     src={heroImage}
                     alt="Coupon offer"
                     className="w-full h-full object-cover"

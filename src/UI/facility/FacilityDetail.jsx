@@ -2,6 +2,7 @@ import useFacilityDetailViewModel from '../../viewModel/facilityDetailViewModel'
 import OverlayBackButton from './components/OverlayBackButton';
 import ExpandableDescription from './components/ExpandableDescription';
 import InfoSection from './components/InfoSection';
+import AppImage from '../../globalComponents/AppImage';
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -38,7 +39,7 @@ export default function FacilityDetail() {
             <div className="relative w-full h-[45vh] min-h-[320px] overflow-hidden">
                 <OverlayBackButton onClick={goBack} />
                 {facility.image ? (
-                    <img
+                    <AppImage
                         src={facility.image}
                         alt={facility.name}
                         className="w-full h-full object-cover"

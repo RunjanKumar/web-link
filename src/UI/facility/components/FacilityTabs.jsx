@@ -1,3 +1,5 @@
+import AppImage from "../../../globalComponents/AppImage";
+
 /**
  * ══════════════════════════════════════════════════════════════
  * FACILITY TABS COMPONENT
@@ -31,7 +33,7 @@ export default function FacilityTabs({ types, activeType, onSelect }) {
                     >
                         {/* Category thumbnail */}
                         {t.imageUrl && (
-                            <img
+                            <AppImage
                                 src={t.imageUrl}
                                 alt={t.label}
                                 className="w-10  h-10 min-w-[1.75rem] rounded-full object-cover border border-white/20"

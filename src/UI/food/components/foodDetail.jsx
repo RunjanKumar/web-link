@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import useFoodDetailViewModel from "../../../viewModel/foodDetailViewModel";
 import { getDiscountDisplayInfo } from "../../../utils/discountHelper";
 import VegIndicator from "./VegIndicator";
+import AppImage from "../../../globalComponents/AppImage";
 
 export default function FoodDetails() {
     const {
@@ -33,7 +34,7 @@ export default function FoodDetails() {
     return (
         <div className={`min-h-screen bg-[#111111] text-white pb-[120px] ${!isAvailable ? 'relative' : ''}`}>
             <div className="relative">
-                <img
+                <AppImage
                     src={state?.imageURL || state?.image}
                     alt={state?.title}
                     className={`w-full h-[360px] object-cover ${!isAvailable ? 'grayscale opacity-60' : ''}`}
@@ -155,7 +156,7 @@ export default function FoodDetails() {
                                         {/* Left: image + name + price */}
                                         <div className="flex items-center gap-3 min-w-0 flex-1">
                                             {addOn.imageURL ? (
-                                                <img
+                                                <AppImage
                                                     src={addOn.imageURL}
                                                     alt={addOn.name || addOn.title}
                                                     className="w-[48px] h-[48px] rounded-[12px] object-cover shrink-0"

@@ -1,3 +1,4 @@
+import AppImage from '../../../globalComponents/AppImage';
 import { formatTime12Hour, formatDays } from '../../../utils/commonFunction';
 
 /**
@@ -75,7 +76,7 @@ export default function FacilityCard({ facility, onClick }) {
 
                     {/* ── Right Image ── */}
                     <div className="w-[130px] min-h-[155px]">
-                        <img
+                        <AppImage
                             src={facility.image}
                             alt={facility.name}
                             className="w-full h-full object-cover"

@@ -18,6 +18,7 @@ import {
 import useCartViewModel from "../../../viewModel/cartViewModel";
 import { getDiscountDisplayInfo, getLineTotal } from "../../../utils/discountHelper";
 import VegIndicator from "../components/VegIndicator";
+import AppImage from "../../../globalComponents/AppImage";
 
 export default function Cart() {
     const {
@@ -496,7 +497,7 @@ function CartFoodRow({
         <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
             <div className="flex items-center bg-[#202020]">
                 <div className="relative">
-                    <img
+                    <AppImage
                         src={imageURL}
                         alt={title}
                         className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"

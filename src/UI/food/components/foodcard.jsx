@@ -2,6 +2,7 @@ import useFoodCardViewModel from "../../../viewModel/foodCardViewModel";
 import { getDiscountDisplayInfo } from "../../../utils/discountHelper";
 import AddButton from "./AddButton";
 import VegIndicator from "./VegIndicator";
+import AppImage from "../../../globalComponents/AppImage";
 
 export default function FoodCard({ item }) {
     const { isAvailable, handleNavigate } = useFoodCardViewModel(item);
@@ -71,7 +72,7 @@ export default function FoodCard({ item }) {
 
             <div className="w-[130px] shrink-0 relative">
                 {item.imageURL ? (
-                    <img
+                    <AppImage
                         src={item.imageURL}
                         alt={item.title}
                         className="w-full h-full object-cover"

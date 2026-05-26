@@ -63,3 +63,5 @@ export const TRANSACTION_STATUS = {
   CANCELLED: 4,
   REFUNDED: 5,
 };
+
+export const CDN_BASE_URL = 'https://nexgen-hotel.s3.ap-south-1.amazonaws.com/';
