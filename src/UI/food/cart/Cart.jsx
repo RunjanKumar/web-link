@@ -495,12 +495,12 @@ function CartFoodRow({
 
     return (
         <div className="rounded-[24px] overflow-hidden border border-[#5A5A5A] bg-[#202020]">
-            <div className="flex items-center bg-[#202020]">
+            <div className="flex items-center gap-3 p-3 bg-[#202020]">
                 <div className="relative">
                     <AppImage
                         src={imageURL}
                         alt={title}
-                        className="w-[214px] h-[90px] object-cover bg-[#2A2A2A]"
+                        className="w-[95px] h-[70px] sm:w-[214px] sm:h-[90px] object-cover bg-[#2A2A2A] rounded-[12px]"
                     />
                     {isBogo && (
                         <div className="absolute bottom-0 left-0 right-0 bg-[#E2B124] text-black text-[10px] font-bold text-center py-[2px]">
@@ -509,10 +509,10 @@ function CartFoodRow({
                     )}
                 </div>
 
-                <div className="flex-1 px-7 py-4 min-w-0">
+                <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                         <VegIndicator type={foodType} size={14} />
-                        <p className="text-[18px] text-[#F4F4F4] truncate">
+                        <p className="text-[14px] sm:text-[18px] text-[#F4F4F4] truncate">
                             {title}
                         </p>
                     </div>
@@ -521,12 +521,12 @@ function CartFoodRow({
                             for {parentFoodTitle}
                         </p>
                     )}
-                    <div className="flex items-center gap-2 mt-2">
-                        <p className="text-[#C99F2B] text-[28px] font-semibold">
+                    <div className="flex items-center gap-1 sm:gap-2 mt-2 flex-wrap">
+                        <p className="text-[#C99F2B] text-[22px] sm:text-[28px] font-semibold">
                             ₹{lineTotal}
                         </p>
                         {originalPrice != null && (
-                            <span className="text-[#6B6B6B] text-[16px] line-through">
+                            <span className="text-[#6B6B6B] text-[12px] sm:text-[16px] line-through">
                                 ₹{Math.round(originalPrice)}
                             </span>
                         )}
@@ -545,24 +545,24 @@ function CartFoodRow({
 
                 <button
                     onClick={onRemove}
-                    className="mr-5 w-6 h-6 rounded-[6px] border border-red-500 text-red-500 flex items-center justify-center"
+                    className="w-5 h-5 rounded-[5px] border border-red-500 text-red-500 flex items-center justify-center shrink-0"
                 >
                     <X size={14} />
                 </button>
 
-                <div className="mr-10 h-10 rounded-full border border-yellow-400 flex items-center overflow-hidden">
+                <div className="h-8 sm:h-10 rounded-full border border-yellow-400 flex items-center overflow-hidden shrink-0">
                     <button
                         onClick={onDecrement}
-                        className="w-12 h-full text-yellow-400 flex items-center justify-center"
+                        className="w-8 sm:w-12 h-full text-yellow-400 flex items-center justify-center"
                     >
                         <Minus size={22} />
                     </button>
-                    <span className="w-12 text-center text-yellow-400 text-[22px] font-semibold">
+                    <span className="w-8 sm:w-12 text-center text-yellow-400 text-[14px] sm:text-[22px] font-semibold">
                         {quantity}
                     </span>
                     <button
                         onClick={onIncrement}
-                        className="w-12 h-full text-yellow-400 flex items-center justify-center"
+                        className="w-8 sm:w-12 h-full text-yellow-400 flex items-center justify-center"
                     >
                         <Plus size={22} />
                     </button>
