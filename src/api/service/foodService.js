@@ -60,6 +60,8 @@ export async function getFoodOrders() {
  * POST /v1/foodOrder
  */
 export async function createFoodOrder(orderData) {
+    orderData.coupon = orderData.couponCode; // Ensure coupon is sent as null if not provided
+    delete orderData.couponCode; // Remove couponCode to avoid confusion on backend
     const response = await apiClient.post(ENDPOINTS.FOOD_ORDER, orderData);
     return response.data;
 }
