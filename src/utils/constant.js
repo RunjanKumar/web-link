@@ -64,4 +64,4 @@ export const TRANSACTION_STATUS = {
   REFUNDED: 5,
 };
 
-export const CDN_BASE_URL = 'https://nexgen-hotel.s3.ap-south-1.amazonaws.com/';
+export const CDN_BASE_URL = 'https://d36u10gu6pvj0x.cloudfront.net/';
