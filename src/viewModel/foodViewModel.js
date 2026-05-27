@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFoodCategories } from '../api/service/foodService';
+import { useNavigate } from "react-router-dom";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -33,6 +34,7 @@ export default function useFoodViewModel() {
     const [searchText, setSearchText] = useState("");
     const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
     const foodListRef = useRef(null);
+    const navigate = useNavigate();
 
 
     // Fetch food categories on mount
@@ -91,6 +93,11 @@ export default function useFoodViewModel() {
         setActiveCategoryIndex(index);
     }, []);
 
+    const menuItems = [
+        { label: 'Food Order History', onClick: () => navigate('/order-history') },
+        { label: 'Help', onClick: () => navigate('/chat') },
+    ];
+
     // LEARNING: Everything returned here is what the UI can access.
     // The UI (food.jsx) destructures these values:
     //   const { foodItemData, couponData, isLoading, error } = useFoodViewModel();
@@ -111,5 +118,6 @@ export default function useFoodViewModel() {
         handleCategorySelect,
         handleVisibleCategoryChange,
         refetch: fetchFoodCategories,
+        menuItems,
     };
 }

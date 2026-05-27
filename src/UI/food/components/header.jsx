@@ -1,13 +1,15 @@
-import { MoreHorizontal } from "lucide-react";
 import BackButton from "../../../globalComponents/BackButton";
+import ThreeDotMenu from "../../../globalComponents/ThreeDotMenu";
+import useFoodViewModel from "../../../viewModel/foodViewModel";
 
 export default function Header() {
+  const { menuItems } = useFoodViewModel();
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         {/* <ArrowLeft className="w-7 h-7" /> */}
         <BackButton />
-        <MoreHorizontal className="w-7 h-7" />
+        <ThreeDotMenu items={menuItems} />
       </div>
 
       <h1 className="text-5xl font-bold">Food Order</h1>
