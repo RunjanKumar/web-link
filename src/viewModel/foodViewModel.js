@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFoodCategories } from '../api/service/foodService';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -35,12 +35,49 @@ export default function useFoodViewModel() {
     const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
     const foodListRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
 
     // Fetch food categories on mount
     useEffect(() => {
         fetchFoodCategories();
     }, []);
+
+    /**
+     * Auto-select the category passed from the dashboard (redirectTypes === 2).
+     * Runs after foodItemData is populated.
+     */
+    useEffect(() => {
+        const foodCategoryId = location.state?.foodCategoryId;
+        if (!foodCategoryId || !foodItemData || foodItemData.length === 0) return;
+
+        const targetIndex = foodItemData.findIndex(
+            (cat) => cat._id === foodCategoryId
+        );
+
+        if (targetIndex !== -1) {
+            console.log("[FoodVM] Deep-link: selecting category from dashboard", {
+                foodCategoryId,
+                targetIndex,
+                categoryName: foodItemData[targetIndex]?.name,
+            });
+
+            setActiveCategoryIndex(targetIndex);
+
+            // Give the DOM one tick to render before scrolling
+            setTimeout(() => {
+                foodListRef.current?.scrollToCategory(targetIndex);
+            }, 300);
+        } else {
+            console.warn("[FoodVM] Deep-link: foodCategoryId not found in categories", {
+                foodCategoryId,
+            });
+        }
+
+        // Clear the navigation state so back-navigation won't re-trigger.
+        // Using window.history.replaceState avoids a React re-render cycle.
+        window.history.replaceState({}, "");
+    }, [foodItemData, location.state]);
 
     /**
      * Fetches food categories from the API.
@@ -121,3 +158,4 @@ export default function useFoodViewModel() {
         menuItems,
     };
 }
+

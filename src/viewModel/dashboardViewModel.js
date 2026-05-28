@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     getCustomerProfile,
     getQuickCall,
@@ -14,6 +15,8 @@ export default function useDashboardViewModel() {
 
     const [profileError, setProfileError] = useState(null);
     const [quickCallError, setQuickCallError] = useState(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         let cancelled = false;
@@ -117,12 +120,20 @@ export default function useDashboardViewModel() {
                 supportNumber: item.supportNumber,
             });
             window.location.href = `tel:${item.supportNumber}`;
+        } else if (item?.redirectTypes === REDIRECT_TYPES.FOOD_MANAGEMENT) {
+            console.log("[Dashboard] Navigating to food page", {
+                foodCategoryId: item.foodCategoryId,
+                name: item.name,
+            });
+            navigate("/food", {
+                state: { foodCategoryId: item.foodCategoryId },
+            });
         } else {
             console.log("[Dashboard] Quick call click had no callable target", {
                 id: item?._id,
             });
         }
-    }, []);
+    }, [navigate]);
 
     return {
         profileData,
