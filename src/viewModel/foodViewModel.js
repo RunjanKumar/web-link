@@ -47,37 +47,33 @@ export default function useFoodViewModel() {
      * Auto-select the category passed from the dashboard (redirectTypes === 2).
      * Runs after foodItemData is populated.
      */
-    useEffect(() => {
-        const foodCategoryId = location.state?.foodCategoryId;
-        if (!foodCategoryId || !foodItemData || foodItemData.length === 0) return;
+     const hasInitializedRef = useRef(false);
 
-        const targetIndex = foodItemData.findIndex(
-            (cat) => cat._id === foodCategoryId
-        );
+useEffect(() => {
+    if (hasInitializedRef.current) return;
 
-        if (targetIndex !== -1) {
-            console.log("[FoodVM] Deep-link: selecting category from dashboard", {
-                foodCategoryId,
-                targetIndex,
-                categoryName: foodItemData[targetIndex]?.name,
-            });
+    const foodCategoryId = location.state?.foodCategoryId;
 
-            setActiveCategoryIndex(targetIndex);
+    if (!foodCategoryId || !foodItemData?.length) return;
 
-            // Give the DOM one tick to render before scrolling
-            setTimeout(() => {
-                foodListRef.current?.scrollToCategory(targetIndex);
-            }, 300);
-        } else {
-            console.warn("[FoodVM] Deep-link: foodCategoryId not found in categories", {
-                foodCategoryId,
-            });
-        }
+    const targetIndex = foodItemData.findIndex(
+        (cat) => cat._id === foodCategoryId
+    );
 
-        // Clear the navigation state so back-navigation won't re-trigger.
-        // Using window.history.replaceState avoids a React re-render cycle.
-        window.history.replaceState({}, "");
-    }, [foodItemData, location.state]);
+    if (targetIndex === -1) return;
+
+    hasInitializedRef.current = true;
+
+    requestAnimationFrame(() => {
+        setActiveCategoryIndex(targetIndex);
+
+        setTimeout(() => {
+            foodListRef.current?.scrollToCategory(targetIndex);
+        }, 300);
+    });
+
+    window.history.replaceState({}, "");
+}, [foodItemData, location.state]);
 
     /**
      * Fetches food categories from the API.
