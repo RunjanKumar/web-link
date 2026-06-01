@@ -65,3 +65,5 @@ export const TRANSACTION_STATUS = {
 };
 
 export const CDN_BASE_URL = 'https://d36u10gu6pvj0x.cloudfront.net/';
+
+export const DEFAULT_SCENE_ICON = `${CDN_BASE_URL}6a1937a04496bb00ec195952/icon/lightbulb_1780299229288.png`;

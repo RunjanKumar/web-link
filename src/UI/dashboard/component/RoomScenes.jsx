@@ -1,6 +1,8 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { getRoomDevices, execDevice } from '../../../api/service/dashboardService';
 import { toast } from 'sonner';
+import AppImage from "../../../globalComponents/AppImage";
+import { DEFAULT_SCENE_ICON } from "../../../utils/constant";
 
 // ── WiFi Offline Icon (crossed-out wifi) ──
 function WifiOfflineIcon() {
@@ -21,12 +23,12 @@ function WifiOfflineIcon() {
 
 // Scene icon/color mapping based on friendlyname
 const sceneStyles = {
-  'Master Scene': { icon: '📍', colorClass: 'bg-emerald-900/60' },
-  'Night Scene': { icon: '🌙', colorClass: 'bg-orange-900/60' },
-  'Movie Scene': { icon: '🎬', colorClass: 'bg-purple-900/60' },
+  'Master Scene': { icon: '📍', colorClass: 'bg-green-500' },
+  'Night Scene': { icon: '🌙', colorClass: 'bg-orange-900' },
+  'Movie Scene': { icon: '🎬', colorClass: 'bg-purple-900' },
 };
 
-const defaultStyle = { icon: '🎭', colorClass: 'bg-blue-900/60' };
+const defaultStyle = { icon: '📍', colorClass: 'bg-orange-500' };
 
 /**
  * RoomScene component — renders all scene buttons (Master Scene, DND, etc.)
@@ -217,12 +219,20 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
       {!isLoading && (
         <div className="flex flex-col gap-3">
           {scenesData.map((device) => {
+            console.log(device.friendlyname, '[Dashboard] Rendering scene device', device.deviceicon);
             const style = sceneStyles[device.friendlyname] || defaultStyle;
             const isOffline = device.onlinestate === 0;
             return (
               <div className="bg-[#1a1a1a] rounded-2xl py-3 px-4 flex justify-between items-center" key={device._id}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${style.colorClass}`}>{style.icon}</div>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${style.colorClass}`}>
+                    <AppImage
+                      src={device.deviceicon}
+                      fallbackSrc={`${DEFAULT_SCENE_ICON}`}
+                      alt={device.friendlyname}
+                      className="w-6 h-6 object-contain"
+                    />
+                  </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{device.friendlyname}</span>
                     {isOffline && (
