@@ -7,7 +7,7 @@ export default function CouponCard({ coupon }) {
     return (
         <div
             onClick={handleClick}
-            className="w-[340px] h-[150px] rounded-[22px] overflow-hidden shrink-0 cursor-pointer active:scale-[0.97] transition-transform"
+            className="w-[300px] h-[130px] rounded-[22px] overflow-hidden shrink-0 cursor-pointer active:scale-[0.97] transition-transform"
         >
             <AppImage
                 src={imageURL}

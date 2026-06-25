@@ -52,7 +52,7 @@ export default function FoodOrder() {
                 </>
             ) : (
                 <div className="mt-8">
-                    <h2 className="text-[28px] font-semibold mb-5">
+                    <h2 className="text-[22px] font-semibold mb-5">
                         Search Results
                     </h2>
                     <FoodList

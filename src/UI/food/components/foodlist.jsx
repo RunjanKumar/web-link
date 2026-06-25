@@ -24,14 +24,14 @@ const FoodList = forwardRef(function FoodList(
     }
 
     return (
-        <div className="mt-4 flex flex-col gap-10">
+        <div className="mt-4 flex flex-col gap-8">
             {displaySections.map((section) => (
                 <div
                     key={section.categoryId}
                     ref={(el) => (sectionRefs.current[section.categoryId] = el)}
                     data-category-index={section.globalIndex}
                 >
-                    <h3 className="text-[22px] font-bold text-white mb-5 pt-2">
+                    <h3 className="text-[18px] font-bold text-white mb-5 pt-2">
                         {section.categoryName}
                     </h3>
 

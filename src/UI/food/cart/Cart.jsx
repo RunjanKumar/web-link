@@ -63,7 +63,7 @@ export default function Cart() {
     const isProcessing = isPlacingOrder || paymentProcessing;
 
     return (
-        <div className="min-h-screen bg-[#111111] text-white pb-[118px]">
+        <div className="min-h-screen bg-[#111111] text-white pb-[92px]">
             {/* Processing Overlay */}
             {isProcessing && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex flex-col items-center justify-center gap-4">
@@ -84,8 +84,8 @@ export default function Cart() {
                 </button>
 
                 <div className="mt-4">
-                    <h1 className="text-[40px] font-semibold leading-none">Cart</h1>
-                    <p className="text-[#A7A7A7] text-[22px] mt-7">
+                    <h1 className="text-[26px] font-semibold leading-none">Cart</h1>
+                    <p className="text-[#A7A7A7] text-[15px] mt-2">
                         Room No. {roomNumber || '208'}
                     </p>
                 </div>
@@ -150,12 +150,12 @@ export default function Cart() {
                             }}
                             placeholder="Apply flat coupon only"
                             disabled={isApplyingCoupon}
-                            className="mt-8 w-full h-[80px] rounded-[12px] bg-[#202020] px-6 text-[22px] outline-none placeholder:text-[#8D8D8D] uppercase tracking-widest"
+                            className="mt-8 w-full h-[52px] rounded-[12px] bg-[#202020] px-4 text-[16px] outline-none placeholder:text-[#8D8D8D] uppercase tracking-widest"
                         />
                         {appliedCouponName ? (
                             <div className="mt-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-[18px] text-yellow-400">
+                                    <p className="text-[15px] text-yellow-400">
                                         Coupon <span className="font-semibold">{appliedCouponName}</span> applied
                                     </p>
                                     {couponDiscount > 0 && (
@@ -174,7 +174,7 @@ export default function Cart() {
                         ) : null}
 
                         {/* ── Delivery & Bill Info ── */}
-                        <div className="mt-10 rounded-[12px] bg-[#202020] px-6 py-8">
+                        <div className="mt-10 rounded-[12px] bg-[#202020] px-4 py-5">
                             <InfoRow icon={<Clock3 size={24} />} label="Delivery in" value="30 Minutes" />
                             <InfoRow icon={<Home size={24} />} label="Delivery at" value={`Room No. ${roomNumber || '208'}`} />
                             <InfoRow
@@ -191,7 +191,7 @@ export default function Cart() {
                                     <div className="text-yellow-400 w-8 flex justify-center">
                                         <ReceiptText size={24} />
                                     </div>
-                                    <p className="flex-1 text-[#A7A7A7] text-[22px]">
+                                    <p className="flex-1 text-[#A7A7A7] text-[15px]">
                                         Total Bill <span className="text-white font-semibold">₹ {payableAmount.toFixed(2)}</span>
                                     </p>
                                     <span className="text-white">
@@ -200,7 +200,7 @@ export default function Cart() {
                                 </button>
 
                                 {isBillExpanded && (
-                                    <div className="mt-6 ml-14 rounded-[10px] bg-[#121212] px-5 py-5">
+                                    <div className="mt-6 ml-10 rounded-[10px] bg-[#121212] px-5 py-5">
                                         <BillLine label="Items Total" value={`₹ ${itemsTotal.toFixed(2)}`} />
 
                                         {(percentageSavings > 0 || bogoSavings > 0 || flatCouponDiscount > 0) && (
@@ -245,7 +245,7 @@ export default function Cart() {
                                     </div>
                                 )}
 
-                                <p className="ml-14 mt-4 text-[#A7A7A7] text-[20px]">
+                                <p className="ml-10 mt-4 text-[#A7A7A7] text-[13px]">
                                     Incl. taxes and charges
                                 </p>
                             </div>
@@ -256,17 +256,17 @@ export default function Cart() {
 
             {/* ── Bottom Bar ── */}
             {items.length > 0 && (
-                <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-4 z-10">
+                <div className="fixed bottom-0 left-0 w-full bg-[#30302F] px-5 py-4 flex gap-3 z-10">
                     <button
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCode.trim()}
-                        className="w-[238px] h-[84px] rounded-[18px] border border-yellow-500/70 text-[22px] disabled:opacity-60"
+                        className="shrink-0 px-4 h-[52px] rounded-[18px] border border-yellow-500/70 text-[14px] disabled:opacity-60"
                     >
                         {isApplyingCoupon ? 'Applying...' : 'Apply Coupon'}
                     </button>
                     <button
                         onClick={handlePlaceOrderClick}
-                        className="flex-1 h-[84px] rounded-[18px] bg-yellow-400 text-black text-[24px] font-semibold"
+                        className="flex-1 h-[52px] rounded-[18px] bg-yellow-400 text-black text-[15px] font-semibold"
                     >
                         Place Order - ₹ {payableAmount.toFixed(2)}
                     </button>
@@ -574,9 +574,9 @@ function CartFoodRow({
 
 function InfoRow({ icon, label, value }) {
     return (
-        <div className="flex items-center gap-5 border-b border-dashed border-[#3A3A3A] py-7">
+        <div className="flex items-center gap-4 border-b border-dashed border-[#3A3A3A] py-4">
             <div className="text-yellow-400 w-8 flex justify-center">{icon}</div>
-            <p className="text-[#A7A7A7] text-[22px]">
+            <p className="text-[#A7A7A7] text-[15px]">
                 {label} <span className="text-white font-semibold">{value}</span>
             </p>
         </div>
@@ -591,7 +591,7 @@ function BillLine({ label, value, strong, discount, savings }) {
                 : savings ? 'text-green-400 font-semibold'
                 : discount ? 'text-green-400' 
                 : 'text-[#A7A7A7]'
-            } text-[22px]`}>
+            } text-[14px]`}>
                 {label}
             </p>
             <p className={`${
@@ -599,7 +599,7 @@ function BillLine({ label, value, strong, discount, savings }) {
                 : savings ? 'text-green-400 font-semibold'
                 : discount ? 'text-green-400 font-medium' 
                 : 'text-white'
-            } text-[22px]`}>
+            } text-[14px]`}>
                 {value}
             </p>
         </div>

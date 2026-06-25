@@ -19,7 +19,7 @@ export default function CategoryTabs({ categories, activeIndex = 0, onCategorySe
                         key={category._id || category.id || index}
                         ref={(el) => (tabRefs.current[index] = el)}
                         onClick={() => handleTabClick(index)}
-                        className={`px-6 py-3 rounded-full text-lg whitespace-nowrap transition-colors duration-200 ${
+                        className={`px-5 py-2 rounded-full text-[15px] whitespace-nowrap transition-colors duration-200 ${
                             activeIndex === index
                                 ? "bg-yellow-500 text-black font-semibold"
                                 : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]"

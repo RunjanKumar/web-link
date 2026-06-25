@@ -22,7 +22,7 @@ export default function CouponDetail() {
             />
 
             <div className="px-5 mt-6">
-                <h1 className="text-[32px] font-bold leading-tight">
+                <h1 className="text-[24px] font-bold leading-tight">
                     {offerName}
                 </h1>
             </div>

@@ -122,8 +122,8 @@ export default function OrderHistory() {
                 </div>
 
                 <div className="mt-4">
-                    <h1 className="text-[40px] font-semibold leading-none">Order History</h1>
-                    <p className="text-[#A7A7A7] text-[22px] mt-3">
+                    <h1 className="text-[26px] font-semibold leading-none">Order History</h1>
+                    <p className="text-[#A7A7A7] text-[15px] mt-2">
                         Room No. {roomNumber || '101'}
                     </p>
                 </div>
