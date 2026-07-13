@@ -44,4 +44,8 @@ export const ENDPOINTS = {
     // ── Coupon ──
     COUPON: '/v1/coupon',
     COUPON_VALIDATE: '/v1/coupon/validate',
+
+    // ── Laundry ──
+    LAUNDRY_RATE_LIST: '/v1/laundry/guest/rate-list',
+    LAUNDRY_ORDER: '/v1/laundry/guest/order',
 };
