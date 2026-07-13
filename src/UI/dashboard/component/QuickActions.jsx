@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom';
 
 function ActionIcon({ type }) {
   const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
-  const colors = { bell: '#facc15', bulb: '#4ade80', snow: '#60a5fa', food: '#fb923c', facilities: '#a78bfa' };
+  const colors = { bell: '#facc15', bulb: '#4ade80', snow: '#60a5fa', food: '#fb923c', facilities: '#a78bfa', laundry: '#22d3ee' };
   const s = colors[type];
 
   switch (type) {
+    case 'laundry': return <svg {...props} stroke={s}><path d="M3 6h18v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" /><path d="M3 6l2-3h14l2 3" /><circle cx="12" cy="14" r="4" /></svg>;
     case 'bell': return <svg {...props} stroke={s}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
     case 'bulb': return <svg {...props} stroke={s}><path d="M9 18h6" /><path d="M10 22h4" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" /></svg>;
     case 'snow': return <svg {...props} stroke={s}><path d="M12 2v20" /><path d="m8 4 4-2 4 2" /><path d="m8 20 4 2 4-2" /><path d="M2 12h20" /><path d="m4 8-2 4 2 4" /><path d="m20 8 2 4-2 4" /></svg>;
@@ -29,6 +30,7 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
     { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true, route: '/lights' },
     { id: 3, icon: 'facilities', title: 'Facilities', accent: 'bg-gradient-to-r from-blue-500 to-sky-400', route: '/facilities' },
     { id: 4, icon: 'food', title: 'Food Order', accent: 'bg-gradient-to-r from-orange-400 to-red-400',route: '/food' },
+    { id: 5, icon: 'laundry', title: 'Laundry', sub: 'Billed to your room', accent: 'bg-gradient-to-r from-cyan-500 to-teal-400', route: '/laundry' },
   ];
 
   const handleActionClick = (action) => {
