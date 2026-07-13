@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'https://c05d-2409-40d1-2018-e4c1-b9f0-5395-bae3-1f0c.ngrok-free.app',
+    baseURL: 'https://dev-hotel-api.wattinventive.com',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -16,7 +16,7 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.authorization = token;
         }
-        config.headers['ngrok-skip-browser-warning'] = 'true';
+        // config.headers['ngrok-skip-browser-warning'] = 'true';
         return config;
     },
     (error) => Promise.reject(error)
