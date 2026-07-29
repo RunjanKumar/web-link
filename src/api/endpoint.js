@@ -48,4 +48,7 @@ export const ENDPOINTS = {
     // ── Laundry ──
     LAUNDRY_RATE_LIST: '/v1/laundry/guest/rate-list',
     LAUNDRY_ORDER: '/v1/laundry/guest/order',
+
+    // ── Bill / Folio ──
+    FOLIO_GUEST: '/v1/folio/guest',
 };

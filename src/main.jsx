@@ -30,6 +30,7 @@ import Cart from './UI/food/cart/Cart.jsx'
 import OrderHistory from './UI/food/OrderHistory.jsx'
 import Laundry from './UI/laundry/Laundry.jsx'
 import LaundryOrders from './UI/laundry/LaundryOrders.jsx'
+import ViewBill from './UI/bill/ViewBill.jsx'
 
 // Main application bootstrap:
 // Wrap the app in shared providers, initialize routing, and render the root element.
@@ -63,6 +64,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/services/pending" element={<BookedService />} />
                   <Route path="/laundry" element={<Laundry />} />
                   <Route path="/laundry/orders" element={<LaundryOrders />} />
+                  <Route path="/bill" element={<ViewBill />} />
                   <Route path="/facilities" element={<Facilities />} />
                   <Route path="/facilities/detail" element={<FacilityDetail />} />
                   <Route path="/facilities/reserve" element={<ReserveTable />} />
