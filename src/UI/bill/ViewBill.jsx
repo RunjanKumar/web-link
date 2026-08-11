@@ -25,9 +25,13 @@ function SummaryRow({ label, value, strong, credit }) {
     );
 }
 
+// Backend TRANSACTION_TYPES.REFUND — the label field can carry a custom charge
+// name, so the numeric type is the reliable refund marker.
+const TRANSACTION_TYPE_REFUND = 4;
+
 function ChargeLine({ charge }) {
     const name = charge.chargeName || charge.label || 'Charge';
-    const isRefund = charge.label === 'Refund' || Number(charge.total) < 0;
+    const isRefund = charge.type === TRANSACTION_TYPE_REFUND || Number(charge.total) < 0;
     return (
         <div className="flex items-start justify-between py-3 border-b border-dashed border-[#3A3A3A] last:border-b-0">
             <div className="min-w-0 pr-3">
