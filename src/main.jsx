@@ -7,6 +7,7 @@ import { SocketProvider } from './context/SocketContext'
 import { Toaster } from 'sonner'
 import { ServiceRequestProvider } from './context/ServiceRequestContext'
 import { FoodOrderProvider } from './context/FoodOrderContext.jsx'
+import { DukaanCartProvider } from './context/DukaanCartContext.jsx'
 import { CustomerProfileProvider } from './context/CustomerProfileContext.jsx'
 import App from './App.jsx'
 import Dashboard from './UI/dashboard/dashboardNew.jsx'
@@ -31,6 +32,10 @@ import OrderHistory from './UI/food/OrderHistory.jsx'
 import Laundry from './UI/laundry/Laundry.jsx'
 import LaundryOrders from './UI/laundry/LaundryOrders.jsx'
 import ViewBill from './UI/bill/ViewBill.jsx'
+import Shop from './UI/dukaan/Shop.jsx'
+import ProductDetail from './UI/dukaan/ProductDetail.jsx'
+import DukaanCart from './UI/dukaan/Cart.jsx'
+import DukaanOrders from './UI/dukaan/Orders.jsx'
 
 // Main application bootstrap:
 // Wrap the app in shared providers, initialize routing, and render the root element.
@@ -44,6 +49,7 @@ createRoot(document.getElementById('root')).render(
         <ServiceRequestProvider>
           <CustomerProfileProvider>
             <FoodOrderProvider>
+              <DukaanCartProvider>
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<App />} />
@@ -65,12 +71,17 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/laundry" element={<Laundry />} />
                   <Route path="/laundry/orders" element={<LaundryOrders />} />
                   <Route path="/bill" element={<ViewBill />} />
+                  <Route path="/dukaan" element={<Shop />} />
+                  <Route path="/dukaan/product" element={<ProductDetail />} />
+                  <Route path="/dukaan/cart" element={<DukaanCart />} />
+                  <Route path="/dukaan/orders" element={<DukaanOrders />} />
                   <Route path="/facilities" element={<Facilities />} />
                   <Route path="/facilities/detail" element={<FacilityDetail />} />
                   <Route path="/facilities/reserve" element={<ReserveTable />} />
                   <Route path="/facilities/upcoming-events" element={<UpcomingEvents />} />
                 </Routes>
               </BrowserRouter>
+              </DukaanCartProvider>
             </FoodOrderProvider>
           </CustomerProfileProvider>
         </ServiceRequestProvider>

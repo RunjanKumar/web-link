@@ -51,4 +51,12 @@ export const ENDPOINTS = {
 
     // ── Bill / Folio ──
     FOLIO_GUEST: '/v1/folio/guest',
+
+    // ── Dukaan (the in-hotel shop) ──
+    // Guest-scoped: the backend resolves the hotel and the stay from the token,
+    // so nothing here is keyed off a client-supplied booking id.
+    DUKAAN_CATEGORY: '/v1/dukaan/guest/category',
+    DUKAAN_PRODUCT: '/v1/dukaan/guest/product',
+    DUKAAN_ORDER: '/v1/dukaan/guest/order',
+    DUKAAN_COUPON_VALIDATE: '/v1/dukaan/guest/coupon/validate',
 };
