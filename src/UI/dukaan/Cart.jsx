@@ -131,10 +131,10 @@ export default function Cart() {
                 <div className="fixed bottom-0 inset-x-0 p-4 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent">
                     <button
                         onClick={vm.openCheckout}
-                        className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-bold text-sm border-none cursor-pointer active:scale-95 transition-transform duration-200"
+                        className={`w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black font-bold text-sm border-none cursor-pointer active:scale-95 transition-transform duration-200 ${!vm.canOrder ? 'opacity-50 grayscale' : ''}`}
                     >
                         <span>₹{vm.totals.grandTotal}</span>
-                        <span>Checkout →</span>
+                        <span>{vm.canOrder ? 'Checkout →' : 'Available after check-in'}</span>
                     </button>
                 </div>
             )}

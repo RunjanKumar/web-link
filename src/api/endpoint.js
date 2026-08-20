@@ -6,6 +6,17 @@ export const ENDPOINTS = {
     // ── Auth / Profile ──
     CUSTOMER_PROFILE: '/v1/customer/login/profile',
 
+    // ── Web Check-in (pre-arrival registration) ──
+    WEB_CHECKIN_ME: '/v1/web-checkin/me',
+    WEB_CHECKIN_SUBMIT: '/v1/web-checkin/submit',
+    FILE_UPLOAD: '/v1/file/upload',
+
+    // ── Pre-Arrival Form (the hotel's own questionnaire) ──
+    // The hotel and the booking come from the portal token, so neither call
+    // takes a hotelId.
+    PRE_ARRIVAL_ME: '/v1/pre-arrival/me',
+    PRE_ARRIVAL_SUBMIT: '/v1/pre-arrival/submit',
+
     //Quick Calls
     QUICK_CALL: '/v1/quickCall',
 

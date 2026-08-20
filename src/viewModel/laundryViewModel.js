@@ -16,7 +16,7 @@ import useCustomerProfile from '../hooks/CustomerProfile';
  */
 export default function useLaundryViewModel() {
     const navigate = useNavigate();
-    const { hotelData } = useCustomerProfile();
+    const { hotelData, canOrder, orderLockMessage } = useCustomerProfile();
     const hotelId = hotelData?._id;
 
     const [items, setItems] = useState([]);
@@ -122,6 +122,11 @@ export default function useLaundryViewModel() {
     }, [basket, items, hotelData, rateFor]);
 
     const submitOrder = useCallback(async () => {
+        // Pre-check-in browse mode: server would reject anyway — explain instead.
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
         if (!summary.lines.length) {
             toast.error('Add at least one item to request a pickup.');
             return;
@@ -148,7 +153,7 @@ export default function useLaundryViewModel() {
         } finally {
             setSubmitting(false);
         }
-    }, [summary, hotelId, isExpress, notes, navigate]);
+    }, [summary, hotelId, isExpress, notes, navigate, canOrder, orderLockMessage]);
 
     return {
         items,
@@ -168,5 +173,6 @@ export default function useLaundryViewModel() {
         summary,
         submitting,
         submitOrder,
+        canOrder,
     };
 }

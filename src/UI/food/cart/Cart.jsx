@@ -48,6 +48,7 @@ export default function Cart() {
         handlePlaceOrderClick,
         handleConfirmOrder,
         handleCancelSheet,
+        canOrder,
         // Navigation & actions
         handleBack,
         handleBrowseFood,
@@ -266,9 +267,11 @@ export default function Cart() {
                     </button>
                     <button
                         onClick={handlePlaceOrderClick}
-                        className="flex-1 h-[52px] rounded-[18px] bg-yellow-400 text-black text-[15px] font-semibold"
+                        className={`flex-1 h-[52px] rounded-[18px] bg-yellow-400 text-black text-[15px] font-semibold ${!canOrder ? 'opacity-50 grayscale' : ''}`}
                     >
-                        Place Order - ₹ {payableAmount.toFixed(2)}
+                        {canOrder
+                            ? `Place Order - ₹ ${payableAmount.toFixed(2)}`
+                            : 'Available after check-in'}
                     </button>
                 </div>
             )}

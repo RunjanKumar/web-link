@@ -3,6 +3,7 @@ import { submitFacilityReservation } from "../api/service/facilityService";
 import { getApiErrorMessage } from "../api/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import useCustomerProfile from "../hooks/CustomerProfile";
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -29,6 +30,7 @@ export default function useReserveViewModel(facility) {
     const [numberOfPeople, setNumberOfPeople] = useState('');
     const [showPeoplePicker, setShowPeoplePicker] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { canOrder, orderLockMessage } = useCustomerProfile();
 
     const navigate = useNavigate();
 
@@ -55,6 +57,12 @@ export default function useReserveViewModel(facility) {
     // SUBMIT RESERVATION
     // ══════════════════════════════════════════════════════════
     const submitReservation = useCallback(async () => {
+        // Pre-check-in browse mode: the server would reject the booking anyway —
+        // tell the guest when it unlocks instead of failing later.
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
 
         // ── STEP-2: Validate ──
         if (!dateTime) {
@@ -94,7 +102,7 @@ export default function useReserveViewModel(facility) {
         } finally {
             setIsSubmitting(false);
         }
-    }, [dateTime, numberOfPeople, facility, navigate]);
+    }, [dateTime, numberOfPeople, facility, navigate, canOrder, orderLockMessage]);
 
     // ══════════════════════════════════════════════════════════
     // RETURN — everything the ReserveTable UI needs
@@ -109,5 +117,6 @@ export default function useReserveViewModel(facility) {
         togglePeoplePicker,
         submitReservation,
         isSubmitting,
+        canOrder,
     };
 }

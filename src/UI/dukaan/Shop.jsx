@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../../globalComponents/BackButton';
 import AppImage from '../../globalComponents/AppImage';
+import PreCheckInBanner from '../../globalComponents/PreCheckInBanner';
 import ProductCard from './components/ProductCard';
 import FilterSheet from './components/FilterSheet';
 import { useDukaanViewModel } from '../../viewModel/dukaanViewModel';
@@ -24,6 +25,7 @@ export default function Shop() {
             <div className={`pt-12 px-5 flex flex-col flex-1 ${totals.count > 0 ? 'pb-28' : 'pb-6'}`}>
 
                 <BackButton />
+                <PreCheckInBanner />
 
                 <div className="flex items-start justify-between gap-3 mt-1 mb-5">
                     <div>

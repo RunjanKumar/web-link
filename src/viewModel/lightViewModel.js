@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getRoomDevices, execDevice } from '../api/service/dashboardService';
 import { toast } from 'sonner';
+import useCustomerProfile from '../hooks/CustomerProfile';
+
+const ROOM_CONTROL_LOCK_MESSAGE = 'Room controls activate once the hotel checks you in.';
 
 export default function useLightViewModel() {
     const [lightsData, setLightsData] = useState([]);
@@ -10,6 +13,7 @@ export default function useLightViewModel() {
     const [lights, setLights] = useState({});
     const [fanLevels, setFanLevels] = useState({});
     const [masterSceneDevice, setMasterSceneDevice] = useState(null); // The Master Scene channel device
+    const { canOrder } = useCustomerProfile();
 
 
 
@@ -123,6 +127,11 @@ export default function useLightViewModel() {
     const getDevice = (id) => lightsData.find((d) => d._id === id);
 
     const toggleLight = async (id) => {
+        // The guest isn't in the room before check-in — don't drive its devices.
+        if (!canOrder) {
+            toast.info(ROOM_CONTROL_LOCK_MESSAGE);
+            return;
+        }
         const device = getDevice(id);
         const wasOn = lights[id];
         const newAction = wasOn ? 'TurnOff' : 'TurnOn';
@@ -157,6 +166,10 @@ export default function useLightViewModel() {
     // Sends ONE API call with the Master Scene device's channelid.
     // The backend + ESP32 handles turning on/off all channels internally.
     const toggleMaster = async () => {
+        if (!canOrder) {
+            toast.info(ROOM_CONTROL_LOCK_MESSAGE);
+            return;
+        }
         const newState = !masterSwitch;
         const newAction = newState ? 'TurnOn' : 'TurnOff';
 
@@ -213,6 +226,10 @@ export default function useLightViewModel() {
     // RESULT: Instead of 30-50 API calls per drag, we get just 1 call.
     // ─────────────────────────────────────────────────────────────
     const updateFanLevel = useCallback((id, level) => {
+        if (!canOrder) {
+            toast.info(ROOM_CONTROL_LOCK_MESSAGE);
+            return;
+        }
         const device = lightsData.find((d) => d._id === id);
         const prevLevel = fanLevels[id] ?? 0;
 
@@ -249,7 +266,7 @@ export default function useLightViewModel() {
                 setFanLevels((prev) => ({ ...prev, [id]: prevLevel }));
             }
         }, 400);
-    }, [lightsData, fanLevels]);
+    }, [lightsData, fanLevels, canOrder]);
 
     // ── Cleanup all debounce timers when component unmounts ──
     useEffect(() => {

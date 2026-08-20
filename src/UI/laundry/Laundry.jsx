@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import BackButton from '../../globalComponents/BackButton';
+import PreCheckInBanner from '../../globalComponents/PreCheckInBanner';
 import LaundryItemCard from './components/LaundryItemCard';
 import useLaundryViewModel from '../../viewModel/laundryViewModel';
 
@@ -28,6 +29,7 @@ export default function Laundry() {
         summary,
         submitting,
         submitOrder,
+        canOrder,
     } = useLaundryViewModel();
 
     useEffect(() => {
@@ -41,6 +43,7 @@ export default function Laundry() {
             <div className={`pt-12 px-5 flex flex-col flex-1 ${hasSelection ? 'pb-48' : 'pb-6'}`}>
 
                 <BackButton />
+                <PreCheckInBanner />
 
                 <div className="flex items-start justify-between gap-3 mt-1 mb-6">
                     <div>
@@ -164,9 +167,13 @@ export default function Laundry() {
                         <button
                             onClick={submitOrder}
                             disabled={submitting}
-                            className="w-full mt-3 bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className={`w-full mt-3 bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 disabled:opacity-60 disabled:cursor-not-allowed ${!canOrder ? 'opacity-50 grayscale' : ''}`}
                         >
-                            {submitting ? 'Requesting…' : 'Request Pickup'}
+                            {submitting
+                                ? 'Requesting…'
+                                : canOrder
+                                  ? 'Request Pickup'
+                                  : 'Available after check-in'}
                         </button>
                     </div>
                 </div>

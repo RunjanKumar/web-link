@@ -36,6 +36,9 @@ import Shop from './UI/dukaan/Shop.jsx'
 import ProductDetail from './UI/dukaan/ProductDetail.jsx'
 import DukaanCart from './UI/dukaan/Cart.jsx'
 import DukaanOrders from './UI/dukaan/Orders.jsx'
+import WebCheckIn from './UI/checkin/WebCheckIn.jsx'
+import PreArrival from './UI/preArrival/PreArrival.jsx'
+import PortalModeGate from './globalComponents/PortalModeGate.jsx'
 
 // Main application bootstrap:
 // Wrap the app in shared providers, initialize routing, and render the root element.
@@ -51,8 +54,11 @@ createRoot(document.getElementById('root')).render(
             <FoodOrderProvider>
               <DukaanCartProvider>
               <BrowserRouter>
+                <PortalModeGate>
                 <Routes>
                   <Route path="/" element={<App />} />
+                  <Route path="/web-checkin" element={<WebCheckIn />} />
+                  <Route path="/pre-arrival" element={<PreArrival />} />
                   <Route path="/food" element={<Food />} />
                   <Route path="/food-details" element={<FoodDetails />} />
                   <Route path="/coupon-detail" element={<CouponDetail />} />
@@ -80,6 +86,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/facilities/reserve" element={<ReserveTable />} />
                   <Route path="/facilities/upcoming-events" element={<UpcomingEvents />} />
                 </Routes>
+                </PortalModeGate>
               </BrowserRouter>
               </DukaanCartProvider>
             </FoodOrderProvider>

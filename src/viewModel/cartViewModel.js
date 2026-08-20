@@ -50,6 +50,8 @@ export default function useCartViewModel() {
         customerData,
         hotelData,
         roomNumber,
+        canOrder,
+        orderLockMessage,
     } = useCustomerProfile();
 
     const itemsTotal = getFoodCartTotal();
@@ -241,9 +243,15 @@ export default function useCartViewModel() {
 
     /** Open the payment method bottom sheet */
     const handlePlaceOrderClick = useCallback(() => {
+        // Pre-check-in browse mode: the server would reject the order anyway —
+        // tell the guest when ordering unlocks instead of failing later.
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
         if (foodCart.length === 0) return;
         setShowPaymentSheet(true);
-    }, [foodCart]);
+    }, [foodCart, canOrder, orderLockMessage]);
 
     /** Close the bottom sheet */
     const handleCancelSheet = useCallback(() => {
@@ -310,6 +318,10 @@ export default function useCartViewModel() {
      * Places order → if online, initiates Razorpay → navigates to order history.
      */
     const handleConfirmOrder = useCallback(async () => {
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
         if (foodCart.length === 0 || isPlacingOrder || paymentProcessing) return;
 
         setIsPlacingOrder(true);
@@ -380,6 +392,7 @@ export default function useCartViewModel() {
         foodCart, isPlacingOrder, paymentProcessing, paymentMethod,
         hotelData, roomNumber, appliedCouponName,
         getCartUnitPrice, clearFoodCart, openRazorpay, navigate,
+        canOrder, orderLockMessage,
     ]);
 
     return {
@@ -410,6 +423,7 @@ export default function useCartViewModel() {
         handlePlaceOrderClick,
         handleConfirmOrder,
         handleCancelSheet,
+        canOrder,
         // Navigation & actions
         handleBack,
         handleBrowseFood,

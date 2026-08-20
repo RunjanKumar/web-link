@@ -15,6 +15,7 @@ export default function ReviewRequest() {
         handleAddDetails,
         handleSubmit,
         isSubmitting,
+        canOrder,
     } = useReviewRequestViewModel();
 
     // Fetch categories on mount so grouped items can be built
@@ -62,9 +63,13 @@ export default function ReviewRequest() {
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-4 ${isSubmitting ? 'opacity-60 pointer-events-none' : ''}`}
+                        className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-4 ${isSubmitting ? 'opacity-60 pointer-events-none' : ''} ${!canOrder ? 'opacity-50 grayscale' : ''}`}
                     >
-                        {isSubmitting ? 'Submitting...' : 'Send Request'}
+                        {isSubmitting
+                            ? 'Submitting...'
+                            : canOrder
+                              ? 'Send Request'
+                              : 'Available after check-in'}
                     </button>
                 )}
             </div>

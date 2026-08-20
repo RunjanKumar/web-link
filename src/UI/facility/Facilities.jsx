@@ -1,5 +1,6 @@
 import ThreeDotMenu from '../../globalComponents/ThreeDotMenu';
 import BottomNav from '../../globalComponents/BottomNav';
+import PreCheckInBanner from '../../globalComponents/PreCheckInBanner';
 import useFacilityViewModel from '../../viewModel/facilityViewModel';
 import FacilityTabs from './components/FacilityTabs';
 import FacilityCard from './components/FacilityCard';
@@ -43,6 +44,7 @@ export default function Facilities() {
         <div className="min-h-screen bg-[#0d0d0d] text-white relative">
             <div className="pt-14 px-5 pb-28 flex flex-col">
 
+                <PreCheckInBanner />
                 {/* ── Welcome Header ── */}
                 <div className="flex items-start justify-between mb-5">
                     <div>

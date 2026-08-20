@@ -32,7 +32,7 @@ export function useDukaanCartViewModel() {
     const navigate = useNavigate();
     const { hotelId } = useAuth();
     const { items, totals, clearCart } = useDukaanCart();
-    const { customerData, hotelData } = useCustomerProfile();
+    const { customerData, hotelData, canOrder, orderLockMessage } = useCustomerProfile();
 
     const [paymentMode, setPaymentMode] = useState('ROOM_CHARGE');
     const [deliverTo, setDeliverTo] = useState('ROOM');
@@ -80,16 +80,26 @@ export function useDukaanCartViewModel() {
     );
 
     const openCheckout = useCallback(() => {
+        // Pre-check-in browse mode: the server would reject the order anyway —
+        // tell the guest when ordering unlocks instead of failing later.
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
         if (!items.length) {
             toast.error('Your basket is empty.');
             return;
         }
         setShowCheckout(true);
-    }, [items.length]);
+    }, [canOrder, orderLockMessage, items.length]);
 
     const closeCheckout = useCallback(() => setShowCheckout(false), []);
 
     const placeOrder = useCallback(async () => {
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
         if (!items.length || placing) return;
 
         setPlacing(true);
@@ -153,7 +163,7 @@ export function useDukaanCartViewModel() {
         }
     }, [
         items, placing, hotelId, paymentMode, deliverTo, deliveryNote, applied,
-        clearCart, navigate, hotelData, customerData,
+        clearCart, navigate, hotelData, customerData, canOrder, orderLockMessage,
     ]);
 
     return {
@@ -178,5 +188,6 @@ export function useDukaanCartViewModel() {
         openCheckout,
         closeCheckout,
         placeOrder,
+        canOrder,
     };
 }
