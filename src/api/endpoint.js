@@ -63,6 +63,11 @@ export const ENDPOINTS = {
     // ── Bill / Folio ──
     FOLIO_GUEST: '/v1/folio/guest',
 
+    // ── Dincharya (my Daily Wellness Rhythm) ──
+    // Guest-scoped: the stay, and with it the health record, comes from the
+    // token. Only days staff PUBLISHED are ever returned.
+    DINCHARYA_GUEST: '/v1/dincharya/guest',
+
     // ── Dukaan (the in-hotel shop) ──
     // Guest-scoped: the backend resolves the hotel and the stay from the token,
     // so nothing here is keyed off a client-supplied booking id.

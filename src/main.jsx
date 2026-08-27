@@ -32,6 +32,7 @@ import OrderHistory from './UI/food/OrderHistory.jsx'
 import Laundry from './UI/laundry/Laundry.jsx'
 import LaundryOrders from './UI/laundry/LaundryOrders.jsx'
 import ViewBill from './UI/bill/ViewBill.jsx'
+import MyDay from './UI/dincharya/MyDay.jsx'
 import Shop from './UI/dukaan/Shop.jsx'
 import ProductDetail from './UI/dukaan/ProductDetail.jsx'
 import DukaanCart from './UI/dukaan/Cart.jsx'
@@ -77,6 +78,7 @@ createRoot(document.getElementById('root')).render(
                   <Route path="/laundry" element={<Laundry />} />
                   <Route path="/laundry/orders" element={<LaundryOrders />} />
                   <Route path="/bill" element={<ViewBill />} />
+                  <Route path="/my-day" element={<MyDay />} />
                   <Route path="/dukaan" element={<Shop />} />
                   <Route path="/dukaan/product" element={<ProductDetail />} />
                   <Route path="/dukaan/cart" element={<DukaanCart />} />

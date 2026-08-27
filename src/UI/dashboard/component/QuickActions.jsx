@@ -2,10 +2,12 @@ import { useNavigate } from 'react-router-dom';
 
 function ActionIcon({ type }) {
   const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
-  const colors = { bell: '#facc15', bulb: '#4ade80', snow: '#60a5fa', food: '#fb923c', facilities: '#a78bfa', laundry: '#22d3ee', bill: '#f472b6', shop: '#c084fc' };
+  const colors = { bell: '#facc15', bulb: '#4ade80', snow: '#60a5fa', food: '#fb923c', facilities: '#a78bfa', laundry: '#22d3ee', bill: '#f472b6', shop: '#c084fc', myday: '#34d399' };
   const s = colors[type];
 
   switch (type) {
+    // sunrise over a horizon — the daily wellness rhythm
+    case 'myday': return <svg {...props} stroke={s}><path d="M12 2v3" /><path d="m4.9 6.9 2.1 2.1" /><path d="m19.1 6.9-2.1 2.1" /><path d="M2 18h20" /><path d="M6 22h12" /><path d="M8 14a4 4 0 0 1 8 0" /></svg>;
     case 'shop': return <svg {...props} stroke={s}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>;
     case 'bill': return <svg {...props} stroke={s}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" /><path d="M14 8H8" /><path d="M16 12H8" /></svg>;
     case 'laundry': return <svg {...props} stroke={s}><path d="M3 6h18v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" /><path d="M3 6l2-3h14l2 3" /><circle cx="12" cy="14" r="4" /></svg>;
@@ -35,6 +37,9 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
     { id: 5, icon: 'laundry', title: 'Laundry', sub: 'Billed to your room', accent: 'bg-gradient-to-r from-cyan-500 to-teal-400', route: '/laundry' },
     { id: 6, icon: 'bill', title: 'View Bill', sub: 'Your stay charges', accent: 'bg-gradient-to-r from-pink-500 to-rose-400', route: '/bill' },
     { id: 7, icon: 'shop', title: 'Dukaan', sub: 'Shop essentials', accent: 'bg-gradient-to-r from-purple-500 to-fuchsia-400', route: '/dukaan' },
+    // Wellness guests only in practice: the page shows an empty state when the
+    // team has published nothing, which is what a non-wellness stay always sees.
+    { id: 8, icon: 'myday', title: 'My Day', sub: 'Your wellness rhythm', accent: 'bg-gradient-to-r from-emerald-500 to-teal-400', route: '/my-day' },
   ];
 
   const handleActionClick = (action) => {
