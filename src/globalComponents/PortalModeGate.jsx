@@ -5,7 +5,7 @@ import useCustomerProfile from '../hooks/CustomerProfile';
 /**
  * PortalModeGate — routes the whole portal by web check-in state.
  *
- *   FORM               → advance-booking guest not yet approved: only /web-checkin
+ *   FORM               → advance-booking guest not yet approved: only FORM_MODE_PATHS
  *   PRE_CHECKIN_BROWSE → approved, pre-arrival: full UI (ordering gated elsewhere)
  *   CHECKED_IN         → today's behavior (and /web-checkin bounces to /dashboard)
  *   BLOCKED            → stay ended / booking cancelled: full-screen notice
@@ -15,8 +15,11 @@ import useCustomerProfile from '../hooks/CustomerProfile';
  * This is UX routing only; the server independently rejects what it must.
  */
 
-// What an advance-booking guest may still open before their registration is approved.
-const FORM_MODE_PATHS = ['/web-checkin', '/pre-arrival'];
+// What an advance-booking guest may still open before their registration is
+// approved: the registration itself, the hotel's questionnaire, and reception
+// chat (the server admits pre-arrival guests to conversations — the wizard's
+// first step points here when the booking on record looks wrong).
+const FORM_MODE_PATHS = ['/web-checkin', '/pre-arrival', '/chat'];
 
 function GateLoadingScreen() {
     return (
@@ -55,7 +58,7 @@ function BlockedScreen({ message }) {
 
 export default function PortalModeGate({ children }) {
     const { isAuthenticated, isLoading: authLoading } = useAuth();
-    const { portalMode, error } = useCustomerProfile();
+    const { portalMode, error, webCheckInEnabled } = useCustomerProfile();
     const { pathname } = useLocation();
 
     // '/' is App.jsx's token gate; without a token every route keeps legacy behavior.
@@ -69,7 +72,9 @@ export default function PortalModeGate({ children }) {
     if (portalMode === 'FORM' && !FORM_MODE_PATHS.includes(pathname)) {
         return <Navigate to="/web-checkin" replace />;
     }
-    if (portalMode === 'CHECKED_IN' && pathname === '/web-checkin') {
+    // Nothing to do on /web-checkin once in house, or when this hotel switched
+    // web check-in off (the server refuses its routes for them anyway).
+    if ((portalMode === 'CHECKED_IN' || !webCheckInEnabled) && pathname === '/web-checkin') {
         return <Navigate to="/dashboard" replace />;
     }
     return children;

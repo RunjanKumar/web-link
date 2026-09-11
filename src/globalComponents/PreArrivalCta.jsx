@@ -11,11 +11,14 @@ import { getMyPreArrivalForm } from '../api/service/preArrivalService';
  */
 export default function PreArrivalCta() {
     const navigate = useNavigate();
-    const { portalMode } = useCustomerProfile();
+    const { portalMode, isModuleEnabled } = useCustomerProfile();
     const [state, setState] = useState(null);
 
+    // Only pre-arrival guests, and only when this hotel runs the questionnaire
+    // module at all (the server refuses /pre-arrival/me otherwise).
     const preArrivalGuest =
-        portalMode === 'FORM' || portalMode === 'PRE_CHECKIN_BROWSE';
+        (portalMode === 'FORM' || portalMode === 'PRE_CHECKIN_BROWSE')
+        && isModuleEnabled('PRE_ARRIVAL');
 
     useEffect(() => {
         if (!preArrivalGuest) return undefined;

@@ -40,6 +40,7 @@ import DukaanOrders from './UI/dukaan/Orders.jsx'
 import WebCheckIn from './UI/checkin/WebCheckIn.jsx'
 import PreArrival from './UI/preArrival/PreArrival.jsx'
 import PortalModeGate from './globalComponents/PortalModeGate.jsx'
+import RoomReadyBanner from './globalComponents/RoomReadyBanner.jsx'
 
 // Main application bootstrap:
 // Wrap the app in shared providers, initialize routing, and render the root element.
@@ -55,6 +56,9 @@ createRoot(document.getElementById('root')).render(
             <FoodOrderProvider>
               <DukaanCartProvider>
               <BrowserRouter>
+                {/* Outside the gate on purpose: a guest waiting for their room
+                    must see it on whatever screen they are on. */}
+                <RoomReadyBanner />
                 <PortalModeGate>
                 <Routes>
                   <Route path="/" element={<App />} />

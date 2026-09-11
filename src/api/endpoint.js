@@ -9,6 +9,16 @@ export const ENDPOINTS = {
     // ── Web Check-in (pre-arrival registration) ──
     WEB_CHECKIN_ME: '/v1/web-checkin/me',
     WEB_CHECKIN_SUBMIT: '/v1/web-checkin/submit',
+    // The guest's own registration-card PDF (only once web check-in is APPROVED).
+    WEB_CHECKIN_REGISTRATION_CARD: '/v1/web-checkin/registration-card',
+    // The paid extras this hotel opted in to offer guests, priced for this stay.
+    // Asking for one is a REQUEST — the desk decides, and only the desk bills.
+    // The DELETE (withdraw) path appends `/:requestId` to WEB_CHECKIN_OFFERS.
+    WEB_CHECKIN_OFFERS: '/v1/web-checkin/offers',
+    WEB_CHECKIN_OFFER_REQUEST: '/v1/web-checkin/offers/request',
+    // A Razorpay payment LINK for a pre-arrival deposit — the guest pays on
+    // Razorpay's hosted page, so no card data ever reaches this app (RBI).
+    WEB_CHECKIN_DEPOSIT_LINK: '/v1/web-checkin/deposit-link',
     FILE_UPLOAD: '/v1/file/upload',
 
     // ── Pre-Arrival Form (the hotel's own questionnaire) ──

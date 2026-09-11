@@ -55,22 +55,37 @@ export function CustomerProfileProvider({ children }) {
         const data = profileData?.data || {};
         const roomData = data.bookRoomData?.[0]?.roomData || {};
 
+        // ── Portal modules (per-hotel white-labeling) ──────────────────────
+        // The backend resolves hotels.portalModules into a FULL {KEY: Boolean}
+        // map; a hotel that switched a module off has `false` there. An older
+        // backend sends nothing — then everything counts as enabled, exactly
+        // like the server-side default. The server enforces this regardless.
+        const portalModules = data.portalModules && typeof data.portalModules === 'object'
+            ? data.portalModules
+            : null;
+        const isModuleEnabled = (key) => !(portalModules && portalModules[key] === false);
+
         // ── Portal mode (web check-in) ──────────────────────────────────────
         // customerStatus: 1 CHECK_IN, 2 CHECK_OUT, 3 BOOKED, 4 CANCELLED.
         // A BOOKED (advance-booking) guest lands on the pre-arrival form until
         // staff APPROVE their web check-in, then browses with ordering locked
-        // until the real check-in. This is UX routing only — the server blocks
-        // every order/write for non-checked-in guests regardless.
+        // until the real check-in. A hotel that switched web check-in OFF must
+        // not lock its advance guests out: they browse straight away. This is
+        // UX routing only — the server blocks every order/write for
+        // non-checked-in guests regardless.
         const customerStatus = data.user?.customerStatus ?? null;
         const webCheckIn = data.webCheckIn || null;
         const checkInDate = data.bookRoomData?.[0]?.checkInDate || null;
+        const webCheckInEnabled = isModuleEnabled('WEB_CHECKIN');
 
         let portalMode = 'LOADING';
         if (!isLoading) {
             if (error || !customerStatus) portalMode = 'BLOCKED';
             else if (customerStatus === 1) portalMode = 'CHECKED_IN';
             else if (customerStatus === 3) {
-                portalMode = webCheckIn?.status === 'APPROVED' ? 'PRE_CHECKIN_BROWSE' : 'FORM';
+                portalMode = webCheckIn?.status === 'APPROVED' || !webCheckInEnabled
+                    ? 'PRE_CHECKIN_BROWSE'
+                    : 'FORM';
             } else portalMode = 'BLOCKED'; // CHECK_OUT / CANCELLED
         }
 
@@ -92,6 +107,9 @@ export function CustomerProfileProvider({ children }) {
             checkInDate,
             orderLockMessage,
             webCheckIn,
+            portalModules,
+            isModuleEnabled,
+            webCheckInEnabled,
             refetch: fetchCustomerProfile,
         };
     }, [error, fetchCustomerProfile, isLoading, profileData]);

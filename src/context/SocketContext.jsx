@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 import socketService from '../api/socketService';
 import { SERVER_EVENTS } from '../utils/socketEvents';
 import useAuth from '../hooks/useAuth';
