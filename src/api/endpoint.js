@@ -9,6 +9,8 @@ export const ENDPOINTS = {
     // ── Web Check-in (pre-arrival registration) ──
     WEB_CHECKIN_ME: '/v1/web-checkin/me',
     WEB_CHECKIN_SUBMIT: '/v1/web-checkin/submit',
+    // Autosaved working copy — never seen by the hotel, cleared on submit.
+    WEB_CHECKIN_DRAFT: '/v1/web-checkin/draft',
     // The guest's own registration-card PDF (only once web check-in is APPROVED).
     WEB_CHECKIN_REGISTRATION_CARD: '/v1/web-checkin/registration-card',
     // The paid extras this hotel opted in to offer guests, priced for this stay.

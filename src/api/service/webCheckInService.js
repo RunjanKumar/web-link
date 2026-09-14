@@ -19,6 +19,16 @@ export async function submitWebCheckIn(body) {
 }
 
 /**
+ * Autosave the half-finished form so a reload, a closed tab or a different
+ * device resumes where the guest stopped. This is NOT a submission: the hotel
+ * never sees a draft, and the server refuses one once the form has been sent.
+ */
+export async function saveWebCheckInDraft({ form, stepKey }) {
+    const response = await apiClient.put(ENDPOINTS.WEB_CHECKIN_DRAFT, { form, stepKey });
+    return response.data;
+}
+
+/**
  * The guest's registration card as a PDF — `{ pdfUrl }`. The backend only
  * serves it once staff approved the web check-in (or the guest is in house).
  */

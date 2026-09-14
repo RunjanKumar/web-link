@@ -3,8 +3,8 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import {
-    getMyOffers, getMyRegistrationCard, getMyWebCheckIn, requestOffer, submitWebCheckIn,
-    uploadIdDocument, uploadSignatureImage, withdrawOffer,
+    getMyOffers, getMyRegistrationCard, getMyWebCheckIn, requestOffer, saveWebCheckInDraft,
+    submitWebCheckIn, uploadIdDocument, uploadSignatureImage, withdrawOffer,
 } from '../api/service/webCheckInService';
 import { getApiErrorMessage } from '../api/client';
 import useCustomerProfile from '../hooks/CustomerProfile';
@@ -153,6 +153,45 @@ export const COMPANY_FIELDS = [
 
 // Local calendar day at page load — DOB max + "not in the future" checks.
 export const TODAY_KEY = toLocalDateKey(new Date());
+
+/**
+ * The browser-local half of the draft. sessionStorage rather than localStorage
+ * on purpose: it survives a reload and moving around the portal, which is the
+ * whole problem, but dies with the tab — this form holds passport and ID
+ * numbers, and leaving those on disk on a shared or lobby device after the
+ * guest walks away is not a trade worth making for a convenience feature.
+ *
+ * Every access is wrapped: a private window, a browser with site data blocked,
+ * or a full quota all throw here, and none of them is a reason to break the form.
+ */
+const LOCAL_DRAFT_KEY = 'webCheckInDraft';
+
+const readLocalDraft = () => {
+    try {
+        const raw = window.sessionStorage.getItem(LOCAL_DRAFT_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && parsed.form ? parsed : null;
+    } catch {
+        return null;
+    }
+};
+
+const writeLocalDraft = (draft) => {
+    try {
+        window.sessionStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+        /* storage unavailable or full — the server copy still has it */
+    }
+};
+
+const clearLocalDraft = () => {
+    try {
+        window.sessionStorage.removeItem(LOCAL_DRAFT_KEY);
+    } catch {
+        /* nothing to do */
+    }
+};
 
 const EMPTY_FORM = {
     // personal
@@ -530,10 +569,21 @@ export const validateStep = (stepKey, form, ctx = {}) => {
             if (value('departureTime') && !/^\d{2}:\d{2}$/.test(value('departureTime'))) {
                 errors.departureTime = 'Please enter a valid time.';
             }
-            require('nextDestination', 'Please enter where you are travelling to next.');
+            // Where the guest goes next is a FORM-III field, and Form-III covers
+            // foreign nationals only (Nepal and Bhutan exempt) — `passportRequired`
+            // is that exact test. Demanding it of an Indian guest collected more
+            // than any statute asks for, cost three fields of friction, and was
+            // stricter than the backend, whose schema has both as optional.
+            // They stay on screen for everyone: the guest register prints them
+            // whenever someone volunteers them.
+            if (rules.passportRequired) {
+                require('nextDestination', 'Please enter where you are travelling to next.');
+                require('onwardAddress', 'Please enter your onward address.');
+            }
             maxLen('nextDestination', 120, 'Next destination');
-            require('onwardAddress', 'Please enter your onward address.');
             maxLen('onwardAddress', 300, 'Onward address');
+            // Purpose of visit stays required for everyone: it prints on every
+            // guest's registration card, not just a foreign national's.
             require('purposeOfVisit', 'Please select the purpose of your visit.');
             break;
         }
@@ -735,6 +785,23 @@ export default function useWebCheckInViewModel() {
     const [hasExtrasStep, setHasExtrasStep] = useState(false);
     const [offerBusyId, setOfferBusyId] = useState(''); // chargeId of the offer being acted on
 
+    // ── Draft autosave ──
+    // A ten-step form on a phone loses everything to one stray back-swipe unless
+    // it is saved as it is typed. Two layers, on purpose:
+    //   sessionStorage — instant, no network, restores before the first paint, so
+    //     a reload never shows an empty form while /me is in flight. Session-only
+    //     rather than localStorage because this form holds identity data and must
+    //     not sit on disk after the guest walks away from a shared device.
+    //   the server — survives closing the tab and switching phone to laptop.
+    // The server copy wins when both exist; it is the one that travels.
+    const [draftSavedAt, setDraftSavedAt] = useState(null);
+    const draftTimer = useRef(null);
+    const draftDirty = useRef(false);
+    const draftReady = useRef(false); // no saving until the first load has applied
+    // Read by flushDraft, which must not re-create on every keystroke.
+    const formRef = useRef(EMPTY_FORM);
+    const stepKeyRef = useRef('');
+
     const [uploading, setUploading] = useState(false);
     const [signatureState, setSignatureState] = useState('IDLE'); // IDLE | PENDING | UPLOADING
     const signatureSeq = useRef(0);
@@ -773,18 +840,37 @@ export default function useWebCheckInViewModel() {
 
         const status = doc?.status;
         if (prefill) {
-            setForm(buildPrefill({
+            const prefilled = buildPrefill({
                 submission: doc?.submission,
                 guest: data.guest || customerDataRef.current,
                 booking: data.booking,
-            }));
+            });
+            // Resume an unfinished form. Prefer the server's copy (it travels
+            // between devices) and fall back to this browser's. Layered OVER the
+            // prefill, never instead of it, so a field the guest never touched
+            // still shows what the hotel already knows.
+            const local = readLocalDraft();
+            const remote = data.draft && data.draft.form ? data.draft : null;
+            const resumed = remote || local;
+            setForm(resumed ? { ...prefilled, ...resumed.form } : prefilled);
+
+            const list = stepList || stepsRef.current;
             // A rejected submission reopens on the review step: every prior value
             // is there with an Edit link, and the banner explains what to fix.
             if (status === 'REJECTED') {
-                const list = stepList || stepsRef.current;
                 setStepIndex(list.length - 1); // REVIEW is always last
                 setAttempted(Object.fromEntries(list.map((s) => [s.key, true])));
+            } else if (resumed && resumed.stepKey) {
+                const at = list.findIndex((s) => s.key === resumed.stepKey);
+                if (at > 0) {
+                    setStepIndex(at);
+                    // Everything before where they stopped has been seen, so its
+                    // errors should show immediately rather than on a second try.
+                    setAttempted(Object.fromEntries(list.slice(0, at).map((s) => [s.key, true])));
+                }
             }
+            if (resumed && resumed.savedAt) setDraftSavedAt(resumed.savedAt);
+            draftReady.current = true;
         }
         if (status === 'PENDING') setScreen('PENDING');
         else if (status === 'APPROVED') setScreen('APPROVED');
@@ -827,6 +913,48 @@ export default function useWebCheckInViewModel() {
         };
     }, [applyLoaded]);
 
+    // ── Autosave ──
+    // The local copy is written on EVERY change, because it is free and it is
+    // what rescues a reload. The server copy is debounced: a keystroke does not
+    // deserve a round trip, and the guest is on hotel wifi.
+    useEffect(() => {
+        // Only while they are actually filling it in. A pending or approved form
+        // has been sent; the server would refuse a draft for it anyway.
+        formRef.current = form;
+        stepKeyRef.current = stepKey;
+        if (!draftReady.current || screen !== 'FORM') return undefined;
+
+        writeLocalDraft({ form, stepKey, savedAt: new Date().toISOString() });
+        draftDirty.current = true;
+
+        clearTimeout(draftTimer.current);
+        draftTimer.current = setTimeout(() => {
+            saveWebCheckInDraft({ form, stepKey })
+                .then((response) => {
+                    draftDirty.current = false;
+                    setDraftSavedAt(response?.data?.savedAt || new Date().toISOString());
+                })
+                // Silent by design: a failed autosave is not something to
+                // interrupt a guest mid-form about, and the local copy still
+                // holds everything. The next change retries.
+                .catch(() => {});
+        }, 1200);
+
+        return () => clearTimeout(draftTimer.current);
+    }, [form, stepKey, screen]);
+
+    /** Save the working copy NOW rather than on the debounce. Never throws. */
+    const flushDraft = useCallback(async () => {
+        clearTimeout(draftTimer.current);
+        if (!draftReady.current || !draftDirty.current) return;
+        try {
+            await saveWebCheckInDraft({ form: formRef.current, stepKey: stepKeyRef.current });
+            draftDirty.current = false;
+        } catch {
+            /* the local copy still has it; the next change retries */
+        }
+    }, []);
+
     /** Re-read status after a submit — the form stays exactly as the guest left it. */
     const reload = useCallback(async () => {
         const response = await getMyWebCheckIn();
@@ -849,6 +977,28 @@ export default function useWebCheckInViewModel() {
             checkOutTime: data.checkOutTime || prev.checkOutTime,
         }));
     }, []);
+
+    // Re-price the offers when the guest ARRIVES at the extras step.
+    //
+    // They were first read on load, before the guest had said anything about when
+    // they get here — so the early-arrival suggestion could not possibly have
+    // fired. The arrival time is typed three steps earlier and lives in the
+    // autosaved draft, so push that to the server first and then ask again.
+    // Without the flush the debounce would still be pending and the server would
+    // price against a draft that does not yet mention the time.
+    useEffect(() => {
+        if (screen !== 'FORM' || stepKey !== STEP.EXTRAS) return;
+        let cancelled = false;
+        (async () => {
+            await flushDraft();
+            if (cancelled) return;
+            // A failure here just leaves the cards as they were.
+            await refreshOffers().catch(() => {});
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [screen, stepKey, flushDraft, refreshOffers]);
 
     /**
      * One write against the offers, then catch the cards up.
@@ -1078,6 +1228,12 @@ export default function useWebCheckInViewModel() {
         try {
             setSubmitting(true);
             const response = await submitWebCheckIn(body);
+            // The submission supersedes the working copy. A pending autosave must
+            // not fire after it and put half-typed values back on the server.
+            clearTimeout(draftTimer.current);
+            draftDirty.current = false;
+            clearLocalDraft();
+            setDraftSavedAt(null);
             toast.success(response?.message || 'Details submitted — the hotel will review them shortly.');
             await reload();
         } catch (err) {
@@ -1137,6 +1293,9 @@ export default function useWebCheckInViewModel() {
         stepIndex: safeIndex,
         stepKey,
         steps,
+        // When the working copy was last stored, so the wizard can reassure the
+        // guest their progress is kept. null before the first save.
+        draftSavedAt,
         isFirstStep: safeIndex === 0,
         isReviewStep: stepKey === STEP.REVIEW,
         returnToReview,

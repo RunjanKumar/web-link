@@ -138,15 +138,27 @@ export default function TravelStep({ vm }) {
                 <Field id="wc-departure-time" label="Expected departure time (optional)" error={errors.departureTime}>
                     {(p) => <input type="time" {...bind('departureTime', p)} />}
                 </Field>
-                <Field id="wc-next-destination" label="Next destination" required error={errors.nextDestination}>
+                {/* Form-III fields, so required of foreign nationals only (the same
+                    `entryRequired` gate the Entry-into-India block uses). Shown to
+                    everyone, because the guest register prints them when given. */}
+                <Field
+                    id="wc-next-destination"
+                    label={`Next destination${opt(entryRequired)}`}
+                    required={entryRequired}
+                    error={errors.nextDestination}
+                >
                     {(p) => <input type="text" placeholder="City / town you travel to next" {...bind('nextDestination', p)} />}
                 </Field>
                 <Field
                     id="wc-onward-address"
-                    label="Onward address"
-                    required
+                    label={`Onward address${opt(entryRequired)}`}
+                    required={entryRequired}
                     error={errors.onwardAddress}
-                    hint="Indian hotel registration law requires the address you are proceeding to after your stay."
+                    hint={
+                        entryRequired
+                            ? 'Indian hotel registration law requires the address you are proceeding to after your stay.'
+                            : 'Helps us complete your registration card. Home is fine.'
+                    }
                 >
                     {(p) => (
                         <textarea
