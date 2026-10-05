@@ -60,6 +60,7 @@ export default function ReserveTable() {
         togglePeoplePicker,
         submitReservation,
         isSubmitting,
+        canOrder,
     } = useReserveViewModel(facility);
 
 
@@ -162,15 +163,17 @@ export default function ReserveTable() {
                     onClick={submitReservation}
                     disabled={isSubmitting}
                     className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-lg shadow-yellow-500/20 mt-6 ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
-                        }`}
+                        } ${!canOrder ? 'opacity-50 grayscale' : ''}`}
                 >
                     {isSubmitting ? (
                         <span className="flex items-center justify-center gap-2">
                             <span className="w-5 h-5 rounded-full border-2 border-black/30 border-t-black animate-spin" />
                             Reserving…
                         </span>
-                    ) : (
+                    ) : canOrder ? (
                         'Reserve a table'
+                    ) : (
+                        'Available after check-in'
                     )}
                 </button>
             </div>

@@ -13,7 +13,7 @@ import AppImage from '../../../../globalComponents/AppImage';
 
 export default function CouponDetailHeader({ heroImage, discountInfo, onBack }) {
     return (
-        <div className="relative w-full h-[300px]">
+        <div className="relative w-full h-[220px]">
             {/* Hero Image */}
             {heroImage ? (
                 <AppImage
@@ -39,7 +39,7 @@ export default function CouponDetailHeader({ heroImage, discountInfo, onBack }) 
             {/* Discount Text Overlay */}
             {discountInfo?.label && (
                 <div className="absolute bottom-6 left-5 z-10">
-                    <h2 className="text-white font-extrabold text-[28px] leading-[1.15] uppercase tracking-wide drop-shadow-lg"
+                    <h2 className="text-white font-extrabold text-[24px] leading-[1.15] uppercase tracking-wide drop-shadow-lg"
                         style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}
                     >
                         {discountInfo.label}

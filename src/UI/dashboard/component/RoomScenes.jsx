@@ -3,6 +3,7 @@ import { getRoomDevices, execDevice } from '../../../api/service/dashboardServic
 import { toast } from 'sonner';
 import AppImage from "../../../globalComponents/AppImage";
 import { DEFAULT_SCENE_ICON } from "../../../utils/constant";
+import useCustomerProfile from "../../../hooks/CustomerProfile";
 
 // ── WiFi Offline Icon (crossed-out wifi) ──
 function WifiOfflineIcon() {
@@ -46,6 +47,7 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
   const [sceneToggles, setSceneToggles] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [masterSceneId, setMasterSceneId] = useState(null);
+  const { canOrder } = useCustomerProfile();
 
 
 
@@ -129,6 +131,11 @@ const RoomScene = forwardRef(function RoomScene({ onMasterSceneChange }, ref) {
 
   // ── Toggle any scene — ONE API call with the scene's own channelid ──
   const toggleScene = async (id) => {
+    // The guest isn't in the room before check-in — don't drive its devices.
+    if (!canOrder) {
+      toast.info('Room controls activate once the hotel checks you in.');
+      return;
+    }
     const device = scenesData.find((d) => d._id === id);
     const wasOn = sceneToggles[id];
     const newAction = wasOn ? 'TurnOff' : 'TurnOn';

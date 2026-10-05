@@ -37,7 +37,7 @@ export default function FoodDetails() {
                 <AppImage
                     src={state?.imageURL || state?.image}
                     alt={state?.title}
-                    className={`w-full h-[360px] object-cover ${!isAvailable ? 'grayscale opacity-60' : ''}`}
+                    className={`w-full h-[260px] object-cover ${!isAvailable ? 'grayscale opacity-60' : ''}`}
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
@@ -65,7 +65,7 @@ export default function FoodDetails() {
 
             <div className="px-5 pt-4">
                 <div className="flex items-start justify-between gap-3">
-                    <h1 className="text-[32px] font-semibold leading-[38px]">
+                    <h1 className="text-[24px] font-semibold leading-[30px]">
                         {state?.title}
                     </h1>
                     <VegIndicator type={state?.type} size={28} />
@@ -234,19 +234,19 @@ export default function FoodDetails() {
                     <button
                         onClick={handleDecrement}
                         disabled={!isAvailable}
-                        className="text-yellow-400 text-[24px] font-bold w-10 h-full flex items-center justify-center disabled:opacity-30"
+                        className="text-yellow-400 text-[20px] font-bold w-10 h-full flex items-center justify-center disabled:opacity-30"
                     >
                         −
                     </button>
 
-                    <p className="text-[22px] font-medium">
+                    <p className="text-[18px] font-medium">
                         {quantity || (isBogo ? 2 : 1)}
                     </p>
 
                     <button
                         onClick={quantity > 0 ? handleIncrement : handleAdd}
                         disabled={!isAvailable}
-                        className="text-yellow-400 text-[24px] font-bold w-10 h-full flex items-center justify-center disabled:opacity-30"
+                        className="text-yellow-400 text-[20px] font-bold w-10 h-full flex items-center justify-center disabled:opacity-30"
                     >
                         +
                     </button>
@@ -255,7 +255,7 @@ export default function FoodDetails() {
                 <button
                     onClick={handleAddItemsClick}
                     disabled={!isAvailable}
-                    className={`flex-1 h-[56px] rounded-[20px] text-[20px] font-semibold transition ${
+                    className={`flex-1 h-[56px] rounded-[20px] text-[17px] font-semibold transition ${
                         !isAvailable
                             ? 'bg-[#4A4A4A] text-[#888] cursor-not-allowed'
                             : 'bg-yellow-400 text-black active:scale-[0.97]'

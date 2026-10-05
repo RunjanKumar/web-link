@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getService, submitServiceRequest } from "../api/service/serviceService";
 import { getApiErrorMessage } from "../api/client";
 import useServiceRequest from "../hooks/useServiceRequest";
+import useCustomerProfile from "../hooks/CustomerProfile";
 import { toast } from "sonner";
 
 /**
@@ -39,6 +40,7 @@ export default function useReviewRequestViewModel() {
         serviceDetails,
         clearAll,
     } = useServiceRequest();
+    const { canOrder, orderLockMessage } = useCustomerProfile();
 
     /* ── Fetch service categories from the API ── */
     const fetchCategories = async () => {
@@ -120,6 +122,12 @@ export default function useReviewRequestViewModel() {
      * The page just needs to call this single function.
      */
     const handleSubmit = async () => {
+        // Pre-check-in browse mode: the server would reject the request anyway —
+        // tell the guest when it unlocks instead of failing later.
+        if (!canOrder) {
+            toast.info(orderLockMessage);
+            return;
+        }
         const result = await handleSendRequest();
         if (result.success) {
             toast.success('Your service request has been successfully submitted.');
@@ -137,6 +145,7 @@ export default function useReviewRequestViewModel() {
         handleDelete,
         handleAddDetails,
         handleSubmit,
-        isSubmitting, 
+        isSubmitting,
+        canOrder,
     };
 }

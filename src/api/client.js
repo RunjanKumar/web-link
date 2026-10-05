@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'https://dev-hotel-api.wattinventive.com',
+    // TEMPORARY — pointed at the local backend for Phase 3 manual testing.
+    // REVERT to 'https://dev-hotel-api.wattinventive.com' before committing or deploying.
+    baseURL: 'http://localhost:8080',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -16,6 +18,7 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.authorization = token;
         }
+        // config.headers['ngrok-skip-browser-warning'] = 'true';
         return config;
     },
     (error) => Promise.reject(error)

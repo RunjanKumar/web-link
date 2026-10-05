@@ -5,6 +5,7 @@ import OfferSlider from "./components/offerSlider";
 import SearchBar from "./components/searchbar";
 import FoodCartButton from "./components/FoodCartButton";
 import useFoodViewModel from "../../viewModel/foodViewModel";
+import PreCheckInBanner from "../../globalComponents/PreCheckInBanner";
 
 export default function FoodOrder() {
     const {
@@ -24,6 +25,7 @@ export default function FoodOrder() {
 
     return (
         <div className="min-h-screen bg-[#111111] text-white px-5 py-6 pb-[96px]">
+            <PreCheckInBanner />
             {!isSearchFocused && <Header />}
 
             <SearchBar
@@ -52,7 +54,7 @@ export default function FoodOrder() {
                 </>
             ) : (
                 <div className="mt-8">
-                    <h2 className="text-[28px] font-semibold mb-5">
+                    <h2 className="text-[22px] font-semibold mb-5">
                         Search Results
                     </h2>
                     <FoodList

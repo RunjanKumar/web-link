@@ -19,6 +19,9 @@ export const SERVER_EVENTS = {
     NEW_MESSAGE: 'newMessage',
     READ_MESSAGE: 'readMessage',
     USER_TYPING: 'typing',
+    // Housekeeping released the room of a guest who arrived before it was ready.
+    // Emitted once, to that guest's own socket room: { bookedRoomId, roomNumber }.
+    ROOM_READY: 'room:ready',
     CONNECT: 'connect',
     DISCONNECT: 'disconnect',
     CONNECT_ERROR: 'connect_error',

@@ -17,8 +17,8 @@ export default function OfferSlider({ couponData }) {
     }
 
     return (
-        <div className="mt-10">
-            <h2 className="text-3xl font-semibold mb-5">
+        <div className="mt-6">
+            <h2 className="text-[22px] font-semibold mb-5">
                 Special Offers
             </h2>
 

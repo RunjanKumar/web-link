@@ -1,6 +1,7 @@
 import BackButton from '../../globalComponents/BackButton';
 import ThreeDotMenu from '../../globalComponents/ThreeDotMenu';
 import BottomNav from '../../globalComponents/BottomNav';
+import PreCheckInBanner from '../../globalComponents/PreCheckInBanner';
 import useServiceViewModel from '../../viewModel/serviceViewModel';
 import CategorySection from './components/CategorySection';
 
@@ -29,6 +30,7 @@ export default function ServiceRequest() {
                     <BackButton />
                     <ThreeDotMenu items={menuItems} />
                 </div>
+                <PreCheckInBanner />
 
                 {/* ── Title ── */}
                 <h1 className="text-[1.75rem] font-bold m-0 mb-6 leading-tight">

@@ -6,6 +6,8 @@ import RoomScene from "./component/RoomScenes";
 import QuickCalls from './component/QuickCalls';
 import QuickActions from "./component/QuickActions";
 import BottomNav from '../../globalComponents/BottomNav';
+import PreCheckInBanner from '../../globalComponents/PreCheckInBanner';
+import PreArrivalCta from '../../globalComponents/PreArrivalCta';
 
 // ── Main Dashboard Component ──
 export default function DashboardNew() {
@@ -66,6 +68,9 @@ export default function DashboardNew() {
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white relative">
       <div className="pt-14 px-5 pb-28 flex flex-col gap-6">
+        <PreCheckInBanner />
+        {/* Invites a not-yet-arrived guest to fill the hotel's questionnaire. */}
+        <PreArrivalCta />
         {/* user profile — receives real data from API */}
         {/* <h2>HI</h2> */}
         <UserProfile
