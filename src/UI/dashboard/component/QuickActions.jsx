@@ -1,4 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+import bellImg from '../../../assets/images/dish.png';
+import bulbImg from '../../../assets/images/dish.png';
+import facilitiesImg from '../../../assets/images/dish.png';
+import foodImg from '../../../assets/images/dish.png';
 
 function ActionIcon({ type }) {
   const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
