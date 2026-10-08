@@ -58,7 +58,7 @@ function BlockedScreen({ message }) {
 
 export default function PortalModeGate({ children }) {
     const { isAuthenticated, isLoading: authLoading } = useAuth();
-    const { portalMode, error, webCheckInEnabled } = useCustomerProfile();
+    const { portalMode, error, webCheckInEnabled, isModuleEnabled } = useCustomerProfile();
     const { pathname } = useLocation();
 
     // '/' is App.jsx's token gate; without a token every route keeps legacy behavior.
@@ -76,6 +76,16 @@ export default function PortalModeGate({ children }) {
     // web check-in off (the server refuses its routes for them anyway).
     if ((portalMode === 'CHECKED_IN' || !webCheckInEnabled) && pathname === '/web-checkin') {
         return <Navigate to="/dashboard" replace />;
+    }
+    // Clinical-module pages at a hotel that doesn't offer them (the server
+    // refuses their APIs too). A FORM-mode guest goes back to the form — the
+    // dashboard would only bounce them there again.
+    const homePath = portalMode === 'FORM' ? '/web-checkin' : '/dashboard';
+    if (pathname === '/my-day' && !isModuleEnabled('DINCHARYA')) {
+        return <Navigate to={homePath} replace />;
+    }
+    if (pathname === '/pre-arrival' && !isModuleEnabled('PRE_ARRIVAL')) {
+        return <Navigate to={homePath} replace />;
     }
     return children;
 }

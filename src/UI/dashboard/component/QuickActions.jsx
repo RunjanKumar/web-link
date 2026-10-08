@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import useCustomerProfile from '../../../hooks/CustomerProfile';
 import bellImg from '../../../assets/images/dish.png';
 import bulbImg from '../../../assets/images/dish.png';
 import facilitiesImg from '../../../assets/images/dish.png';
@@ -33,7 +34,8 @@ function ActionIcon({ type }) {
  */
 export default function QuickActions({ masterSwitch, onToggleMaster }) {
   const navigate = useNavigate();
-  const actionsData = [
+  const { isModuleEnabled } = useCustomerProfile();
+  const allActions = [
     { id: 1, icon: 'bell', title: 'Service Request', sub: 'From 8:00 am - 11: pm', accent: 'bg-gradient-to-r from-amber-500 to-yellow-300', route: '/services' },
     { id: 2, icon: 'bulb', title: 'Lights Control', accent: 'bg-gradient-to-r from-green-500 to-emerald-400', hasSwitch: true, route: '/lights' },
     { id: 3, icon: 'facilities', title: 'Facilities', accent: 'bg-gradient-to-r from-blue-500 to-sky-400', route: '/facilities' },
@@ -41,10 +43,12 @@ export default function QuickActions({ masterSwitch, onToggleMaster }) {
     { id: 5, icon: 'laundry', title: 'Laundry', sub: 'Billed to your room', accent: 'bg-gradient-to-r from-cyan-500 to-teal-400', route: '/laundry' },
     { id: 6, icon: 'bill', title: 'View Bill', sub: 'Your stay charges', accent: 'bg-gradient-to-r from-pink-500 to-rose-400', route: '/bill' },
     { id: 7, icon: 'shop', title: 'Dukaan', sub: 'Shop essentials', accent: 'bg-gradient-to-r from-purple-500 to-fuchsia-400', route: '/dukaan' },
-    // Wellness guests only in practice: the page shows an empty state when the
-    // team has published nothing, which is what a non-wellness stay always sees.
-    { id: 8, icon: 'myday', title: 'My Day', sub: 'Your wellness rhythm', accent: 'bg-gradient-to-r from-emerald-500 to-teal-400', route: '/my-day' },
+    // Only at hotels with the Clinical module: the server sends DINCHARYA as
+    // off for the rest. A wellness hotel's non-wellness guest still sees the
+    // tile and gets the "nothing scheduled yet" empty state.
+    { id: 8, icon: 'myday', title: 'My Day', sub: 'Your wellness rhythm', accent: 'bg-gradient-to-r from-emerald-500 to-teal-400', route: '/my-day', module: 'DINCHARYA' },
   ];
+  const actionsData = allActions.filter((a) => !a.module || isModuleEnabled(a.module));
 
   const handleActionClick = (action) => {
     console.log("[Dashboard] Quick action clicked", {

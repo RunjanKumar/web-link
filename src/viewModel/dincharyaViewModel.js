@@ -16,7 +16,7 @@ import useCustomerProfile from '../hooks/CustomerProfile';
  * date we ask for that one specifically.
  */
 export default function useDincharyaViewModel() {
-    const { hotelData, isLoading: profileLoading } = useCustomerProfile();
+    const { hotelData, isLoading: profileLoading, refetch: refetchProfile } = useCustomerProfile();
     const hotelId = hotelData?._id;
 
     const [date, setDate] = useState('');
@@ -39,6 +39,12 @@ export default function useDincharyaViewModel() {
             if (err?.response?.status === 404) {
                 setDay(null);
                 setPublishedDates([]);
+            } else if (err?.response?.data?.type === 'MODULE_DISABLED') {
+                // The hotel stopped offering My Day while this tab held the old
+                // profile: reload it and PortalModeGate takes the guest home.
+                setDay(null);
+                setPublishedDates([]);
+                refetchProfile();
             } else {
                 setError(getApiErrorMessage(err, 'Failed to load your day.'));
             }
@@ -46,7 +52,7 @@ export default function useDincharyaViewModel() {
         } finally {
             setFetchLoading(false);
         }
-    }, [hotelId, date]);
+    }, [hotelId, date, refetchProfile]);
 
     useEffect(() => {
         fetchDay();
