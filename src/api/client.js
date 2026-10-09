@@ -1,9 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    // TEMPORARY — pointed at the local backend for Phase 3 manual testing.
-    // REVERT to 'https://dev-hotel-api.wattinventive.com' before committing or deploying.
-    baseURL: 'http://localhost:8080',
+    baseURL: 'https://dev-hotel-api.wattinventive.com',
     headers: {
         'Content-Type': 'application/json',
     },
