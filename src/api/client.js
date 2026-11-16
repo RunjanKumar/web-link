@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
+    // For local testing point this at http://localhost:8080 — never commit that.
     baseURL: 'https://dev-hotel-api.wattinventive.com',
     headers: {
         'Content-Type': 'application/json',

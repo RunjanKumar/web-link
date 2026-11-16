@@ -33,8 +33,11 @@ export default function Feedback() {
                 {/* ── Spacer to push button to bottom ── */}
                 <div className="flex-1" />
 
-                {/* ── Submit Button ── */}
-                <SubmitButton onClick={handleSubmit} loading={loading} />
+                {/* ── Submit Button (a star is required; the message is optional) ── */}
+                {star === 0 && (
+                    <p className="text-sm text-gray-400 mt-6 mb-0 text-center">Choose a star rating to send your feedback.</p>
+                )}
+                <SubmitButton onClick={handleSubmit} loading={loading} disabled={star === 0} />
             </div>
         </div>
     );

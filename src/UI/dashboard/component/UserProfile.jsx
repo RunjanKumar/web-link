@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ThreeDotMenu from '../../../globalComponents/ThreeDotMenu';
 import LogoutModal from '../../../globalComponents/LogoutModal';
 import useAuth from '../../../hooks/useAuth';
+import useCustomerProfile from '../../../hooks/CustomerProfile';
 
 // ── Skeleton shimmer for loading state ──
 function Skeleton({ className }) {
@@ -24,10 +25,11 @@ export default function UserProfile({ name, room, hotelName, isLoading, error })
     const navigate = useNavigate();
     const { logout } = useAuth();
     const [showLogout, setShowLogout] = useState(false);
+    const { isModuleEnabled } = useCustomerProfile();
 
-    // Menu items for three dot menu
+    // Menu items for three dot menu. Feedback only where the hotel offers it.
     const menuItems = [
-        { label: 'Share feedback', onClick: () => navigate('/feedback') },
+        ...(isModuleEnabled('FEEDBACK') ? [{ label: 'Share feedback', onClick: () => navigate('/feedback') }] : []),
         { label: 'Log out', onClick: () => setShowLogout(true) },
     ];
 

@@ -3,12 +3,13 @@
  *
  * @param {function} onClick  – Submit handler
  * @param {boolean}  loading  – When true, shows "Submitting…" and disables the button
+ * @param {boolean}  disabled – Nothing to send yet (no star chosen)
  */
-export default function SubmitButton({ onClick, loading }) {
+export default function SubmitButton({ onClick, loading, disabled = false }) {
     return (
         <button
             onClick={onClick}
-            disabled={loading}
+            disabled={loading || disabled}
             className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-full font-semibold text-lg border-none cursor-pointer transition-all duration-200 hover:brightness-110 mt-6 disabled:opacity-60 disabled:cursor-not-allowed"
         >
             {loading ? 'Submitting…' : 'Submit'}
