@@ -28,6 +28,11 @@ export default function useFeedbackViewModel() {
             toast.info(orderLockMessage);
             return;
         }
+        // The server needs a 1–5 star rating; the message is optional.
+        if (star < 1) {
+            toast.info('Choose a star rating to send your feedback.');
+            return;
+        }
         setLoading(true);
         try {
             await submitFeedback({ star, notes });

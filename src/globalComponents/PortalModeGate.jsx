@@ -87,5 +87,9 @@ export default function PortalModeGate({ children }) {
     if (pathname === '/pre-arrival' && !isModuleEnabled('PRE_ARRIVAL')) {
         return <Navigate to={homePath} replace />;
     }
+    // A hotel that switched Feedback off takes none (the server refuses it too).
+    if (pathname === '/feedback' && !isModuleEnabled('FEEDBACK')) {
+        return <Navigate to={homePath} replace />;
+    }
     return children;
 }
